@@ -1,3 +1,16 @@
+# 依赖与构建产物（npm install 和"构建 npm"后可重新生成，不入库）
 node_modules/
 miniprogram_npm/
+
+# 微信开发者工具私有配置（含个人本地设置，不应共享）
+project.private.config.json
+
+# 系统与编辑器杂项
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# 日志
+*.log
