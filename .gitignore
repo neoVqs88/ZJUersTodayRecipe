@@ -1,0 +1,18 @@
+# 第三方依赖（队友克隆后自行 npm install 还原）
+node_modules/
+
+# 微信开发者工具的私有配置（含个人设置，不应共享）
+project.private.config.json
+
+# npm 构建产物（如使用 npm，队友本地重新"构建 npm"即可）
+miniprogram_npm/
+
+# 系统与编辑器杂项
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# 日志
+*.log
