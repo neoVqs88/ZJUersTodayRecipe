@@ -1,25 +1,78 @@
-<wxs src="./index.wxs" module="utils" />
+<view class="message-page">
+  <t-navbar t-class="message-navbar" />
 
-<nav nav-type="title" title-text="全部消息"></nav>
-<scroll-view
-  class="message-list"
-  scroll-y
-  refresher-enabled
-  refresher-triggered="{{ loading }}"
-  bindrefresherrefresh="getMessageList"
->
-  <t-cell
-    wx:for="{{ messageList }}"
-    wx:key="index"
-    t-class-image="avatar"
-    t-class-description="content {{ utils.isRead(item.messages) ? '' : 'unread' }}"
-    image="{{ item.avatar }}"
-    title="{{ item.name }}"
-    description="{{ item.messages[item.messages.length - 1].content }}"
-    hover
-    bind:tap="toChat"
-    data-user-id="{{ item.userId }}"
-  >
-    <t-badge slot="right-icon" count="{{ utils.computeUnreadNum(item.messages) }}" class="wrapper" />
-  </t-cell>
-</scroll-view>
+  <scroll-view class="message-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="message-hero">
+      <image class="message-hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
+      <view class="message-hero__brand">
+        <text class="message-hero__brand-en">zjuer</text>
+        <text class="message-hero__brand-cn">今天吃什么</text>
+        <text class="message-hero__sparkle">✦</text>
+      </view>
+      <view class="message-hero__title">消息</view>
+    </view>
+
+    <view class="message-panel">
+      <view class="message-tabs">
+        <view
+          class="message-tabs__item {{activeTab === 'interaction' ? 'message-tabs__item--active' : ''}}"
+          data-tab="interaction"
+          bindtap="switchMessageTab"
+        >
+          互动消息
+        </view>
+        <view
+          class="message-tabs__item {{activeTab === 'system' ? 'message-tabs__item--active' : ''}}"
+          data-tab="system"
+          bindtap="switchMessageTab"
+        >
+          系统消息
+        </view>
+      </view>
+
+      <view class="message-list">
+        <view
+          class="message-card"
+          wx:for="{{displayMessages}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="openMessage"
+        >
+          <view class="message-card__icon message-card__icon--{{item.theme}}">
+            <t-icon name="{{item.icon}}" size="56rpx" color="#ffffff" />
+          </view>
+
+          <view class="message-card__content">
+            <view class="message-card__title-row">
+              <text class="message-card__title">{{item.title}}</text>
+              <text wx:if="{{item.tag}}" class="message-card__tag message-card__tag--{{item.tagTheme}}">{{item.tag}}</text>
+            </view>
+            <view class="message-card__summary">{{item.summary}}</view>
+            <view class="message-card__detail">{{item.detail}}</view>
+          </view>
+
+          <view class="message-card__meta">
+            <text class="message-card__time">{{item.time}}</text>
+            <text wx:if="{{item.unread}}" class="message-card__badge">{{item.unread}}</text>
+          </view>
+          <text class="message-card__arrow">›</text>
+        </view>
+      </view>
+
+      <view class="companion-banner" bindtap="goCompanion">
+        <view class="companion-banner__people">
+          <view class="companion-banner__person companion-banner__person--blue">●</view>
+          <view class="companion-banner__person companion-banner__person--green">●</view>
+        </view>
+        <view class="companion-banner__divider"></view>
+        <view class="companion-banner__copy">
+          <view class="companion-banner__title">寻找饭搭子，一起吃得更开心</view>
+          <view class="companion-banner__desc">发现身边的饭友，分享美食日常</view>
+        </view>
+        <view class="companion-banner__button">去看看 <text>›</text></view>
+      </view>
+
+      <view class="message-scroll__bottom-space"></view>
+    </view>
+  </scroll-view>
+</view>

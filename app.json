@@ -10,6 +10,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/roulette",
+      "name": "roulette",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/my/info-edit",
       "name": "edit",
       "pages": ["index"]

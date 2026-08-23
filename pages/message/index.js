@@ -1,108 +1,132 @@
-// pages/message/message.js
-import { fetchMessageList, markMessagesRead } from '~/mock/chat';
+const interactionMessages = [
+  {
+    id: 'comments',
+    title: '点赞与评论',
+    summary: '小鹿爱吃饭 赞了你的照片',
+    detail: '桂花糖藕：这家看起来好好吃！',
+    time: '10:36',
+    unread: 3,
+    icon: 'thumb-up',
+    theme: 'green',
+  },
+  {
+    id: 'system',
+    title: '系统通知',
+    summary: '本周打卡进度更新',
+    detail: '你已完成 3/21 天打卡，继续加油！',
+    time: '09:18',
+    unread: 0,
+    icon: 'notification',
+    theme: 'blue',
+  },
+  {
+    id: 'companion',
+    title: '饭搭子邀约',
+    summary: '小周同学 邀请你一起吃午餐',
+    detail: '五道口 · 黄焖鸡米饭',
+    time: '昨天 19:24',
+    unread: 1,
+    tag: '新邀约',
+    tagTheme: 'orange',
+    icon: 'usergroup',
+    theme: 'orange',
+  },
+  {
+    id: 'checkin',
+    title: '打卡提醒',
+    summary: '午餐打卡时间到啦 ☀️',
+    detail: '记得记录今天的美食，保持好习惯～',
+    time: '昨天 12:00',
+    unread: 2,
+    icon: 'calendar',
+    theme: 'green',
+  },
+  {
+    id: 'activity',
+    title: '活动通知',
+    summary: '“寻找饭搭子”春日活动开始啦！',
+    detail: '参与抽奖赢取美食优惠券',
+    time: '4月20日 18:30',
+    unread: 0,
+    tag: '官方',
+    tagTheme: 'blue',
+    icon: 'sound',
+    theme: 'purple',
+  },
+];
 
-const app = getApp();
-const { socket } = app.globalData; // 获取已连接的 socketTask
-let currentUser = null; // 当前打开的聊天用户 { userId, eventChannel }
+const systemMessages = [
+  {
+    id: 'system',
+    title: '系统通知',
+    summary: '本周打卡进度更新',
+    detail: '你已完成 3/21 天打卡，继续加油！',
+    time: '09:18',
+    unread: 0,
+    icon: 'notification',
+    theme: 'blue',
+  },
+  {
+    id: 'checkin',
+    title: '打卡提醒',
+    summary: '午餐打卡时间到啦 ☀️',
+    detail: '记得记录今天的美食，保持好习惯～',
+    time: '昨天 12:00',
+    unread: 2,
+    icon: 'calendar',
+    theme: 'green',
+  },
+  {
+    id: 'activity',
+    title: '活动通知',
+    summary: '“寻找饭搭子”春日活动开始啦！',
+    detail: '参与抽奖赢取美食优惠券',
+    time: '4月20日 18:30',
+    unread: 0,
+    tag: '官方',
+    tagTheme: 'blue',
+    icon: 'sound',
+    theme: 'purple',
+  },
+];
 
 Page({
-  /** 页面的初始数据 */
   data: {
-    messageList: [], // 完整消息列表 { userId, name, avatar, messages }
-    loading: true, // 是否正在加载（用于下拉刷新）
+    activeTab: 'interaction',
+    interactionMessages,
+    systemMessages,
+    displayMessages: interactionMessages,
   },
 
-  /** 生命周期函数--监听页面加载 */
-  onLoad(options) {
-    this.getMessageList();
-    // 处理接收到的数据
-    socket.onMessage((data) => {
-      data = JSON.parse(data);
-      if (data.type === 'message') {
-        const { userId, message } = data.data;
-        const { user, index } = this.getUserById(userId);
-        this.data.messageList.splice(index, 1);
-        this.data.messageList.unshift(user);
-        user.messages.push(message);
-        if (currentUser && userId === currentUser.userId) {
-          this.setMessagesRead(userId);
-          currentUser.eventChannel.emit('update', user);
-        }
-        this.setData({ messageList: this.data.messageList });
-        app.setUnreadNum(this.computeUnreadNum());
-      }
+  switchMessageTab(event) {
+    const { tab } = event.currentTarget.dataset;
+    this.setData({
+      activeTab: tab,
+      displayMessages: tab === 'system' ? this.data.systemMessages : this.data.interactionMessages,
     });
   },
 
-  /** 生命周期函数--监听页面初次渲染完成 */
-  onReady() {},
+  openMessage(event) {
+    const { id } = event.currentTarget.dataset;
+    const item = this.data.displayMessages.find((message) => message.id === id);
+    if (!item) return;
 
-  /** 生命周期函数--监听页面显示 */
-  onShow() {
-    currentUser = null;
-  },
+    const displayMessages = this.data.displayMessages.map((message) => (
+      message.id === id ? { ...message, unread: 0 } : message
+    ));
+    const listKey = this.data.activeTab === 'system' ? 'systemMessages' : 'interactionMessages';
+    this.setData({
+      displayMessages,
+      [listKey]: displayMessages,
+    });
 
-  /** 生命周期函数--监听页面隐藏 */
-  onHide() {},
-
-  /** 生命周期函数--监听页面卸载 */
-  onUnload() {},
-
-  /** 页面相关事件处理函数--监听用户下拉动作 */
-  onPullDownRefresh() {},
-
-  /** 页面上拉触底事件的处理函数 */
-  onReachBottom() {},
-
-  /** 用户点击右上角分享 */
-  onShareAppMessage() {},
-
-  /** 获取完整消息列表 */
-  getMessageList() {
-    fetchMessageList().then(({ data }) => {
-      this.setData({ messageList: data, loading: false });
+    wx.showToast({
+      title: `${item.title  }详情即将上线`,
+      icon: 'none',
     });
   },
 
-  /** 通过 userId 获取 user 对象和下标 */
-  getUserById(userId) {
-    let index = 0;
-    while (index < this.data.messageList.length) {
-      const user = this.data.messageList[index];
-      if (user.userId === userId) return { user, index };
-      index += 1;
-    }
-    // TODO：处理 userId 在列表中不存在的情况（）
-  },
-
-  /** 计算未读消息数量 */
-  computeUnreadNum() {
-    let unreadNum = 0;
-    this.data.messageList.forEach(({ messages }) => {
-      unreadNum += messages.filter((item) => !item.read).length;
-    });
-    return unreadNum;
-  },
-
-  /** 打开对话页 */
-  toChat(event) {
-    const { userId } = event.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/chat/index?userId${userId}` }).then(({ eventChannel }) => {
-      currentUser = { userId, eventChannel };
-      const { user } = this.getUserById(userId);
-      eventChannel.emit('update', user);
-    });
-    this.setMessagesRead(userId);
-  },
-
-  /** 将用户的所有消息标记为已读 */
-  setMessagesRead(userId) {
-    const { user } = this.getUserById(userId);
-    user.messages.forEach((message) => {
-      message.read = true;
-    });
-    this.setData({ messageList: this.data.messageList });
-    app.setUnreadNum(this.computeUnreadNum());
-    markMessagesRead(userId);
+  goCompanion() {
+    wx.switchTab({ url: '/pages/community/index' });
   },
 });

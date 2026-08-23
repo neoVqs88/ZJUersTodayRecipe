@@ -1,34 +1,114 @@
-<nav nav-type="search" />
-<view class="home-container">
-  <view class="home-content">
-    <t-tabs defaultValue="recommend">
-      <t-tab-panel label="推荐" value="recommend">
-        <t-pull-down-refresh
-          value="{{enable}}"
-          bind:refresh="onRefresh"
-          loadingTexts="{{['下拉刷新', '松手刷新', '正在刷新', '刷新完成']}}"
-        >
-          <view class="home-card-list">
-            <t-swiper
-              list="{{swiperList}}"
-              navigation="{{ { type: 'dots-bar' } }}"
-              height="488rpx"
-              style="width: 340rpx"
-            />
-            <card wx:for="{{cardInfo}}" wx:key="index" desc="{{item.desc}}" url="{{item.url}}" tags="{{item.tags}}" />
-          </view>
-        </t-pull-down-refresh>
-      </t-tab-panel>
-      <t-tab-panel label="我的关注" value="follow">
-        <view class="home-card-list">
-          <card wx:for="{{focusCardInfo}}" wx:key="index" desc="{{item.desc}}" url="{{item.url}}" tags="{{item.tags}}" />
-        </view>
-      </t-tab-panel>
-    </t-tabs>
-  </view>
-</view>
+<view class="community-page">
+  <t-navbar title="zjuer今天吃什么" />
 
-<view class="home-release">
-  <t-button theme="primary" size="large" icon="add" shape="round" bindtap="goRelease">发布</t-button>
+  <scroll-view class="community-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="community-hero">
+      <image class="community-hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
+      <view class="community-hero__brand">
+        <text class="community-hero__brand-en">zjuer</text>
+        <text class="community-hero__brand-cn">今天吃什么</text>
+        <text class="community-hero__sparkle">✦</text>
+      </view>
+
+      <view class="companion-card">
+        <image
+          class="companion-card__image"
+          src="/static/community/companion-banner.png"
+          mode="aspectFill"
+        />
+        <view class="companion-card__copy">
+          <view class="companion-card__title">寻找饭搭子</view>
+          <view class="companion-card__desc">一起约饭、拼桌、探店</view>
+          <view class="companion-card__actions">
+            <view class="companion-card__primary" bindtap="publishInvitation">
+              <t-icon name="user-add" size="28rpx" color="#ffffff" />
+              发布邀约
+            </view>
+            <view class="companion-card__secondary" bindtap="viewActivities">
+              <t-icon name="calendar" size="28rpx" color="#2f9b70" />
+              查看活动
+            </view>
+          </view>
+        </view>
+
+      </view>
+    </view>
+
+    <view class="category-bar">
+      <view
+        class="category-bar__item {{activeCategory === item.value ? 'category-bar__item--active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="value"
+        data-value="{{item.value}}"
+        bindtap="selectCategory"
+      >
+        <text class="category-bar__icon">{{item.icon}}</text>
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="post-list">
+      <view class="post-card" wx:for="{{displayPosts}}" wx:key="id">
+        <view class="post-card__header">
+          <image class="post-card__avatar" src="{{item.avatar}}" mode="aspectFill" />
+          <view class="post-card__author">
+            <view class="post-card__name-row">
+              <text class="post-card__name">{{item.author}}</text>
+              <text class="post-card__level">Lv.{{item.level}}</text>
+            </view>
+            <text class="post-card__time">{{item.time}}</text>
+          </view>
+          <view class="post-card__more" data-id="{{item.id}}" bindtap="showPostMenu">•••</view>
+        </view>
+
+        <view class="post-card__content">{{item.content}}</view>
+
+        <view class="post-card__visual post-card__visual--{{item.tone}}">
+          <text class="post-card__food">{{item.emoji}}</text>
+          <view class="post-card__visual-copy">
+            <text class="post-card__dish">{{item.dish}}</text>
+            <text class="post-card__visual-desc">{{item.visualDesc}}</text>
+          </view>
+        </view>
+
+        <view class="post-card__tags">
+          <text class="post-card__location">● {{item.location}}</text>
+          <text class="post-card__tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this"># {{tag}}</text>
+        </view>
+
+        <view class="post-card__actions">
+          <view
+            class="post-card__action {{item.liked ? 'post-card__action--liked' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="toggleLike"
+          >
+            <t-icon name="{{item.liked ? 'thumb-up-filled' : 'thumb-up'}}" size="34rpx" />
+            <text>{{item.likes}}</text>
+          </view>
+          <view class="post-card__action" data-id="{{item.id}}" bindtap="openComments">
+            <t-icon name="chat" size="34rpx" />
+            <text>{{item.comments}}</text>
+          </view>
+          <view
+            class="post-card__action {{item.collected ? 'post-card__action--collected' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="toggleCollect"
+          >
+            <t-icon name="{{item.collected ? 'star-filled' : 'star'}}" size="36rpx" />
+            <text>{{item.collections}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="post-list__empty" wx:if="{{!displayPosts.length}}">
+        这个分类还没有内容，来发布第一篇吧
+      </view>
+    </view>
+
+    <view class="release-button" bindtap="goRelease">
+      <t-icon name="add" size="48rpx" color="#ffffff" />
+    </view>
+
+    <view class="community-scroll__bottom-space"></view>
+  </scroll-view>
 </view>
-<t-message id="t-message" />
