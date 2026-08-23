@@ -49,9 +49,13 @@
     "compileWorklet": false,
     "localPlugins": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "lessSetting": {
+      "commonUseFilePath": "app.less"
+    }
   },
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "libVersion": "3.7.8",
   "appid": "wx85f8ac020396a494",
   "projectname": "miniprogram-starter",
