@@ -6,6 +6,15 @@ import { connectSocket, fetchUnreadNum } from './mock/chat';
 import { getCurrentUser } from './services/auth';
 import { getPreferences } from './services/preferences';
 
+// 初始化云开发（菜品识别等功能依赖）
+// TODO: 把下面的环境 ID 换成你们云开发控制台里的环境 ID
+if (wx.cloud) {
+  wx.cloud.init({
+    env: 'cloudbase-d6gm52tal9a059bd4',
+    traceUser: true,
+  });
+}
+
 if (config.isMock) {
   Mock();
 }

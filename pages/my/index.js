@@ -115,7 +115,7 @@ Page({
   },
 
   handleMenuTap(event) {
-    const item = event.currentTarget.dataset.item;
+    const { item } = event.currentTarget.dataset;
     if (item.type !== 'settings' && !this.requireLogin()) return;
     if (item.url) {
       wx.navigateTo({ url: item.url });
