@@ -7,7 +7,7 @@ export default async function recognizeDish() {
     mediaType: ['image'],
     sizeType: ['compressed'],
   });
-  const tempFilePath = choose.tempFiles[0].tempFilePath;
+  const { tempFilePath } = choose.tempFiles[0];
 
   wx.showLoading({ title: '识别中…', mask: true });
   try {
