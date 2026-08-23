@@ -1,82 +1,32 @@
-import Message from 'tdesign-miniprogram/message/index';
-import request from '~/api/request';
-
-// 获取应用实例
-// const app = getApp()
-
 Page({
   data: {
-    enable: false,
-    swiperList: [],
-    cardInfo: [],
-    // 发布
-    motto: 'Hello World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo'),
-    canIUseGetUserProfile: false,
-    canIUseOpenData: wx.canIUse('open-data.type.userAvatarUrl') && wx.canIUse('open-data.type.userNickName'), // 如需尝试获取用户信息可改为false
+    newDishes: [
+      { name: '黄焖鸡米饭', location: '第一食堂 · 二楼', score: '4.8', image: '/static/home/card0.png' },
+      { name: '照烧鸡排饭', location: '第二食堂 · 一楼', score: '4.7', image: '/static/home/card1.png' },
+      { name: '红烧牛肉面', location: '风味窗口', score: '4.6', image: '/static/home/card2.png' },
+    ],
   },
-  // 生命周期
-  async onReady() {
-    const [cardRes, swiperRes] = await Promise.all([
-      request('/home/cards').then((res) => res.data),
-      request('/home/swipers').then((res) => res.data),
-    ]);
 
-    this.setData({
-      cardInfo: cardRes.data,
-      focusCardInfo: cardRes.data.slice(0, 3),
-      swiperList: swiperRes.data,
-    });
+  goSearch() {
+    wx.navigateTo({ url: '/pages/search/index' });
   },
-  onLoad(option) {
-    if (wx.getUserProfile) {
-      this.setData({
-        canIUseGetUserProfile: true,
-      });
-    }
-    if (option.oper) {
-      let content = '';
-      if (option.oper === 'release') {
-        content = '发布成功';
-      } else if (option.oper === 'save') {
-        content = '保存成功';
-      }
-      this.showOperMsg(content);
-    }
-  },
-  onRefresh() {
-    this.refresh();
-  },
-  async refresh() {
-    this.setData({
-      enable: true,
-    });
-    const [cardRes, swiperRes] = await Promise.all([
-      request('/home/cards').then((res) => res.data),
-      request('/home/swipers').then((res) => res.data),
-    ]);
 
-    setTimeout(() => {
-      this.setData({
-        enable: false,
-        cardInfo: cardRes.data,
-        swiperList: swiperRes.data,
-      });
-    }, 1500);
-  },
-  showOperMsg(content) {
-    Message.success({
-      context: this,
-      offset: [120, 32],
-      duration: 4000,
-      content,
+  makeDecision() {
+    const { newDishes } = this.data;
+    const dish = newDishes[Math.floor(Math.random() * newDishes.length)];
+    wx.showModal({
+      title: '今天就吃这个',
+      content: `${dish.name}\n${dish.location}`,
+      showCancel: false,
+      confirmText: '好呀',
     });
   },
-  goRelease() {
-    wx.navigateTo({
-      url: '/pages/release/index',
-    });
+
+  checkIn() {
+    wx.showToast({ title: '打卡功能即将上线', icon: 'none' });
+  },
+
+  showMore() {
+    wx.showToast({ title: '菜品列表即将上线', icon: 'none' });
   },
 });

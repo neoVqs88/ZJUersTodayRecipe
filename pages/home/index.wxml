@@ -1,48 +1,51 @@
-<nav nav-type="search" />
-<view class="home-container">
-  <view class="home-content">
-    <t-tabs defaultValue="recommend">
-      <t-tab-panel label="推荐" value="recommend">
-        <t-pull-down-refresh
-          value="{{enable}}"
-          bind:refresh="onRefresh"
-          loadingTexts="{{['下拉刷新', '松手刷新', '正在刷新', '刷新完成']}}"
-        >
-          <view class="home-card-list">
-            <t-swiper
-              list="{{swiperList}}"
-              navigation="{{ { type: 'dots-bar' } }}"
-              height="488rpx"
-              style="width: 340rpx"
-            />
-            <card
-              wx:for="{{cardInfo}}"
-              wx:key="index"
-              desc="{{item.desc}}"
-              url="{{item.url}}"
-              tags="{{item.tags}}"
-            />
-          </view>
-        </t-pull-down-refresh>
-      </t-tab-panel>
-      <t-tab-panel label="我的关注" value="follow">
-        <view class="home-card-list">
-          <card
-            wx:for="{{focusCardInfo}}"
-            wx:key="index"
-            desc="{{item.desc}}"
-            url="{{item.url}}"
-            tags="{{item.tags}}"
-          />
-        </view>
-      </t-tab-panel>
-    </t-tabs>
+<nav title-text="zjuer 今天吃什么" />
+<scroll-view class="home" scroll-y>
+  <view class="home__search" bindtap="goSearch">
+    <t-icon name="search" size="40rpx" color="#667085" />
+    <text>搜索菜品、食堂、窗口</text>
   </view>
-</view>
 
-<view class="home-release">
-  <t-button theme="primary" size="large" icon="add" shape="round" bindtap="goRelease">
-    发布
-  </t-button>
-</view>
-<t-message id="t-message" />
+  <view class="section">
+    <view class="section__header">
+      <view>
+        <text class="section__title">新品推荐</text>
+        <text class="section__subtitle">新鲜上新，尝鲜不迷路</text>
+      </view>
+      <text class="section__more" bindtap="showMore">更多 ›</text>
+    </view>
+    <scroll-view class="dish-list" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="dish-card" wx:for="{{newDishes}}" wx:key="name">
+        <image class="dish-card__image" src="{{item.image}}" mode="aspectFill" />
+        <view class="dish-card__name">{{item.name}}</view>
+        <view class="dish-card__location">{{item.location}}</view>
+        <view class="dish-card__score">★ {{item.score}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="decision-card">
+    <view class="decision-card__copy">
+      <view class="decision-card__title">吃啥转转乐</view>
+      <view class="decision-card__desc">选择困难？让随机推荐帮你决定</view>
+      <t-button size="small" shape="round" theme="primary" bindtap="makeDecision">帮我决定</t-button>
+    </view>
+    <view class="decision-card__wheel">?</view>
+  </view>
+
+  <view class="checkin-card">
+    <view class="checkin-card__icon"><t-icon name="camera" size="56rpx" color="#3478f6" /></view>
+    <view class="checkin-card__content">
+      <view class="checkin-card__title">三餐拍照打卡</view>
+      <view class="checkin-card__desc">记录三餐，养成校园饮食好习惯</view>
+    </view>
+    <t-button size="small" variant="outline" theme="primary" bindtap="checkIn">去打卡</t-button>
+  </view>
+
+  <view class="progress-card">
+    <view>
+      <view class="progress-card__title">本周打卡进度</view>
+      <view class="progress-card__desc">坚持记录，养成好习惯</view>
+    </view>
+    <view class="progress-card__count"><text>3</text> / 21</view>
+  </view>
+</scroll-view>

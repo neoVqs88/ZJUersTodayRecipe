@@ -18,6 +18,11 @@ Component({
         isSidebar: true,
       },
       {
+        title: '社区页',
+        url: 'pages/community/index',
+        isSidebar: true,
+      },
+      {
         title: '搜索页',
         url: 'pages/search/index',
         isSidebar: false,

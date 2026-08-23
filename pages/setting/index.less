@@ -1,3 +1,82 @@
-.cell-group-class {
-  margin: 32rpx !important;
+@import '/variable.less';
+
+.setting-page {
+  --page-bg: #f4f7fb;
+  --card-bg: #fff;
+  --text-primary: #101828;
+  --text-secondary: #667085;
+  --text-tertiary: #98a2b3;
+  --border-color: #eaecf0;
+  --title-size: 30rpx;
+  --caption-size: 24rpx;
+
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  --td-navbar-bg-color: var(--card-bg);
+
+  &.theme-dark {
+    --page-bg: #101318;
+    --card-bg: #1f242c;
+    --text-primary: #f2f4f7;
+    --text-secondary: #b3bac5;
+    --text-tertiary: #858d9a;
+    --border-color: #343b46;
+    --td-navbar-color: #f2f4f7;
+  }
+
+  &.font-small { --title-size: 27rpx; --caption-size: 22rpx; }
+  &.font-large { --title-size: 34rpx; --caption-size: 27rpx; }
+
+  &__scroll {
+    box-sizing: border-box;
+    height: calc(100vh - @nav-bar-height);
+    padding: 8rpx 32rpx 48rpx;
+  }
+
+  &__logout { margin-top: 48rpx; }
+  &__version { margin: 36rpx 0; color: var(--text-tertiary); font-size: 22rpx; text-align: center; }
 }
+
+.setting-section {
+  margin-top: 32rpx;
+
+  &__title { margin: 0 12rpx 14rpx; color: var(--text-secondary); font-size: var(--caption-size); }
+}
+
+.setting-card {
+  overflow: hidden;
+  border: 1rpx solid var(--border-color);
+  border-radius: 26rpx;
+  background: var(--card-bg);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  min-height: 118rpx;
+  padding: 0 28rpx;
+
+  & + & { border-top: 1rpx solid var(--border-color); }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 68rpx;
+    height: 68rpx;
+    border-radius: 20rpx;
+
+    &--purple { background: #f1ebff; color: #805ad5; }
+    &--blue { background: #eaf2ff; color: #3478f6; }
+    &--green { background: #e8f7ee; color: #38a169; }
+    &--orange { background: #fff3df; color: #f5a623; }
+  }
+
+  &__copy { flex: 1; min-width: 0; margin-left: 22rpx; }
+  &__title { color: var(--text-primary); font-size: var(--title-size); }
+  &__description { margin-top: 8rpx; color: var(--text-secondary); font-size: var(--caption-size); }
+  &__value { margin-right: 8rpx; color: var(--text-secondary); font-size: var(--caption-size); }
+}
+
+.font-icon { font-size: 28rpx; font-weight: 700; }

@@ -1,75 +1,68 @@
-<t-toast id="t-toast" />
-
-<view class="my">
-  <image class="nav-bg" src="/static/bg_navbar.png" />
+<view class="my-page {{appearanceClass}}">
+  <image class="my-page__background" src="/static/bg_navbar.png" mode="aspectFill" />
   <nav title-text="我的" />
-  <view class="my-info">
-    <t-cell-group>
-      <t-cell wx:if="{{isLoad}}" bordered="{{false}}">
-        <t-avatar image="{{personalInfo.image}}" slot="left-icon" size="large" />
-        <view class="my-info__person" slot="description">
-          <view class="name">{{personalInfo.name}}</view>
-          <view class="tags">
-            <t-tag class="tag" variant="light" icon="discount">{{personalInfo.star}}</t-tag>
-            <t-tag class="tag" variant="light" icon="location">{{personalInfo.city}}</t-tag>
+
+  <scroll-view class="my-page__scroll" scroll-y>
+    <view class="profile-card">
+      <view class="profile-card__main" wx:if="{{isLoggedIn}}">
+        <t-avatar image="{{personalInfo.image}}" size="128rpx" />
+        <view class="profile-card__copy">
+          <view class="profile-card__name-row">
+            <text class="profile-card__name">{{personalInfo.name || 'zjuer'}}</text>
+            <t-tag size="small" variant="light" theme="primary" icon="education">{{personalInfo.star || '浙江大学生'}}</t-tag>
+          </view>
+          <view class="profile-card__intro">{{personalInfo.introduction || personalInfo.brief || '吃好每一餐，记录校园好食光 ✨'}}</view>
+        </view>
+        <view class="profile-card__edit" bindtap="editProfile">编辑资料 <t-icon name="chevron-right" /></view>
+      </view>
+
+      <view class="profile-card__main profile-card__guest" wx:else bindtap="requireLogin">
+        <t-avatar icon="user" size="128rpx" />
+        <view class="profile-card__copy">
+          <view class="profile-card__name">登录 / 注册</view>
+          <view class="profile-card__intro">登录后记录三餐，发现更多校园美食</view>
+        </view>
+        <t-icon name="chevron-right" size="36rpx" />
+      </view>
+
+      <view class="stats">
+        <view class="stats__item" wx:for="{{stats}}" wx:key="label" data-item="{{item}}" bindtap="handleStatTap">
+          <view class="icon-box icon-box--{{item.color}}"><t-icon name="{{item.icon}}" size="40rpx" /></view>
+          <view class="stats__copy">
+            <view class="stats__label">{{item.label}}</view>
+            <view class="stats__value">{{item.value}} <text>{{item.unit}}</text></view>
           </view>
         </view>
-        <t-icon slot="right-icon" name="edit" size="40rpx" color="#000000e6" bindtap="onNavigateTo" />
-      </t-cell>
-      <t-cell
-        wx:if="{{!isLoad}}"
-        title="请先登录/注册"
-        bordered="{{false}}"
-        t-class-title="cell-class-title"
-        t-class-center="cell-class-center"
-        bindtap="onLogin"
-      >
-        <t-avatar slot="left-icon" icon="user" size="128rpx" />
-      </t-cell>
-    </t-cell-group>
-    <t-divider t-class="divider-class" />
-    <t-grid t-class="grid-class">
-      <t-grid-item
-        wx:for="{{gridList}}"
-        wx:for-item="gridItem"
-        wx:key="type"
-        text="{{gridItem.name}}"
-        icon="{{gridItem.icon}}"
-        class="grid-item {{gridItem.type === 'all' ? 'split-line' : ''}}"
-        data-data="{{gridItem}}"
-        bindclick="onEleClick"
-      />
-    </t-grid>
-  </view>
+      </view>
+    </view>
 
-  <view class="my-service">
-    <view class="my-service--tips">推荐服务</view>
-    <t-grid column="{{4}}" class="my-service__list">
-      <t-grid-item
-        class="my-service__list-item"
-        wx:for="{{service}}"
-        wx:key="item"
-        text="{{item.name}}"
-        image="{{item.image}}"
-        url="{{item.url}}"
-        data-data="{{item}}"
-        bindclick="onEleClick"
-      />
-    </t-grid>
-  </view>
+    <view class="progress-card">
+      <view class="progress-card__copy">
+        <view class="progress-card__title">本周打卡进度</view>
+        <view class="progress-card__subtitle">记录三餐，养成好习惯</view>
+        <view class="progress-card__button" data-item="{{stats[0]}}" bindtap="handleStatTap">查看打卡日历 ›</view>
+      </view>
+      <view class="week-progress">
+        <view class="week-progress__days">
+          <view class="week-progress__day" wx:for="{{weekDays}}" wx:key="label">
+            <text>{{item.label}}</text>
+            <view class="week-progress__dot {{item.checked ? 'is-checked' : ''}}">
+              <t-icon wx:if="{{item.checked}}" name="check" size="26rpx" />
+            </view>
+          </view>
+        </view>
+        <view class="week-progress__streak">连续打卡 <text>{{streakDays}}</text> 天</view>
+      </view>
+    </view>
 
-  <t-cell-group theme="card">
-    <t-cell
-      wx:for="{{settingList}}"
-      wx:for-item="item"
-      wx:key="type"
-      title="{{item.name}}"
-      url="{{item.url}}"
-      leftIcon="{{item.icon}}"
-      hover
-      arrow
-      data-data="{{item}}"
-      bindclick="onEleClick"
-    />
-  </t-cell-group>
+    <view class="menu-card" wx:for="{{menuGroups}}" wx:for-item="group" wx:key="index">
+      <view class="menu-row" wx:for="{{group}}" wx:key="type" data-item="{{item}}" bindtap="handleMenuTap">
+        <view class="icon-box icon-box--{{item.color}}"><t-icon name="{{item.icon}}" size="38rpx" /></view>
+        <text class="menu-row__title">{{item.name}}</text>
+        <text wx:if="{{item.note}}" class="menu-row__note">{{item.note}}</text>
+        <t-icon name="chevron-right" size="36rpx" color="{{isDarkMode ? '#667085' : '#98a2b3'}}" />
+      </view>
+    </view>
+    <view class="my-page__bottom-space" />
+  </scroll-view>
 </view>

@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/home/index", "pages/message/index", "pages/my/index"],
+  "pages": ["pages/home/index", "pages/community/index", "pages/message/index", "pages/my/index"],
   "usingComponents": {
     "t-toast": "tdesign-miniprogram/toast/toast"
   },
@@ -57,6 +57,10 @@
       {
         "pagePath": "pages/home/index",
         "text": "首页"
+      },
+      {
+        "pagePath": "pages/community/index",
+        "text": "社区"
       },
       {
         "pagePath": "pages/message/index",

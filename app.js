@@ -3,6 +3,8 @@ import config from './config';
 import Mock from './mock/index';
 import createBus from './utils/eventBus';
 import { connectSocket, fetchUnreadNum } from './mock/chat';
+import { getCurrentUser } from './services/auth';
+import { getPreferences } from './services/preferences';
 
 if (config.isMock) {
   Mock();
@@ -10,6 +12,8 @@ if (config.isMock) {
 
 App({
   onLaunch() {
+    this.globalData.userInfo = getCurrentUser();
+    this.globalData.preferences = getPreferences();
     const updateManager = wx.getUpdateManager();
 
     updateManager.onCheckForUpdate((res) => {
@@ -35,6 +39,7 @@ App({
     userInfo: null,
     unreadNum: 0, // 未读消息数量
     socket: null, // SocketTask 对象
+    preferences: null,
   },
 
   /** 全局事件总线 */

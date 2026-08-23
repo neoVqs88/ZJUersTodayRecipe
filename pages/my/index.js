@@ -1,87 +1,126 @@
 import request from '~/api/request';
-import useToastBehavior from '~/behaviors/useToast';
+import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import { getAppearanceClass, getPreferences } from '~/services/preferences';
+
+const MENU_GROUPS = [
+  [
+    { name: '我的打卡', icon: 'calendar', color: 'green', type: 'checkins' },
+    { name: '我的帖子', icon: 'root-list', color: 'blue', type: 'posts' },
+    { name: '我的收藏', icon: 'star', color: 'orange', type: 'favorites' },
+    { name: '浏览记录', icon: 'time', color: 'purple', type: 'history' },
+    { name: '饭搭子', icon: 'usergroup', color: 'green', type: 'partners', note: '一起干饭更快乐' },
+  ],
+  [
+    { name: '我的举报', icon: 'error-circle', color: 'red', type: 'reports' },
+    { name: '意见反馈', icon: 'chat', color: 'blue', type: 'feedback' },
+    { name: '设置', icon: 'setting', color: 'gray', type: 'settings', url: '/pages/setting/index' },
+  ],
+];
 
 Page({
-  behaviors: [useToastBehavior],
-
   data: {
-    isLoad: false,
-    service: [],
+    isLoggedIn: false,
+    isDarkMode: false,
+    appearanceClass: 'theme-light font-standard',
     personalInfo: {},
-    gridList: [
-      {
-        name: '全部发布',
-        icon: 'root-list',
-        type: 'all',
-        url: '',
-      },
-      {
-        name: '审核中',
-        icon: 'search',
-        type: 'progress',
-        url: '',
-      },
-      {
-        name: '已发布',
-        icon: 'upload',
-        type: 'published',
-        url: '',
-      },
-      {
-        name: '草稿箱',
-        icon: 'file-copy',
-        type: 'draft',
-        url: '',
-      },
+    stats: [],
+    weekDays: [
+      { label: '一', checked: false },
+      { label: '二', checked: false },
+      { label: '三', checked: false },
+      { label: '四', checked: false },
+      { label: '五', checked: false },
+      { label: '六', checked: false },
+      { label: '日', checked: false },
     ],
-
-    settingList: [
-      { name: '联系客服', icon: 'service', type: 'service' },
-      { name: '设置', icon: 'setting', type: 'setting', url: '/pages/setting/index' },
-    ],
+    streakDays: 0,
+    menuGroups: MENU_GROUPS,
   },
 
   onLoad() {
-    this.getServiceList();
+    const app = getApp();
+    this.handlePreferencesChange = (preferences) => this.applyPreferences(preferences);
+    app.eventBus.on('preferences-change', this.handlePreferencesChange);
+  },
+
+  onUnload() {
+    getApp().eventBus.off('preferences-change', this.handlePreferencesChange);
   },
 
   async onShow() {
-    const Token = wx.getStorageSync('access_token');
-    const personalInfo = await this.getPersonalInfo();
+    this.applyPreferences();
+    const loggedIn = isLoggedIn();
+    const cachedUser = loggedIn ? getCurrentUser() || {} : {};
+    this.setData({
+      isLoggedIn: loggedIn,
+      personalInfo: cachedUser,
+      stats: this.buildStats(cachedUser, loggedIn),
+      weekDays: this.buildWeekDays(cachedUser.weeklyCheckIns),
+      streakDays: loggedIn ? cachedUser.streakDays || 0 : 0,
+    });
+    if (!loggedIn) return;
 
-    if (Token) {
+    try {
+      const personalInfo = await this.getPersonalInfo();
       this.setData({
-        isLoad: true,
         personalInfo,
+        stats: this.buildStats(personalInfo, true),
+        weekDays: this.buildWeekDays(personalInfo.weeklyCheckIns),
+        streakDays: personalInfo.streakDays || 0,
       });
+    } catch (error) {
+      // 接口失败时继续展示登录接口缓存的基础用户信息。
     }
   },
 
-  getServiceList() {
-    request('/api/getServiceList').then((res) => {
-      const { service } = res.data.data;
-      this.setData({ service });
+  applyPreferences(preferences = getPreferences()) {
+    this.setData({
+      appearanceClass: getAppearanceClass(preferences),
+      isDarkMode: preferences.darkMode,
     });
   },
 
-  async getPersonalInfo() {
-    const info = await request('/api/genPersonalInfo').then((res) => res.data.data);
-    return info;
+  buildStats(user, loggedIn) {
+    return [
+      { label: '我的打卡', value: loggedIn ? user.checkInCount || 0 : 0, unit: '次', icon: 'calendar', color: 'green' },
+      { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue' },
+      { label: '我的收藏', value: loggedIn ? user.favoriteCount || 0 : 0, unit: '个', icon: 'star', color: 'orange' },
+    ];
   },
 
-  onLogin(e) {
-    wx.navigateTo({
-      url: '/pages/login/login',
-    });
+  buildWeekDays(records = []) {
+    const labels = ['一', '二', '三', '四', '五', '六', '日'];
+    return labels.map((label, index) => ({ label, checked: Boolean(records[index]) }));
   },
 
-  onNavigateTo() {
-    wx.navigateTo({ url: `/pages/my/info-edit/index` });
+  getPersonalInfo() {
+    return request('/api/genPersonalInfo').then((res) => res.data.data);
   },
 
-  onEleClick(e) {
-    const { name, url } = e.currentTarget.dataset.data;
-    if (url) return;
-    this.onShowToast('#t-toast', name);
+  requireLogin() {
+    if (this.data.isLoggedIn) return true;
+    wx.navigateTo({ url: '/pages/login/login' });
+    return false;
+  },
+
+  editProfile() {
+    if (!this.requireLogin()) return;
+    wx.navigateTo({ url: '/pages/my/info-edit/index' });
+  },
+
+  handleStatTap(event) {
+    if (!this.requireLogin()) return;
+    const { label } = event.currentTarget.dataset.item;
+    wx.showToast({ title: `${label}页面待完善`, icon: 'none' });
+  },
+
+  handleMenuTap(event) {
+    const item = event.currentTarget.dataset.item;
+    if (item.type !== 'settings' && !this.requireLogin()) return;
+    if (item.url) {
+      wx.navigateTo({ url: item.url });
+      return;
+    }
+    wx.showToast({ title: `${item.name}功能待完善`, icon: 'none' });
   },
 });

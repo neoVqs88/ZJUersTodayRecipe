@@ -2,6 +2,23 @@ import config from '~/config';
 
 const { baseUrl } = config;
 const delay = config.isMock ? 500 : 0;
+
+function normalizeResponse(response) {
+  const hasHttpStatus = typeof response.statusCode === 'number';
+  const statusCode = hasHttpStatus ? response.statusCode : 200;
+  const body = hasHttpStatus ? response.data : response;
+
+  if (statusCode < 200 || statusCode >= 300) {
+    throw body || { message: `HTTP ${statusCode}` };
+  }
+
+  if (body && (body.success === false || (body.code !== undefined && ![0, 200].includes(body.code)))) {
+    throw body;
+  }
+
+  return body;
+}
+
 function request(url, method = 'GET', data = {}) {
   const header = {
     'content-type': 'application/json',
@@ -21,12 +38,11 @@ function request(url, method = 'GET', data = {}) {
       header,
       success(res) {
         setTimeout(() => {
-          // HTTP状态码为200才视为成功
-          if (res.code === 200) {
-            resolve(res);
-          } else {
-            // wx.request的特性，只要有响应就会走success回调，所以在这里判断状态，非200的均视为请求失败
-            reject(res);
+          try {
+            resolve(normalizeResponse(res));
+          } catch (error) {
+            if (res.statusCode === 401) wx.removeStorageSync('access_token');
+            reject(error);
           }
         }, delay);
       },

@@ -55,12 +55,12 @@ Page({
   },
   saveDraft() {
     wx.reLaunch({
-      url: `/pages/home/index?oper=save`,
+      url: `/pages/community/index?oper=save`,
     });
   },
   release() {
     wx.reLaunch({
-      url: `/pages/home/index?oper=release`,
+      url: `/pages/community/index?oper=release`,
     });
   },
 });

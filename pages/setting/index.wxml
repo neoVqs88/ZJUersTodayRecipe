@@ -1,21 +1,57 @@
-<t-navbar title="设置" left-arrow />
-<view class="setting">
-  <t-cell-group wx:for="{{menuData}}" wx:for-item="item" wx:key="index" t-class="cell-group-class" theme="card">
-    <t-cell
-      wx:for="{{item}}"
-      wx:for-item="carditem"
-      wx:key="cardkey"
-      title="{{carditem.title}}"
-      hover
-      arrow
-      left-icon="app"
-      url="{{carditem.url}}"
-      bordered="true"
-      leftIcon="{{carditem.icon}}"
-      data-data="{{carditem}}"
-      bindclick="onEleClick"
-    />
-  </t-cell-group>
-</view>
+<view class="setting-page {{appearanceClass}}">
+  <t-navbar title="设置" left-arrow />
+  <scroll-view class="setting-page__scroll" scroll-y>
+    <view class="setting-section">
+      <view class="setting-section__title">外观</view>
+      <view class="setting-card">
+        <view class="setting-row">
+          <view class="setting-row__icon setting-row__icon--purple"><t-icon name="mode-dark" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">深色模式</view>
+            <view class="setting-row__description">减少暗光环境下的视觉刺激</view>
+          </view>
+          <t-switch value="{{darkMode}}" bind:change="toggleDarkMode" />
+        </view>
 
-<t-toast id="t-toast" />
+        <view class="setting-row" bindtap="chooseFontSize">
+          <view class="setting-row__icon setting-row__icon--blue"><text class="font-icon">Aa</text></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">字体大小</view>
+            <view class="setting-row__description">调整个人页与设置页的文字大小</view>
+          </view>
+          <text class="setting-row__value">{{fontSizeLabel}}</text>
+          <t-icon name="chevron-right" size="36rpx" />
+        </view>
+      </view>
+    </view>
+
+    <view class="setting-section">
+      <view class="setting-section__title">通用</view>
+      <view class="setting-card">
+        <view class="setting-row">
+          <view class="setting-row__icon setting-row__icon--green"><t-icon name="notification" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">消息通知</view>
+            <view class="setting-row__description">接收互动、打卡与饭搭子提醒</view>
+          </view>
+          <t-switch value="{{notificationsEnabled}}" bind:change="toggleNotifications" />
+        </view>
+
+        <view class="setting-row" bindtap="clearCache">
+          <view class="setting-row__icon setting-row__icon--orange"><t-icon name="delete" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">清理缓存</view>
+            <view class="setting-row__description">清除搜索记录和本地临时草稿</view>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" />
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{loggedIn}}" class="setting-page__logout">
+      <t-button block theme="danger" variant="outline" bindtap="logout">退出登录</t-button>
+    </view>
+
+    <view class="setting-page__version">zjuer 今天吃什么 · 当前版本 0.1.0</view>
+  </scroll-view>
+</view>

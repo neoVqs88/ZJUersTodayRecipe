@@ -1,18 +1,26 @@
+import { getAppearanceClass, getPreferences } from '../services/preferences';
+
 const app = getApp();
 
 Component({
   data: {
     value: '', // 初始值设置为空，避免第一次加载时闪烁
     unreadNum: 0, // 未读消息数量
+    appearanceClass: 'theme-light font-standard',
     list: [
       {
         icon: 'home',
-        value: 'index',
+        value: 'home',
         label: '首页',
       },
       {
-        icon: 'chat',
-        value: 'notice',
+        icon: 'usergroup',
+        value: 'community',
+        label: '社区',
+      },
+      {
+        icon: 'notification',
+        value: 'message',
         label: '消息',
       },
       {
@@ -24,6 +32,12 @@ Component({
   },
   lifetimes: {
     ready() {
+      this.handlePreferencesChange = (preferences) => {
+        this.setData({ appearanceClass: getAppearanceClass(preferences) });
+      };
+      this.handlePreferencesChange(getPreferences());
+      app.eventBus.on('preferences-change', this.handlePreferencesChange);
+
       const pages = getCurrentPages();
       const curPage = pages[pages.length - 1];
       if (curPage) {
@@ -41,6 +55,9 @@ Component({
       app.eventBus.on('unread-num-change', (unreadNum) => {
         this.setUnreadNum(unreadNum);
       });
+    },
+    detached() {
+      app.eventBus.off('preferences-change', this.handlePreferencesChange);
     },
   },
   methods: {

@@ -7,12 +7,20 @@ export default {
     message: 'success',
     data: {
       image: '/static/avatar1.png',
-      name: '小小轩',
-      star: '天枰座',
+      name: 'zjuer_小蓝',
+      star: '浙江大学生',
+      campus: '紫金港校区',
+      city: '杭州',
       gender: 0,
       birth: '1994-09-27',
       address: ['440000', '440300'],
-      brief: '在你身边，为你设计',
+      brief: '吃好每一餐，记录校园好食光 ✨',
+      introduction: '吃好每一餐，记录校园好食光 ✨',
+      checkInCount: 21,
+      postCount: 8,
+      favoriteCount: 16,
+      weeklyCheckIns: [true, true, true, true, false, false, false],
+      streakDays: 3,
       photos: [
         {
           url: getLocalUrl('/static/img_td.png', 'uploaded1.png'),
