@@ -3,10 +3,12 @@ import recognizeDish from '../../utils/recognizeDish';
 Page({
   data: {
     newDishes: [
-      { name: '黄焖鸡米饭', location: '第一食堂 · 二楼', score: '4.8', image: '/static/home/card0.png' },
-      { name: '照烧鸡排饭', location: '第二食堂 · 一楼', score: '4.7', image: '/static/home/card1.png' },
-      { name: '红烧牛肉面', location: '风味窗口', score: '4.6', image: '/static/home/card2.png' },
+      { name: '黄焖鸡米饭', location: '第一食堂 · 二楼', shortLocation: '一食堂', score: '4.8', image: '/static/home/card0.png' },
+      { name: '照烧鸡排饭', location: '第二食堂 · 一楼', shortLocation: '二食堂', score: '4.7', image: '/static/home/card1.png' },
+      { name: '红烧牛肉面', location: '风味窗口 · 面之道', shortLocation: '风味窗口', score: '4.6', image: '/static/home/card2.png' },
     ],
+    checkInDays: 3,
+    monthlyGoal: 30,
   },
 
   goSearch() {
@@ -14,13 +16,16 @@ Page({
   },
 
   makeDecision() {
-    const { newDishes } = this.data;
-    const dish = newDishes[Math.floor(Math.random() * newDishes.length)];
+    wx.navigateTo({ url: '/pages/roulette/index' });
+  },
+
+  viewDish(event) {
+    const dish = this.data.newDishes[event.currentTarget.dataset.index];
     wx.showModal({
-      title: '今天就吃这个',
-      content: `${dish.name}\n${dish.location}`,
+      title: dish.name,
+      content: `${dish.location}\n推荐评分 ${dish.score}`,
       showCancel: false,
-      confirmText: '好呀',
+      confirmText: '知道了',
     });
   },
 
@@ -53,5 +58,9 @@ Page({
 
   showMore() {
     wx.showToast({ title: '菜品列表即将上线', icon: 'none' });
+  },
+
+  showCheckInHistory() {
+    wx.showToast({ title: '打卡记录即将上线', icon: 'none' });
   },
 });

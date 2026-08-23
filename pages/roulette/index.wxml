@@ -1,0 +1,97 @@
+<view class="roulette-page">
+  <t-navbar title="转盘推荐" left-arrow />
+
+  <scroll-view class="roulette-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="roulette-hero">
+      <view class="roulette-hero__eyebrow">今天吃什么</view>
+      <view class="roulette-hero__title">让幸运转盘替你做决定</view>
+      <view class="roulette-hero__desc">点击转盘，随机抽取一个玉泉校区食堂窗口</view>
+    </view>
+
+    <view class="wheel-stage">
+      <view class="wheel-stage__glow"></view>
+      <view class="wheel-stage__pointer">
+        <view class="wheel-stage__pointer-dot"></view>
+      </view>
+
+      <view
+        class="wheel {{isSpinning ? 'wheel--spinning' : ''}}"
+        style="background: {{wheelBackground}}; transform: rotate({{wheelRotation}}deg);"
+      >
+        <view
+          class="wheel__label"
+          wx:for="{{wheelItems}}"
+          wx:key="id"
+          style="transform: translate(-50%, -50%) rotate({{item.angle}}deg) translateY(-174rpx) rotate({{item.inverseAngle}}deg);"
+        >
+          <text class="wheel__label-dot" style="background: {{item.color}};"></text>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="wheel-button {{isSpinning ? 'wheel-button--disabled' : ''}}" catchtap="startSpin">
+        <text class="wheel-button__main">{{isSpinning ? '转动中' : '开始'}}</text>
+        <text class="wheel-button__sub">{{isSpinning ? '请稍候' : '转一转'}}</text>
+      </view>
+    </view>
+
+    <view class="spin-tip" wx:if="{{!result && !isSpinning}}">
+      <text class="spin-tip__icon">✦</text>
+      每一次转动，都是今天的一份惊喜
+      <text class="spin-tip__icon">✦</text>
+    </view>
+
+    <view class="spin-tip spin-tip--active" wx:if="{{isSpinning}}">
+      正在为你挑选今天的食堂窗口…
+    </view>
+
+    <view class="result-card" wx:if="{{result}}">
+      <view class="result-card__badge">今日推荐</view>
+      <view class="result-card__heading">
+        <view class="result-card__icon">
+          <t-icon name="shop" size="50rpx" color="#ffffff" />
+        </view>
+        <view class="result-card__heading-copy">
+          <view class="result-card__canteen">{{result.canteen}}</view>
+          <view class="result-card__campus">{{result.campus}}</view>
+        </view>
+      </view>
+
+      <view class="result-card__route">
+        <view class="result-card__route-item">
+          <text class="result-card__route-label">推荐窗口</text>
+          <text class="result-card__route-value">{{result.window}}</text>
+        </view>
+        <view class="result-card__route-divider"></view>
+        <view class="result-card__route-item">
+          <text class="result-card__route-label">推荐菜品</text>
+          <text class="result-card__route-value">{{result.dish}}</text>
+        </view>
+      </view>
+
+      <view class="result-card__reason">
+        <text class="result-card__reason-mark">“</text>
+        {{result.reason}}
+      </view>
+
+      <view class="result-card__actions">
+        <view class="result-card__again" bindtap="startSpin">再转一次</view>
+        <button class="result-card__share" open-type="share">
+          <t-icon name="share" size="30rpx" color="#3478f6" />
+          分享结果
+        </button>
+      </view>
+    </view>
+
+    <view class="history-card" wx:if="{{history.length}}">
+      <view class="history-card__title">最近抽取</view>
+      <view class="history-card__item" wx:for="{{history}}" wx:key="id">
+        <text class="history-card__dot" style="background: {{item.color}};"></text>
+        <text class="history-card__name">{{item.canteen}} · {{item.window}}</text>
+        <text class="history-card__dish">{{item.dish}}</text>
+      </view>
+    </view>
+
+    <view class="roulette-scroll__bottom-space"></view>
+  </scroll-view>
+</view>

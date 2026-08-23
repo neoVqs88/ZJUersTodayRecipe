@@ -1,51 +1,103 @@
-<nav title-text="zjuer 今天吃什么" />
-<scroll-view class="home" scroll-y>
-  <view class="home__search" bindtap="goSearch">
-    <t-icon name="search" size="40rpx" color="#667085" />
-    <text>搜索菜品、食堂、窗口</text>
-  </view>
+<view class="home-page">
+  <nav title-text="zjuer今天吃什么" />
 
-  <view class="section">
-    <view class="section__header">
-      <view>
-        <text class="section__title">新品推荐</text>
-        <text class="section__subtitle">新鲜上新，尝鲜不迷路</text>
+  <scroll-view class="home-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="hero">
+      <image class="hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
+      <view class="hero__brand">
+        <text class="hero__brand-en">zjuer</text>
+        <text class="hero__brand-cn">今天吃什么</text>
+        <text class="hero__sparkle">✦</text>
       </view>
-      <text class="section__more" bindtap="showMore">更多 ›</text>
-    </view>
-    <scroll-view class="dish-list" scroll-x enhanced show-scrollbar="{{false}}">
-      <view class="dish-card" wx:for="{{newDishes}}" wx:key="name">
-        <image class="dish-card__image" src="{{item.image}}" mode="aspectFill" />
-        <view class="dish-card__name">{{item.name}}</view>
-        <view class="dish-card__location">{{item.location}}</view>
-        <view class="dish-card__score">★ {{item.score}}</view>
+
+      <view class="search" bindtap="goSearch">
+        <t-icon name="search" size="42rpx" color="#9aa4b2" />
+        <text class="search__placeholder">搜索菜品、食堂、窗口</text>
       </view>
-    </scroll-view>
-  </view>
-
-  <view class="decision-card">
-    <view class="decision-card__copy">
-      <view class="decision-card__title">吃啥转转乐</view>
-      <view class="decision-card__desc">选择困难？让随机推荐帮你决定</view>
-      <t-button size="small" shape="round" theme="primary" bindtap="makeDecision">帮我决定</t-button>
     </view>
-    <view class="decision-card__wheel">?</view>
-  </view>
 
-  <view class="checkin-card">
-    <view class="checkin-card__icon"><t-icon name="camera" size="56rpx" color="#3478f6" /></view>
-    <view class="checkin-card__content">
-      <view class="checkin-card__title">三餐拍照打卡</view>
-      <view class="checkin-card__desc">记录三餐，养成校园饮食好习惯</view>
-    </view>
-    <t-button size="small" variant="outline" theme="primary" bindtap="checkIn">去打卡</t-button>
-  </view>
+    <view class="content-card new-section">
+      <view class="section-header">
+        <view class="section-header__main">
+          <view class="section-header__icon section-header__icon--yellow">★</view>
+          <text class="section-header__title">新品推荐</text>
+          <text class="section-header__subtitle">新鲜上新，尝鲜不迷路</text>
+        </view>
+        <view class="section-header__more" bindtap="showMore">更多 <text>›</text></view>
+      </view>
 
-  <view class="progress-card">
-    <view>
-      <view class="progress-card__title">本周打卡进度</view>
-      <view class="progress-card__desc">坚持记录，养成好习惯</view>
+      <view class="dish-grid">
+        <view class="dish-card" wx:for="{{newDishes}}" wx:key="name" bindtap="viewDish" data-index="{{index}}">
+          <view class="dish-card__image-wrap">
+            <image class="dish-card__image" src="{{item.image}}" mode="aspectFill" />
+            <text class="dish-card__tag">上新</text>
+          </view>
+          <view class="dish-card__name">{{item.name}}</view>
+          <view class="dish-card__location"><text class="dish-card__pin">●</text>{{item.shortLocation}}</view>
+          <view class="dish-card__score"><text>★</text> {{item.score}}</view>
+        </view>
+      </view>
     </view>
-    <view class="progress-card__count"><text>3</text> / 21</view>
-  </view>
-</scroll-view>
+
+    <view class="content-card roulette-card">
+      <view class="section-header section-header--inside">
+        <view class="section-header__main">
+          <view class="section-header__icon section-header__icon--purple">＋</view>
+          <text class="section-header__title">吃啥转转乐</text>
+        </view>
+        <text class="roulette-card__hint">选择困难？转一转就有啦</text>
+      </view>
+
+      <view class="roulette-card__body">
+        <view class="roulette-card__copy">
+          <view class="roulette-card__title">让幸运转盘帮你决定</view>
+          <view class="roulette-card__desc">今天吃什么？转一转就知道！</view>
+          <view class="roulette-card__button" bindtap="makeDecision">去转一转 <text>›</text></view>
+        </view>
+
+        <image
+          class="roulette-card__image"
+          src="/static/home/roulette.jpg"
+          mode="aspectFill"
+          bindtap="makeDecision"
+        />
+      </view>
+    </view>
+
+    <view class="checkin-section">
+      <view class="section-header section-header--plain">
+        <view class="section-header__main">
+          <view class="section-header__icon section-header__icon--blue">
+            <t-icon name="camera" size="30rpx" color="#ffffff" />
+          </view>
+          <text class="section-header__title">三餐拍照打卡</text>
+          <text class="section-header__subtitle">记录三餐，点亮每一天</text>
+        </view>
+        <view class="section-header__more" bindtap="showCheckInHistory">更多 <text>›</text></view>
+      </view>
+
+      <view class="checkin-banner" bindtap="checkIn">
+        <image class="checkin-banner__image" src="/static/home/meal-checkin.jpg" mode="widthFix" />
+        <view class="checkin-banner__button">去打卡 <text>›</text></view>
+      </view>
+    </view>
+
+    <view class="progress-card" bindtap="showCheckInHistory">
+      <view class="progress-card__copy">
+        <view class="progress-card__title">本周打卡进度</view>
+        <view class="progress-card__desc">坚持打卡，养成好习惯</view>
+      </view>
+      <view class="progress-card__art">
+        <view class="progress-card__paper">✓<text>✓</text><text>✓</text></view>
+        <view class="progress-card__pen"></view>
+      </view>
+      <view class="progress-card__count">
+        <view><text>{{checkInDays}}</text> / {{monthlyGoal}}</view>
+        <view class="progress-card__label">已打卡天数</view>
+      </view>
+      <text class="progress-card__arrow">›</text>
+    </view>
+
+    <view class="home-scroll__bottom-space"></view>
+  </scroll-view>
+</view>

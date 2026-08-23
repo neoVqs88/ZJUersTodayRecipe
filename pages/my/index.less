@@ -12,8 +12,11 @@
   --body-size: 28rpx;
   --caption-size: 24rpx;
 
+  display: flex;
+  flex-direction: column;
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   overflow: hidden;
   background: var(--page-bg);
   color: var(--text-primary);
@@ -33,6 +36,12 @@
   &.font-small { --title-size: 29rpx; --body-size: 25rpx; --caption-size: 22rpx; }
   &.font-large { --title-size: 36rpx; --body-size: 31rpx; --caption-size: 27rpx; }
 
+  > nav {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+
   &__background {
     position: absolute;
     top: 0;
@@ -44,11 +53,18 @@
 
   &__scroll {
     box-sizing: border-box;
-    height: calc(100vh - @nav-bar-height - @tab-bar-height);
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    height: 0;
     padding: 40rpx 32rpx 0;
   }
 
-  &__bottom-space { height: 48rpx; }
+  &__bottom-space {
+    height: calc(@tab-bar-height + 64rpx + constant(safe-area-inset-bottom));
+    height: calc(@tab-bar-height + 64rpx + env(safe-area-inset-bottom));
+  }
 }
 
 .profile-card,

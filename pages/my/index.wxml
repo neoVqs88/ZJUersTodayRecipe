@@ -2,7 +2,7 @@
   <image class="my-page__background" src="/static/bg_navbar.png" mode="aspectFill" />
   <nav title-text="我的" />
 
-  <scroll-view class="my-page__scroll" scroll-y>
+  <scroll-view class="my-page__scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="profile-card">
       <view class="profile-card__main" wx:if="{{isLoggedIn}}">
         <t-avatar image="{{personalInfo.image}}" size="128rpx" />

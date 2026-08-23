@@ -1,13 +1,8 @@
 {
   "navigationStyle": "custom",
+  "disableScroll": true,
   "usingComponents": {
-    "t-tabs": "tdesign-miniprogram/tabs/tabs",
-    "t-tab-panel": "tdesign-miniprogram/tab-panel/tab-panel",
-    "t-swiper": "tdesign-miniprogram/swiper/swiper",
-    "t-pull-down-refresh": "tdesign-miniprogram/pull-down-refresh/pull-down-refresh",
-    "t-message": "tdesign-miniprogram/message/message",
-    "t-button": "tdesign-miniprogram/button/button",
-    "nav": "/components/nav",
-    "card": "/components/card"
+    "t-navbar": "tdesign-miniprogram/navbar/navbar",
+    "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }
