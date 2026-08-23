@@ -1,3 +1,5 @@
+import recognizeDish from '../../utils/recognizeDish';
+
 Page({
   data: {
     newDishes: [
@@ -22,8 +24,31 @@ Page({
     });
   },
 
-  checkIn() {
-    wx.showToast({ title: '打卡功能即将上线', icon: 'none' });
+  async checkIn() {
+    let r;
+    try {
+      r = await recognizeDish();
+    } catch (e) {
+      // 用户在选图界面点了取消等情况，静默返回即可
+      return;
+    }
+    if (!r.success || !r.dishes.length) {
+      wx.showToast({ title: r.message || '识别失败，请重试', icon: 'none' });
+      return;
+    }
+    // 识别可能不准，让用户从候选菜名里挑一个确认
+    wx.showActionSheet({
+      itemList: r.dishes.map((d) => d.name),
+      success: (res) => {
+        const dish = r.dishes[res.tapIndex];
+        wx.showModal({
+          title: '打卡成功',
+          content: `今日菜品：${dish.name}\n置信度：${(dish.probability * 100).toFixed(1)}%`,
+          showCancel: false,
+          confirmText: '好的',
+        });
+      },
+    });
   },
 
   showMore() {
