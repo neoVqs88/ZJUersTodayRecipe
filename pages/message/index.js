@@ -121,7 +121,7 @@ Page({
     });
 
     wx.showToast({
-      title: item.title + '详情即将上线',
+      title: `${item.title  }详情即将上线`,
       icon: 'none',
     });
   },
