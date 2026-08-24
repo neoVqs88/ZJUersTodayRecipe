@@ -4,7 +4,7 @@
 
   <scroll-view class="my-page__scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="profile-card">
-      <view class="profile-card__main" wx:if="{{isLoggedIn}}">
+      <view class="profile-card__main" wx:if="{{isLoggedIn}}" bindtap="openMyProfile">
         <t-avatar image="{{personalInfo.image}}" size="128rpx" />
         <view class="profile-card__copy">
           <view class="profile-card__name-row">
@@ -13,7 +13,7 @@
           </view>
           <view class="profile-card__intro">{{personalInfo.introduction || personalInfo.brief || '吃好每一餐，记录校园好食光 ✨'}}</view>
         </view>
-        <view class="profile-card__edit" bindtap="editProfile">编辑资料 <t-icon name="chevron-right" /></view>
+        <view class="profile-card__edit" catchtap="editProfile">编辑资料 <t-icon name="chevron-right" /></view>
       </view>
 
       <view class="profile-card__main profile-card__guest" wx:else bindtap="requireLogin">

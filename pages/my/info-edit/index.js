@@ -1,173 +1,164 @@
-import request from '~/api/request';
-import { areaList } from './areaData.js';
+import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import { fetchUserProfile, updateMyProfile } from '~/services/userProfile';
+
+const DEFAULT_AVATAR = '/static/miniprogram-icon-zju-bowl-144.png';
+const CAMPUS_OPTIONS = ['玉泉校区', '紫金港校区', '西溪校区', '华家池校区', '之江校区', '舟山校区', '海宁校区', '其他'];
+const GENDER_OPTIONS = ['保密', '男', '女'];
+const GRADE_OPTIONS = ['保密', '本科生', '硕士生', '博士生', '教职工', '校友'];
+const PREFERENCE_OPTIONS = ['清淡', '嗜辣', '甜食', '面食', '米饭', '素食', '咖啡', '夜宵'];
+
+function normalizeProfile(profile = {}) {
+  return {
+    id: profile.id || '',
+    image: profile.image || DEFAULT_AVATAR,
+    name: profile.name || '',
+    introduction: profile.introduction || '',
+    campus: profile.campus || CAMPUS_OPTIONS[0],
+    gender: profile.gender || GENDER_OPTIONS[0],
+    grade: profile.grade || GRADE_OPTIONS[0],
+    college: profile.college || '',
+    hometown: profile.hometown || '',
+    foodPreferences: Array.isArray(profile.foodPreferences) ? profile.foodPreferences : [],
+  };
+}
 
 Page({
   data: {
-    personInfo: {
-      name: '',
-      gender: 0,
-      birth: '',
-      address: [],
-      introduction: '',
-      photos: [],
-    },
-    genderOptions: [
-      {
-        label: '男',
-        value: 0,
-      },
-      {
-        label: '女',
-        value: 1,
-      },
-      {
-        label: '保密',
-        value: 2,
-      },
-    ],
-    birthVisible: false,
-    birthStart: '1970-01-01',
-    birthEnd: '2025-03-01',
-    birthTime: 0,
-    birthFilter: (type, options) => (type === 'year' ? options.sort((a, b) => b.value - a.value) : options),
-    addressText: '',
-    addressVisible: false,
-    provinces: [],
-    cities: [],
-
-    gridConfig: {
-      column: 3,
-      width: 160,
-      height: 160,
-    },
+    loading: true,
+    saving: false,
+    profile: normalizeProfile(),
+    campusOptions: CAMPUS_OPTIONS,
+    genderOptions: GENDER_OPTIONS,
+    gradeOptions: GRADE_OPTIONS,
+    preferenceItems: PREFERENCE_OPTIONS.map((value) => ({ value, selected: false })),
+    campusIndex: 0,
+    genderIndex: 0,
+    gradeIndex: 0,
   },
 
   onLoad() {
-    this.initAreaData();
-    this.getPersonalInfo();
+    if (!isLoggedIn()) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 500);
+      return;
+    }
+    this.loadProfile();
   },
 
-  getPersonalInfo() {
-    request('/api/genPersonalInfo').then((res) => {
-      this.setData(
-        {
-          personInfo: res.data.data,
-        },
-        () => {
-          const { personInfo } = this.data;
-          this.setData({
-            addressText: `${areaList.provinces[personInfo.address[0]]} ${areaList.cities[personInfo.address[1]]}`,
-          });
-        },
-      );
+  applyProfile(rawProfile) {
+    const profile = normalizeProfile(rawProfile);
+    this.setData({
+      profile,
+      campusIndex: Math.max(CAMPUS_OPTIONS.indexOf(profile.campus), 0),
+      genderIndex: Math.max(GENDER_OPTIONS.indexOf(profile.gender), 0),
+      gradeIndex: Math.max(GRADE_OPTIONS.indexOf(profile.grade), 0),
+      preferenceItems: PREFERENCE_OPTIONS.map((value) => ({
+        value,
+        selected: profile.foodPreferences.includes(value),
+      })),
+      loading: false,
     });
   },
 
-  getAreaOptions(data, filter) {
-    const res = Object.keys(data).map((key) => ({ value: key, label: data[key] }));
-    return typeof filter === 'function' ? res.filter(filter) : res;
-  },
-
-  getCities(provinceValue) {
-    return this.getAreaOptions(
-      areaList.cities,
-      (city) => `${city.value}`.slice(0, 2) === `${provinceValue}`.slice(0, 2),
-    );
-  },
-
-  initAreaData() {
-    const provinces = this.getAreaOptions(areaList.provinces);
-    const cities = this.getCities(provinces[0].value);
-    this.setData({ provinces, cities });
-  },
-
-  onAreaPick(e) {
-    const { column, index } = e.detail;
-    const { provinces } = this.data;
-
-    // 更改省份则更新城市列表
-    if (column === 0) {
-      const cities = this.getCities(provinces[index].value);
-      this.setData({ cities });
+  async loadProfile() {
+    const cachedUser = getCurrentUser() || {};
+    this.applyProfile(cachedUser);
+    if (!cachedUser.id) return;
+    try {
+      const result = await fetchUserProfile(cachedUser.id);
+      this.applyProfile(result.user);
+    } catch (error) {
+      // 云函数不可用时仍允许用户基于本地资料编辑，保存时会再次提示。
     }
   },
 
-  showPicker(e) {
-    const { mode } = e.currentTarget.dataset;
+  onChooseAvatar(event) {
+    const avatarUrl = event.detail.avatarUrl;
+    if (avatarUrl) this.setData({ 'profile.image': avatarUrl });
+  },
+
+  onFieldInput(event) {
+    const { field } = event.currentTarget.dataset;
+    this.setData({ [`profile.${field}`]: event.detail.value });
+  },
+
+  onPickerChange(event) {
+    const { field } = event.currentTarget.dataset;
+    const index = Number(event.detail.value);
+    const options = this.data[`${field}Options`];
+    if (!options || !options[index]) return;
     this.setData({
-      [`${mode}Visible`]: true,
+      [`${field}Index`]: index,
+      [`profile.${field}`]: options[index],
     });
-    if (mode === 'address') {
-      const cities = this.getCities(this.data.personInfo.address[0]);
-      this.setData({ cities });
+  },
+
+  togglePreference(event) {
+    const { value } = event.currentTarget.dataset;
+    const selected = this.data.profile.foodPreferences.slice();
+    const index = selected.indexOf(value);
+    if (index >= 0) selected.splice(index, 1);
+    else if (selected.length < 6) selected.push(value);
+    else {
+      wx.showToast({ title: '最多选择 6 个口味标签', icon: 'none' });
+      return;
     }
-  },
-
-  hidePicker(e) {
-    const { mode } = e.currentTarget.dataset;
     this.setData({
-      [`${mode}Visible`]: false,
+      'profile.foodPreferences': selected,
+      preferenceItems: PREFERENCE_OPTIONS.map((item) => ({
+        value: item,
+        selected: selected.includes(item),
+      })),
     });
   },
 
-  onPickerChange(e) {
-    const { value, label } = e.detail;
-    const { mode } = e.currentTarget.dataset;
-
-    this.setData({
-      [`personInfo.${mode}`]: value,
-    });
-    if (mode === 'address') {
-      this.setData({
-        addressText: label.join(' '),
+  uploadAvatar(filePath) {
+    if (!filePath || /^(cloud|https?):\/\//.test(filePath) || filePath.startsWith('/static/')) {
+      return Promise.resolve(filePath || DEFAULT_AVATAR);
+    }
+    const user = getCurrentUser() || {};
+    const extensionMatch = filePath.match(/\.([a-zA-Z0-9]+)$/);
+    const extension = extensionMatch ? extensionMatch[1].toLowerCase() : 'jpg';
+    const cloudPath = `user-avatars/${user.id || 'unknown'}/${Date.now()}.${extension}`;
+    return new Promise((resolve, reject) => {
+      wx.cloud.uploadFile({
+        cloudPath,
+        filePath,
+        success: ({ fileID }) => resolve(fileID),
+        fail: reject,
       });
+    });
+  },
+
+  async saveProfile() {
+    if (this.data.saving) return;
+    const name = this.data.profile.name.trim();
+    if (!name) {
+      wx.showToast({ title: '请输入昵称', icon: 'none' });
+      return;
     }
-  },
 
-  personInfoFieldChange(field, e) {
-    const { value } = e.detail;
-    this.setData({
-      [`personInfo.${field}`]: value,
-    });
-  },
-
-  onNameChange(e) {
-    this.personInfoFieldChange('name', e);
-  },
-
-  onGenderChange(e) {
-    this.personInfoFieldChange('gender', e);
-  },
-
-  onIntroductionChange(e) {
-    this.personInfoFieldChange('introduction', e);
-  },
-
-  onPhotosRemove(e) {
-    const { index } = e.detail;
-    const { photos } = this.data.personInfo;
-
-    photos.splice(index, 1);
-    this.setData({
-      'personInfo.photos': photos,
-    });
-  },
-
-  onPhotosSuccess(e) {
-    const { files } = e.detail;
-    this.setData({
-      'personInfo.photos': files,
-    });
-  },
-
-  onPhotosDrop(e) {
-    const { files } = e.detail;
-    this.setData({
-      'personInfo.photos': files,
-    });
-  },
-
-  onSaveInfo() {
-    // console.log(this.data.personInfo);
+    this.setData({ saving: true });
+    wx.showLoading({ title: '保存中', mask: true });
+    try {
+      const image = await this.uploadAvatar(this.data.profile.image);
+      const user = await updateMyProfile({
+        ...this.data.profile,
+        name,
+        image,
+        introduction: this.data.profile.introduction.trim(),
+        college: this.data.profile.college.trim(),
+        hometown: this.data.profile.hometown.trim(),
+      });
+      this.applyProfile(user);
+      getApp().eventBus.emit('user-profile-change', user);
+      wx.showToast({ title: '资料已保存', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 500);
+    } catch (error) {
+      wx.showToast({ title: error.message || '保存失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ saving: false });
+    }
   },
 });

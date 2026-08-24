@@ -1,5 +1,4 @@
-import request from '~/api/request';
-import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import { getCurrentUser, isLoggedIn, refreshCloudUser } from '~/services/auth';
 import { getAppearanceClass, getPreferences } from '~/services/preferences';
 
 const MENU_GROUPS = [
@@ -94,7 +93,7 @@ Page({
   },
 
   getPersonalInfo() {
-    return request('/api/genPersonalInfo').then((res) => res.data.data);
+    return refreshCloudUser();
   },
 
   requireLogin() {
@@ -106,6 +105,16 @@ Page({
   editProfile() {
     if (!this.requireLogin()) return;
     wx.navigateTo({ url: '/pages/my/info-edit/index' });
+  },
+
+  openMyProfile() {
+    if (!this.requireLogin()) return;
+    const user = this.data.personalInfo || {};
+    const query = user.id ? '?userId=' + encodeURIComponent(user.id) : '';
+    wx.navigateTo({
+      url: '/pages/profile/index' + query,
+      success: ({ eventChannel }) => eventChannel.emit('profilePreview', user),
+    });
   },
 
   handleStatTap(event) {

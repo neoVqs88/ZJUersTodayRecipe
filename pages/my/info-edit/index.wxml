@@ -1,84 +1,40 @@
-<t-navbar left-arrow title="个人信息" />
-<view class="info-edit">
-  <t-cell class="info-edit__cell" title="用户名">
-    <t-input bind:change="onNameChange" borderless placeholder="请输入用户名" slot="note" value="{{personInfo.name}}" />
-  </t-cell>
-  <t-cell class="info-edit__cell" title="性别">
-    <t-radio-group
-      bind:change="onGenderChange"
-      borderless
-      defaultValue="{{personInfo.gender}}"
-      options="{{genderOptions}}"
-      slot="note"
-      t-class="info-edit__gender"
-      value="{{personInfo.gender}}"
-    />
-  </t-cell>
-  <t-cell arrow bind:click="showPicker" data-mode="birth" note="{{personInfo.birth || ''}}" title="生日" />
-  <t-cell arrow bind:click="showPicker" data-mode="address" note="{{addressText || ''}}" title="地址" />
-  <t-cell class="info-edit__cell" title="个人简介">
-    <t-textarea
-      bind:blur="onIntroductionChange"
-      disableDefaultPadding="{{true}}"
-      indicator
-      maxcharacter="50"
-      placeholder="请输入个人简介"
-      slot="note"
-      t-class="info-edit__introduction"
-      value="{{personInfo.introduction}}"
-    />
-  </t-cell>
-  <t-cell bordered="{{false}}" class="info-edit__cell" title="相片墙">
-    <t-upload
-      bind:drop="onPhotosDrop"
-      bind:remove="onPhotosRemove"
-      bind:success="onPhotosSuccess"
-      draggable
-      files="{{personInfo.photos}}"
-      gridConfig="{{gridConfig}}"
-      media-type="{{ ['image'] }}"
-      slot="note"
-      t-class="info-edit__photos"
-    />
-  </t-cell>
+<view class="edit-page">
+  <t-navbar left-arrow title="编辑资料" />
+  <view class="edit-loading" wx:if="{{loading}}">正在读取个人资料…</view>
+  <scroll-view class="edit-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="avatar-section">
+      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar-button__image" src="{{profile.image}}" mode="aspectFill" />
+        <view class="avatar-button__badge"><t-icon name="camera" size="27rpx" color="#ffffff" /></view>
+      </button>
+      <view class="avatar-section__title">更换头像</view>
+      <view class="avatar-section__desc">清晰的头像更容易被饭搭子认出来</view>
+    </view>
+    <view class="edit-card">
+      <view class="form-row">
+        <text class="form-row__label">昵称</text>
+        <input class="form-row__input" type="nickname" maxlength="20" value="{{profile.name}}" placeholder="请输入昵称" data-field="name" bindinput="onFieldInput" />
+      </view>
+      <view class="form-row form-row--textarea">
+        <view class="form-row__label-line"><text class="form-row__label">个人简介</text><text class="form-row__count">{{profile.introduction.length}}/80</text></view>
+        <textarea class="form-row__textarea" maxlength="80" value="{{profile.introduction}}" placeholder="介绍一下你的口味、常去食堂或想找的饭搭子" data-field="introduction" bindinput="onFieldInput" />
+      </view>
+    </view>
+    <view class="edit-card">
+      <picker mode="selector" range="{{campusOptions}}" value="{{campusIndex}}" data-field="campus" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">所在校区</text><text class="form-row__value">{{profile.campus}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
+      <view class="form-row"><text class="form-row__label">院系</text><input class="form-row__input" maxlength="30" value="{{profile.college}}" placeholder="例如：计算机科学与技术学院" data-field="college" bindinput="onFieldInput" /></view>
+      <picker mode="selector" range="{{gradeOptions}}" value="{{gradeIndex}}" data-field="grade" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">身份</text><text class="form-row__value">{{profile.grade}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
+      <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" data-field="gender" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">性别</text><text class="form-row__value">{{profile.gender}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
+      <view class="form-row"><text class="form-row__label">家乡</text><input class="form-row__input" maxlength="30" value="{{profile.hometown}}" placeholder="例如：浙江杭州" data-field="hometown" bindinput="onFieldInput" /></view>
+    </view>
+    <view class="edit-card taste-card">
+      <view class="taste-card__title">口味标签 <text>最多选择 6 个</text></view>
+      <view class="taste-list">
+        <view class="taste-item {{item.selected ? 'taste-item--selected' : ''}}" wx:for="{{preferenceItems}}" wx:key="value" data-value="{{item.value}}" bindtap="togglePreference">{{item.value}}</view>
+      </view>
+    </view>
+    <view class="privacy-note"><t-icon name="lock-on" size="27rpx" /> 这里只展示你主动填写的公开资料，不会展示手机号和微信身份信息。</view>
+    <view class="edit-scroll__bottom-space" />
+  </scroll-view>
+  <view class="save-bar" wx:if="{{!loading}}"><view class="save-button {{saving ? 'save-button--disabled' : ''}}" bindtap="saveProfile">{{saving ? '保存中…' : '保存资料'}}</view></view>
 </view>
-
-<view class="info-edit__save">
-  <t-button bind:tap="onSaveInfo" block size="medium" theme="primary">保存</t-button>
-</view>
-
-<t-date-time-picker
-  auto-close
-  bind:cancel="hidePicker"
-  bind:change="onPickerChange"
-  cancelBtn="取消"
-  confirmBtn="确认"
-  data-mode="birth"
-  defaultValue="{{personInfo.birth}}"
-  end="{{birthEnd}}"
-  filter="{{birthFilter}}"
-  format="YYYY-MM-DD"
-  mode="date"
-  popup-props="{{ { usingCustomNavbar: true } }}"
-  start="{{birthStart}}"
-  title="选择生日"
-  value="{{personInfo.birth}}"
-  visible="{{birthVisible}}"
-/>
-
-<t-picker
-  bind:cancel="hidePicker"
-  bind:change="onPickerChange"
-  bind:close="hidePicker"
-  bind:pick="onAreaPick"
-  cancelBtn="取消"
-  confirmBtn="确认"
-  data-mode="address"
-  mode="address"
-  title="选择地址"
-  value="{{personInfo.address}}"
-  visible="{{addressVisible}}"
->
-  <t-picker-item options="{{provinces}}" />
-  <t-picker-item options="{{cities}}" />
-</t-picker>

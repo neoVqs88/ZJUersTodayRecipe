@@ -1,0 +1,100 @@
+<view class="profile-page">
+  <t-navbar title="个人主页" left-arrow />
+
+  <view class="profile-loading" wx:if="{{loading}}">
+    <t-loading theme="circular" size="44rpx" text="加载资料中" />
+  </view>
+
+  <scroll-view class="profile-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="profile-cover">
+      <image class="profile-cover__campus" src="/static/bg_navbar.png" mode="aspectFit" />
+      <view class="profile-cover__glow profile-cover__glow--left" />
+      <view class="profile-cover__glow profile-cover__glow--right" />
+      <view class="profile-cover__copy">
+        <view class="profile-cover__brand"><text>zjuer</text> 今天吃什么</view>
+        <view class="profile-cover__subtitle">记录校园里的每一顿好味道</view>
+        <view class="profile-cover__campus-tag"><t-icon name="location" size="24rpx" /> {{profile.campus}}</view>
+      </view>
+    </view>
+
+    <view class="profile-main">
+      <view class="profile-main__top">
+        <image class="profile-main__avatar" src="{{profile.image}}" mode="aspectFill" />
+        <view class="profile-main__identity">
+          <view class="profile-main__name-row">
+            <text class="profile-main__name">{{profile.name}}</text>
+            <text class="profile-main__badge"><t-icon name="education" size="22rpx" /> {{profile.star}}</text>
+          </view>
+          <view class="profile-main__meta">zjuer ID：{{profile.displayId || '新同学'}}</view>
+        </view>
+        <view class="profile-main__edit" wx:if="{{isMine}}" bindtap="editProfile">
+          <t-icon name="edit" size="25rpx" />
+          <text>编辑资料</text>
+        </view>
+        <view class="profile-main__follow" wx:else bindtap="showDeveloping">
+          <t-icon name="add" size="25rpx" />
+          <text>关注</text>
+        </view>
+      </view>
+
+      <view class="profile-main__intro">
+        <t-icon name="chat-bubble-smile" size="27rpx" color="#6f9de1" />
+        <text>{{profile.introduction}}</text>
+      </view>
+
+      <view class="profile-main__tags" wx:if="{{profile.foodPreferences.length}}">
+        <text wx:for="{{profile.foodPreferences}}" wx:key="*this"># {{item}}</text>
+      </view>
+
+      <view class="profile-stats">
+        <view class="profile-stats__item" wx:for="{{stats}}" wx:key="label" bindtap="showDeveloping">
+          <text class="profile-stats__value">{{item.value}}</text>
+          <text class="profile-stats__label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="profile-section" wx:if="{{detailRows.length}}">
+      <view class="profile-section__heading">
+        <view class="profile-section__heading-icon profile-section__heading-icon--blue"><t-icon name="user-circle" size="32rpx" /></view>
+        <view>
+          <view class="profile-section__title">关于我</view>
+          <view class="profile-section__subtitle">认识一下这位校园美食探索者</view>
+        </view>
+      </view>
+      <view class="detail-list">
+        <view class="detail-row" wx:for="{{detailRows}}" wx:key="label">
+          <view class="detail-row__icon"><t-icon name="{{item.icon}}" size="29rpx" /></view>
+          <view class="detail-row__copy">
+            <text class="detail-row__label">{{item.label}}</text>
+            <text class="detail-row__value">{{item.value}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="profile-section profile-section--activity">
+      <view class="profile-section__heading">
+        <view class="profile-section__heading-icon profile-section__heading-icon--green"><t-icon name="rice" size="32rpx" /></view>
+        <view class="profile-section__heading-copy">
+          <view class="profile-section__title">校园美食动态</view>
+          <view class="profile-section__subtitle">分享与打卡会汇集在这里</view>
+        </view>
+        <view class="profile-section__filter">全部</view>
+      </view>
+      <view class="profile-empty">
+        <view class="profile-empty__illustration">
+          <view class="profile-empty__plate">🍜</view>
+          <view class="profile-empty__sparkle">✦</view>
+        </view>
+        <view class="profile-empty__copy">
+          <view class="profile-empty__title">还没有公开动态</view>
+          <view class="profile-empty__desc">发布美食分享或完成三餐打卡后，将在这里留下校园食光。</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="profile-tip" wx:if="{{loadFailed}}">当前展示本地预览资料，部署最新版 ensureUser 云函数后会自动同步</view>
+    <view class="profile-scroll__bottom-space" />
+  </scroll-view>
+</view>

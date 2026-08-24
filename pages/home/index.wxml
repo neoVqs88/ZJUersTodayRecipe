@@ -42,7 +42,9 @@
     <view class="content-card roulette-card">
       <view class="section-header section-header--inside">
         <view class="section-header__main">
-          <view class="section-header__icon section-header__icon--purple">＋</view>
+          <view class="section-header__icon section-header__icon--purple">
+            <t-icon name="add" size="30rpx" color="#ffffff" />
+          </view>
           <text class="section-header__title">吃啥转转乐</text>
         </view>
         <text class="roulette-card__hint">选择困难？转一转就有啦</text>
