@@ -1,0 +1,9 @@
+{
+  "name": "messageHelper",
+  "version": "1.0.0",
+  "description": "消息助手：给当前用户生成示例消息（开发调试）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
