@@ -48,17 +48,17 @@
     </view>
 
     <view class="post-list">
-      <view class="post-card" wx:for="{{displayPosts}}" wx:key="id">
+      <view class="post-card" wx:for="{{displayPosts}}" wx:key="_id">
         <view class="post-card__header">
           <image class="post-card__avatar" src="{{item.avatar}}" mode="aspectFill" />
           <view class="post-card__author">
             <view class="post-card__name-row">
-              <text class="post-card__name">{{item.author}}</text>
+              <text class="post-card__name">{{item.authorName}}</text>
               <text class="post-card__level">Lv.{{item.level}}</text>
             </view>
-            <text class="post-card__time">{{item.time}}</text>
+            <text class="post-card__time">{{item.displayTime}}</text>
           </view>
-          <view class="post-card__more" data-id="{{item.id}}" bindtap="showPostMenu">•••</view>
+          <view class="post-card__more" data-id="{{item._id}}" bindtap="showPostMenu">•••</view>
         </view>
 
         <view class="post-card__content">{{item.content}}</view>
@@ -79,19 +79,19 @@
         <view class="post-card__actions">
           <view
             class="post-card__action {{item.liked ? 'post-card__action--liked' : ''}}"
-            data-id="{{item.id}}"
+            data-id="{{item._id}}"
             bindtap="toggleLike"
           >
             <t-icon name="{{item.liked ? 'thumb-up-filled' : 'thumb-up'}}" size="34rpx" />
             <text>{{item.likes}}</text>
           </view>
-          <view class="post-card__action" data-id="{{item.id}}" bindtap="openComments">
+          <view class="post-card__action" data-id="{{item._id}}" bindtap="openComments">
             <t-icon name="chat" size="34rpx" />
-            <text>{{item.comments}}</text>
+            <text>{{item.commentsCount}}</text>
           </view>
           <view
             class="post-card__action {{item.collected ? 'post-card__action--collected' : ''}}"
-            data-id="{{item.id}}"
+            data-id="{{item._id}}"
             bindtap="toggleCollect"
           >
             <t-icon name="{{item.collected ? 'star-filled' : 'star'}}" size="36rpx" />
