@@ -4,6 +4,7 @@
     "t-avatar": "tdesign-miniprogram/avatar/avatar",
     "t-icon": "tdesign-miniprogram/icon/icon",
     "t-tag": "tdesign-miniprogram/tag/tag",
+    "checkin-progress": "/components/checkin-progress/index",
     "nav": "/components/nav"
   }
 }

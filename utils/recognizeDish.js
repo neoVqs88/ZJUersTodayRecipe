@@ -22,7 +22,10 @@ export default async function recognizeDish() {
       name: 'recognizeDish',
       data: { fileID: up.fileID },
     });
-    return res.result;
+    return {
+      ...(res.result || {}),
+      fileID: up.fileID,
+    };
   } finally {
     wx.hideLoading();
   }

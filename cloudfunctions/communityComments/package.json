@@ -1,0 +1,9 @@
+{
+  "name": "communityComments",
+  "version": "1.0.0",
+  "description": "校园美食社区评论的查询、发布、回复、删除与计数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

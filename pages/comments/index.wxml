@@ -1,0 +1,98 @@
+<view class="comments-page">
+  <t-navbar title="评论" left-arrow />
+
+  <view class="post-summary" wx:if="{{post}}">
+    <image class="post-summary__avatar" src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile" />
+    <view class="post-summary__body" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile">
+      <view class="post-summary__author">{{post.author}}</view>
+      <view class="post-summary__content">{{post.content}}</view>
+    </view>
+  </view>
+
+  <view class="comments-header">
+    <text>全部评论</text>
+    <text class="comments-header__count">{{total}}</text>
+  </view>
+
+  <scroll-view
+    class="comments-list"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="refreshComments"
+  >
+    <view class="comments-list__loading" wx:if="{{loading}}">
+      <t-loading theme="circular" size="42rpx" text="加载评论中" />
+    </view>
+
+    <view class="comments-list__empty" wx:elif="{{!comments.length}}">
+      <view class="comments-list__empty-icon">💬</view>
+      <view class="comments-list__empty-title">还没有评论</view>
+      <view class="comments-list__empty-desc">来分享你的看法，成为第一个评论的人吧</view>
+    </view>
+
+    <view
+      class="comment-item"
+      wx:for="{{comments}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindlongpress="handleCommentLongPress"
+    >
+      <image class="comment-item__avatar" src="{{item.authorImage}}" mode="aspectFill" data-id="{{item.id}}" data-user-id="{{item.userId}}" catchtap="openUserProfile" />
+      <view class="comment-item__body">
+        <view class="comment-item__top">
+          <text class="comment-item__name" data-id="{{item.id}}" data-user-id="{{item.userId}}" catchtap="openUserProfile">{{item.authorName}}</text>
+          <text class="comment-item__mine" wx:if="{{item.isMine}}">我</text>
+          <text class="comment-item__time">{{item.displayTime}}</text>
+        </view>
+        <view class="comment-item__content">
+          <text class="comment-item__reply-name" wx:if="{{item.replyToName}}">回复 {{item.replyToName}}：</text>
+          {{item.content}}
+        </view>
+        <view
+          class="comment-item__reply"
+          data-id="{{item.id}}"
+          data-name="{{item.authorName}}"
+          bindtap="startReply"
+        >
+          回复
+        </view>
+      </view>
+    </view>
+
+    <view class="comments-list__bottom-space"></view>
+  </scroll-view>
+
+  <view class="comment-composer">
+    <view class="comment-composer__reply" wx:if="{{replyTarget}}">
+      <text>回复 {{replyTarget.name}}</text>
+      <text class="comment-composer__cancel" bindtap="clearReply">取消</text>
+    </view>
+    <view class="comment-composer__row">
+      <image
+        class="comment-composer__avatar"
+        src="{{currentUserImage}}"
+        mode="aspectFill"
+      />
+      <input
+        class="comment-composer__input"
+        value="{{inputValue}}"
+        focus="{{inputFocus}}"
+        maxlength="300"
+        confirm-type="send"
+        cursor-spacing="24"
+        placeholder="{{loggedIn ? (replyTarget ? '回复 ' + replyTarget.name : '友善评论，分享你的看法') : '登录后参与讨论'}}"
+        bindinput="onInput"
+        bindconfirm="submitComment"
+      />
+      <view
+        class="comment-composer__send {{inputValue && !submitting ? 'comment-composer__send--active' : ''}}"
+        bindtap="submitComment"
+      >
+        {{submitting ? '发送中' : '发送'}}
+      </view>
+    </view>
+  </view>
+</view>

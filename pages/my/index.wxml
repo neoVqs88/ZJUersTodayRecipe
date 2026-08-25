@@ -4,7 +4,7 @@
 
   <scroll-view class="my-page__scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="profile-card">
-      <view class="profile-card__main" wx:if="{{isLoggedIn}}">
+      <view class="profile-card__main" wx:if="{{isLoggedIn}}" bindtap="openMyProfile">
         <t-avatar image="{{personalInfo.image}}" size="128rpx" />
         <view class="profile-card__copy">
           <view class="profile-card__name-row">
@@ -13,7 +13,7 @@
           </view>
           <view class="profile-card__intro">{{personalInfo.introduction || personalInfo.brief || '吃好每一餐，记录校园好食光 ✨'}}</view>
         </view>
-        <view class="profile-card__edit" bindtap="editProfile">编辑资料 <t-icon name="chevron-right" /></view>
+        <view class="profile-card__edit" catchtap="editProfile">编辑资料 <t-icon name="chevron-right" /></view>
       </view>
 
       <view class="profile-card__main profile-card__guest" wx:else bindtap="requireLogin">
@@ -36,23 +36,14 @@
       </view>
     </view>
 
-    <view class="progress-card">
-      <view class="progress-card__copy">
-        <view class="progress-card__title">本周打卡进度</view>
-        <view class="progress-card__subtitle">记录三餐，养成好习惯</view>
-        <view class="progress-card__button" data-item="{{stats[0]}}" bindtap="handleStatTap">查看打卡日历 ›</view>
-      </view>
-      <view class="week-progress">
-        <view class="week-progress__days">
-          <view class="week-progress__day" wx:for="{{weekDays}}" wx:key="label">
-            <text>{{item.label}}</text>
-            <view class="week-progress__dot {{item.checked ? 'is-checked' : ''}}">
-              <t-icon wx:if="{{item.checked}}" name="check" size="26rpx" />
-            </view>
-          </view>
-        </view>
-        <view class="week-progress__streak">连续打卡 <text>{{streakDays}}</text> 天</view>
-      </view>
+    <view class="my-progress-wrap">
+      <checkin-progress
+        count="{{weeklyCheckInCount}}"
+        goal="{{weeklyGoal}}"
+        subtitle="连续打卡 {{streakDays}} 天，坚持记录三餐"
+        dark="{{isDarkMode}}"
+        bind:tap="openCheckinHistory"
+      />
     </view>
 
     <view class="menu-card" wx:for="{{menuGroups}}" wx:for-item="group" wx:key="index">

@@ -20,6 +20,21 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/comments",
+      "name": "comments",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/profile",
+      "name": "profile",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/checkins",
+      "name": "checkins",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/my/info-edit",
       "name": "edit",
       "pages": ["index"]

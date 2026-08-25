@@ -1,0 +1,9 @@
+{
+  "name": "ensureUser",
+  "version": "1.0.0",
+  "description": "根据微信云开发身份创建或读取唯一用户文档",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

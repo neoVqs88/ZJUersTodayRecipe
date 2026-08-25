@@ -42,7 +42,9 @@
     <view class="content-card roulette-card">
       <view class="section-header section-header--inside">
         <view class="section-header__main">
-          <view class="section-header__icon section-header__icon--purple">＋</view>
+          <view class="section-header__icon section-header__icon--purple">
+            <t-icon name="add" size="30rpx" color="#ffffff" />
+          </view>
           <text class="section-header__title">吃啥转转乐</text>
         </view>
         <text class="roulette-card__hint">选择困难？转一转就有啦</text>
@@ -82,20 +84,8 @@
       </view>
     </view>
 
-    <view class="progress-card" bindtap="showCheckInHistory">
-      <view class="progress-card__copy">
-        <view class="progress-card__title">本周打卡进度</view>
-        <view class="progress-card__desc">坚持打卡，养成好习惯</view>
-      </view>
-      <view class="progress-card__art">
-        <view class="progress-card__paper">✓<text>✓</text><text>✓</text></view>
-        <view class="progress-card__pen"></view>
-      </view>
-      <view class="progress-card__count">
-        <view><text>{{checkInDays}}</text> / {{monthlyGoal}}</view>
-        <view class="progress-card__label">已打卡天数</view>
-      </view>
-      <text class="progress-card__arrow">›</text>
+    <view class="home-progress-wrap">
+      <checkin-progress count="{{checkInDays}}" goal="{{weeklyGoal}}" bind:tap="showCheckInHistory" />
     </view>
 
     <view class="home-scroll__bottom-space"></view>

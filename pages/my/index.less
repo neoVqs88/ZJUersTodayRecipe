@@ -68,7 +68,6 @@
 }
 
 .profile-card,
-.progress-card,
 .menu-card {
   border: 1rpx solid var(--border-color);
   border-radius: 30rpx;
@@ -119,30 +118,7 @@
   &--gray { background: #edf0f4; color: #697386; }
 }
 
-.progress-card {
-  display: flex;
-  align-items: stretch;
-  margin-top: 24rpx;
-  overflow: hidden;
-
-  &__copy { width: 220rpx; padding: 28rpx 24rpx; background: linear-gradient(135deg, #eaf4ff, #f8fbff); }
-  &__title { color: #2459a9; font-size: var(--title-size); font-weight: 700; }
-  &__subtitle { margin-top: 10rpx; color: #667085; font-size: var(--caption-size); }
-  &__button { display: inline-block; margin-top: 24rpx; padding: 10rpx 18rpx; border-radius: 24rpx; background: #3478f6; color: #fff; font-size: 22rpx; }
-}
-
-.week-progress {
-  flex: 1;
-  min-width: 0;
-  padding: 24rpx 20rpx;
-
-  &__days { display: flex; justify-content: space-between; }
-  &__day { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); font-size: 22rpx; }
-  &__dot { display: flex; align-items: center; justify-content: center; width: 38rpx; height: 38rpx; margin-top: 14rpx; border: 2rpx solid #d0d5dd; border-radius: 50%; color: #fff; }
-  &__dot.is-checked { border-color: #58b87a; background: #58b87a; }
-  &__streak { margin-top: 20rpx; color: var(--text-secondary); font-size: var(--caption-size); text-align: right; }
-  &__streak text { color: #3478f6; font-weight: 700; }
-}
+.my-progress-wrap { margin-top: 24rpx; }
 
 .menu-card {
   margin-top: 24rpx;

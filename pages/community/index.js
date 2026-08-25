@@ -2,6 +2,7 @@
 // 集合权限：所有用户可读（大家都能刷社区），仅创建者可写（只能改自己的动态）
 // 点赞走云函数 likePost（因为要修改别人的动态、还要给作者写消息）
 
+import { fetchCommentCounts } from '~/services/comments';
 import formatTime from '../../utils/formatTime';
 
 const CATEGORIES = [
@@ -48,10 +49,29 @@ Page({
         displayPosts: this.filterPosts(posts, this.data.activeCategory),
         loading: false,
       });
+      this.syncCommentCounts();
     } catch (err) {
       console.error('拉取动态失败', err);
       this.setData({ loading: false });
       wx.showToast({ title: '动态加载失败', icon: 'none' });
+    }
+  },
+
+  // 补充每条动态的真实评论数（来自队友的评论云函数）
+  async syncCommentCounts() {
+    try {
+      const postIds = this.data.posts.map((p) => p._id);
+      const { counts } = await fetchCommentCounts(postIds);
+      const posts = this.data.posts.map((p) => ({
+        ...p,
+        commentsCount: counts[String(p._id)] || 0,
+      }));
+      this.setData({
+        posts,
+        displayPosts: this.filterPosts(posts, this.data.activeCategory),
+      });
+    } catch (error) {
+      // 评论服务未就绪时不影响动态浏览
     }
   },
 
@@ -96,8 +116,9 @@ Page({
     wx.showToast({ title: '收藏功能即将接入', icon: 'none' });
   },
 
-  openComments() {
-    wx.showToast({ title: '评论功能即将接入', icon: 'none' });
+  openComments(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.navigateTo({ url: `/pages/comments/index?postId=${id}` });
   },
 
   showPostMenu() {
