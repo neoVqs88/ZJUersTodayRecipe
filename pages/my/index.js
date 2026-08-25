@@ -141,9 +141,9 @@ Page({
   openMyProfile() {
     if (!this.requireLogin()) return;
     const user = this.data.personalInfo || {};
-    const query = user.id ? '?userId=' + encodeURIComponent(user.id) : '';
+    const query = user.id ? `?userId=${  encodeURIComponent(user.id)}` : '';
     wx.navigateTo({
-      url: '/pages/profile/index' + query,
+      url: `/pages/profile/index${  query}`,
       success: ({ eventChannel }) => eventChannel.emit('profilePreview', user),
     });
   },

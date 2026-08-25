@@ -73,7 +73,7 @@ Page({
   },
 
   onChooseAvatar(event) {
-    const avatarUrl = event.detail.avatarUrl;
+    const {avatarUrl} = event.detail;
     if (avatarUrl) this.setData({ 'profile.image': avatarUrl });
   },
 
