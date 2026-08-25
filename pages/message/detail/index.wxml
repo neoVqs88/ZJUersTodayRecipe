@@ -1,0 +1,17 @@
+<scroll-view class="detail" scroll-y>
+  <view class="msg" wx:for="{{messages}}" wx:key="_id">
+    <view class="msg__avatar" style="background: {{item.avatarColor}}">{{item.senderInitial}}</view>
+    <view class="msg__body">
+      <view class="msg__row">
+        <text class="msg__name">{{item.senderName}}</text>
+        <text class="msg__time">{{item.displayTime}}</text>
+      </view>
+      <view class="msg__action">{{item.action}}</view>
+      <view wx:if="{{item.content}}" class="msg__content">{{item.content}}</view>
+      <view wx:if="{{item.targetDesc}}" class="msg__target">原动态：{{item.targetDesc}}</view>
+    </view>
+    <view wx:if="{{!item.read}}" class="msg__dot"></view>
+  </view>
+
+  <view wx:if="{{!loading && messages.length === 0}}" class="detail__empty">这个分类还没有消息</view>
+</scroll-view>
