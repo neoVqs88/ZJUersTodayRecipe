@@ -2,18 +2,9 @@
 // 体验设计：进入时正常展示（未读的带红点），离开页面时批量标记已读——"看过就算读了"
 // 返回主页时主页的 onShow 会重新拉数据，所以未读角标自动更新，无需额外通知
 
-const AVATAR_COLORS = ['#2d78da', '#34a853', '#f29900', '#d93025', '#7c4dff', '#00a5a8'];
+import formatTime from '../../../utils/formatTime';
 
-// 与主页相同的时间格式化（下期可以抽到 utils 里共用）
-function formatTime(dateInput) {
-  const date = new Date(dateInput);
-  const nowDate = new Date();
-  const hm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  if (date.toDateString() === nowDate.toDateString()) return hm;
-  const yesterday = new Date(nowDate.getTime() - 24 * 3600 * 1000);
-  if (date.toDateString() === yesterday.toDateString()) return `昨天 ${hm}`;
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
-}
+const AVATAR_COLORS = ['#2d78da', '#34a853', '#f29900', '#d93025', '#7c4dff', '#00a5a8'];
 
 Page({
   data: {

@@ -2,6 +2,8 @@
 // 数据来自云数据库 messages 集合（权限：仅创建者可读写，天然只看到自己的消息）
 // 卡片 = 把该分类下的消息事件聚合而成：最新一条做摘要 + 未读条数
 
+import formatTime from '../../utils/formatTime';
+
 // 分类的展示配置：标题、图标、配色、归属哪个标签页
 const CATEGORIES = {
   like_comment: { title: '点赞与评论', icon: 'thumb-up', theme: 'green', tab: 'interaction' },
@@ -10,17 +12,6 @@ const CATEGORIES = {
   checkin: { title: '打卡提醒', icon: 'calendar', theme: 'green', tab: 'system' },
   activity: { title: '活动通知', icon: 'sound', theme: 'purple', tab: 'system', tag: '官方', tagTheme: 'blue' },
 };
-
-// 把云端时间格式化成友好文案：今天显示时分，昨天显示"昨天"，更早显示月日
-function formatTime(dateInput) {
-  const date = new Date(dateInput);
-  const nowDate = new Date();
-  const hm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  if (date.toDateString() === nowDate.toDateString()) return hm;
-  const yesterday = new Date(nowDate.getTime() - 24 * 3600 * 1000);
-  if (date.toDateString() === yesterday.toDateString()) return `昨天 ${hm}`;
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
-}
 
 Page({
   data: {
