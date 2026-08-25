@@ -25,6 +25,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/checkins",
+      "name": "checkins",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/my/info-edit",
       "name": "edit",
       "pages": ["index"]

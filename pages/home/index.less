@@ -91,8 +91,7 @@
   }
 }
 
-.content-card,
-.progress-card {
+.content-card {
   margin-right: 16rpx;
   margin-left: 16rpx;
   border: 1rpx solid rgba(69, 86, 110, 0.1);
@@ -327,70 +326,4 @@
   }
 }
 
-.progress-card {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  min-height: 144rpx;
-  margin-top: 18rpx;
-  padding: 18rpx 24rpx;
-  border-color: #dcecff;
-  background: linear-gradient(110deg, #eef7ff 0%, #f7fbff 100%);
-
-  &__copy { flex: 1; }
-  &__title { color: #2872df; font-size: 30rpx; font-weight: 700; }
-  &__desc { margin-top: 10rpx; color: #6591cc; font-size: 21rpx; }
-
-  &__art {
-    position: relative;
-    width: 98rpx;
-    height: 94rpx;
-    margin-right: 15rpx;
-    transform: rotate(6deg);
-  }
-
-  &__paper {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    width: 70rpx;
-    height: 88rpx;
-    padding: 10rpx 0 0 13rpx;
-    border: 5rpx solid #4b99f3;
-    border-radius: 8rpx;
-    background: #fff;
-    color: #48bd8a;
-    font-size: 18rpx;
-    line-height: 21rpx;
-
-    text { display: block; }
-  }
-
-  &__pen {
-    position: absolute;
-    right: 12rpx;
-    bottom: 3rpx;
-    width: 13rpx;
-    height: 65rpx;
-    border-radius: 8rpx;
-    background: linear-gradient(90deg, #ffd05a 0 55%, #337eed 56% 100%);
-    transform: rotate(28deg);
-  }
-
-  &__count {
-    box-sizing: border-box;
-    min-width: 120rpx;
-    padding: 14rpx 18rpx;
-    border-radius: 28rpx;
-    background: rgba(255, 255, 255, 0.9);
-    text-align: center;
-    color: #7b8798;
-    font-size: 23rpx;
-    font-weight: 700;
-
-    text { color: #3785ef; font-size: 40rpx; }
-  }
-
-  &__label { margin-top: 2rpx; color: #8590a1; font-size: 18rpx; font-weight: 500; }
-  &__arrow { margin-left: 12rpx; color: #267cf0; font-size: 42rpx; }
-}
+.home-progress-wrap { margin: 18rpx 16rpx 0; }

@@ -1,0 +1,70 @@
+<view class="checkins-page">
+  <t-navbar title="我的打卡" left-arrow />
+
+  <view class="checkins-summary">
+    <view class="checkins-summary__copy">
+      <view class="checkins-summary__eyebrow">MEAL MOMENTS</view>
+      <view class="checkins-summary__title">记录每一顿校园好味道</view>
+      <view class="checkins-summary__desc">图片与识别结果已安全保存在云端</view>
+    </view>
+    <view class="checkins-summary__stats">
+      <view><view><text class="checkins-summary__stat-value">{{stats.weeklyCount}}</text>/{{stats.weeklyGoal}}</view><text class="checkins-summary__stat-label">本周天数</text></view>
+      <view><text class="checkins-summary__stat-value">{{stats.totalCount}}</text><text class="checkins-summary__stat-label">累计打卡</text></view>
+      <view><text class="checkins-summary__stat-value">{{stats.streakDays}}</text><text class="checkins-summary__stat-label">连续天数</text></view>
+    </view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="filter-list">
+      <view
+        class="filter-item {{activeFilter === item.value ? 'filter-item--active' : ''}}"
+        wx:for="{{filters}}"
+        wx:key="value"
+        data-value="{{item.value}}"
+        bindtap="selectFilter"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <scroll-view
+    class="record-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="refreshRecords"
+  >
+    <view class="record-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="加载云端打卡" /></view>
+
+    <view class="record-empty" wx:elif="{{!displayRecords.length}}">
+      <view class="record-empty__icon"><t-icon name="camera" size="62rpx" /></view>
+      <view class="record-empty__title">还没有打卡内容</view>
+      <view class="record-empty__desc">拍下今天的饭菜，让每一餐都成为校园生活的记录。</view>
+      <view class="record-empty__button" bindtap="goCheckIn">去完成第一次打卡</view>
+    </view>
+
+    <view class="record-list" wx:else>
+      <view class="record-card" wx:for="{{displayRecords}}" wx:key="id">
+        <image class="record-card__image" src="{{item.imageFileId}}" mode="aspectFill" data-url="{{item.imageFileId}}" bindtap="previewImage" />
+        <view class="record-card__body">
+          <view class="record-card__meta">
+            <text class="record-card__meal record-card__meal--{{item.mealType}}">{{item.mealLabel}}</text>
+            <text class="record-card__time">{{item.displayTime}}</text>
+          </view>
+          <view class="record-card__name">{{item.dishName}}</view>
+          <view class="record-card__confidence"><t-icon name="scan" size="25rpx" /> 菜品识别置信度 {{item.confidenceText}}</view>
+          <view class="nutrition-card {{item.nutritionReady ? 'nutrition-card--ready' : ''}}" data-id="{{item.id}}" bindtap="showNutrition">
+            <view class="nutrition-card__icon"><t-icon name="chart-bubble" size="29rpx" /></view>
+            <view class="nutrition-card__copy">
+              <view class="nutrition-card__title">{{item.nutritionTitle}}</view>
+              <view class="nutrition-card__desc">{{item.nutritionDesc}}</view>
+            </view>
+            <t-icon name="chevron-right" size="30rpx" color="#98a2b3" />
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="record-scroll__bottom-space" />
+  </scroll-view>
+</view>

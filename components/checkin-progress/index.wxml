@@ -1,0 +1,15 @@
+<view class="progress-card {{dark ? 'progress-card--dark' : ''}}" bindtap="handleTap" hover-class="progress-card--pressed">
+  <view class="progress-card__copy">
+    <view class="progress-card__title">本周打卡进度</view>
+    <view class="progress-card__desc">{{subtitle}}</view>
+  </view>
+  <view class="progress-card__art">
+    <view class="progress-card__paper">✓<text>✓</text><text>✓</text></view>
+    <view class="progress-card__pen" />
+  </view>
+  <view class="progress-card__count">
+    <view><text>{{count}}</text> / {{goal}}</view>
+    <view class="progress-card__label">本周已打卡天数</view>
+  </view>
+  <text class="progress-card__arrow">›</text>
+</view>
