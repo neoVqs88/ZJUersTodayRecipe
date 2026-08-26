@@ -88,7 +88,7 @@ Page({
   buildStats(user, loggedIn) {
     return [
       { label: '我的打卡', value: loggedIn ? user.checkInCount || 0 : 0, unit: '次', icon: 'calendar', color: 'green', type: 'checkins' },
-      { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue' },
+      { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue', type: 'posts' },
       { label: '我的收藏', value: loggedIn ? user.favoriteCount || 0 : 0, unit: '个', icon: 'star', color: 'orange' },
     ];
   },
@@ -142,9 +142,9 @@ Page({
   openMyProfile() {
     if (!this.requireLogin()) return;
     const user = this.data.personalInfo || {};
-    const query = user.id ? '?userId=' + encodeURIComponent(user.id) : '';
+    const query = user.id ? `?userId=${  encodeURIComponent(user.id)}` : '';
     wx.navigateTo({
-      url: '/pages/profile/index' + query,
+      url: `/pages/profile/index${  query}`,
       success: ({ eventChannel }) => eventChannel.emit('profilePreview', user),
     });
   },

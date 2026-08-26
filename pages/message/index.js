@@ -1,27 +1,28 @@
-// 消息页：数据来自云数据库 messages 集合
-// 集合权限为"仅创建者可读写"，所以前端查到天然只有当前用户自己的消息
+// 消息主页：分类卡片（点赞与评论 / 饭搭子邀约 / 系统通知…）
+// 数据来自云数据库 messages 集合（权限：仅创建者可读写，天然只看到自己的消息）
+// 卡片 = 把该分类下的消息事件聚合而成：最新一条做摘要 + 未读条数
 
-// 把云端时间格式化成友好文案：今天显示时分，昨天显示"昨天"，更早显示月日
-function formatTime(dateInput) {
-  const date = new Date(dateInput);
-  const nowDate = new Date();
-  const hm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  if (date.toDateString() === nowDate.toDateString()) return hm;
-  const yesterday = new Date(nowDate.getTime() - 24 * 3600 * 1000);
-  if (date.toDateString() === yesterday.toDateString()) return `昨天 ${hm}`;
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
-}
+import formatTime from '../../utils/formatTime';
+
+// 分类的展示配置：标题、图标、配色、归属哪个标签页
+const CATEGORIES = {
+  like_comment: { title: '点赞与评论', icon: 'thumb-up', theme: 'green', tab: 'interaction' },
+  follow: { title: '新的关注', icon: 'user-add', theme: 'blue', tab: 'interaction' },
+  invite: { title: '饭搭子邀约', icon: 'usergroup', theme: 'orange', tab: 'interaction', tag: '新邀约', tagTheme: 'orange' },
+  system: { title: '系统通知', icon: 'notification', theme: 'blue', tab: 'system' },
+  checkin: { title: '打卡提醒', icon: 'calendar', theme: 'green', tab: 'system' },
+  activity: { title: '活动通知', icon: 'sound', theme: 'purple', tab: 'system', tag: '官方', tagTheme: 'blue' },
+};
 
 Page({
   data: {
     activeTab: 'interaction',
-    interactionMessages: [],
-    systemMessages: [],
-    displayMessages: [],
+    cards: [], // 全部分类卡片
+    displayCards: [], // 当前标签页要展示的卡片
     loading: true,
   },
 
-  // 每次进入页面都拉最新数据（onShow 而不是 onLoad，从别的页面切回来也会刷新）
+  // 每次进入页面都拉最新数据（从详情页返回时也会触发，未读数自动刷新）
   onShow() {
     this.fetchMessages();
   },
@@ -31,12 +32,10 @@ Page({
       const db = wx.cloud.database();
       const res = await db.collection('messages').orderBy('createdAt', 'desc').get();
       const messages = res.data.map((m) => ({ ...m, displayTime: formatTime(m.createdAt) }));
-      const interactionMessages = messages.filter((m) => m.type === 'interaction');
-      const systemMessages = messages.filter((m) => m.type === 'system');
+      const cards = this.buildCards(messages);
       this.setData({
-        interactionMessages,
-        systemMessages,
-        displayMessages: this.data.activeTab === 'system' ? systemMessages : interactionMessages,
+        cards,
+        displayCards: cards.filter((c) => c.tab === this.data.activeTab),
         loading: false,
       });
       // 联动底部导航的未读角标（app.js 里的现成方法，内部会广播给 tabBar）
@@ -48,50 +47,37 @@ Page({
     }
   },
 
+  // 把消息事件按分类聚合成卡片：最新一条做摘要，统计未读条数
+  buildCards(messages) {
+    return Object.entries(CATEGORIES)
+      .map(([category, meta]) => {
+        const list = messages.filter((m) => m.category === category);
+        if (list.length === 0) return null; // 该分类没消息就不显示卡片
+        const latest = list[0]; // 已按时间倒序，第一条就是最新
+        return {
+          category,
+          ...meta,
+          summary: `${latest.senderName} ${latest.action}`,
+          detail: latest.content || latest.targetDesc,
+          displayTime: latest.displayTime,
+          unreadCount: list.filter((m) => !m.read).length,
+        };
+      })
+      .filter(Boolean);
+  },
+
   switchMessageTab(event) {
     const { tab } = event.currentTarget.dataset;
     this.setData({
       activeTab: tab,
-      displayMessages: tab === 'system' ? this.data.systemMessages : this.data.interactionMessages,
+      displayCards: this.data.cards.filter((c) => c.tab === tab),
     });
   },
 
-  // 点开一条消息：标记已读 + 展示完整内容
-  openMessage(event) {
-    const { id } = event.currentTarget.dataset;
-    const item = this.data.displayMessages.find((m) => m._id === id);
-    if (!item) return;
-
-    if (!item.read) {
-      // 云端标记已读（只能改自己的消息，越权会被数据库权限自动拦截）
-      const db = wx.cloud.database();
-      db.collection('messages').doc(id).update({ data: { read: true } })
-        .catch((err) => console.error('标记已读失败', err));
-      // 本地同步刷新，不必重新拉取整个列表
-      const patch = (list) => list.map((m) => (m._id === id ? { ...m, read: true } : m));
-      const interactionMessages = patch(this.data.interactionMessages);
-      const systemMessages = patch(this.data.systemMessages);
-      this.setData({
-        interactionMessages,
-        systemMessages,
-        displayMessages: this.data.activeTab === 'system' ? systemMessages : interactionMessages,
-      });
-      const unread = [...interactionMessages, ...systemMessages].filter((m) => !m.read).length;
-      getApp().setUnreadNum(unread);
-    }
-
-    if (item.actorUserId) {
-      wx.navigateTo({ url: `/pages/profile/index?userId=${item.actorUserId}` });
-      return;
-    }
-
-    // 暂无业务跳转的普通消息使用弹窗展示完整内容。
-    wx.showModal({
-      title: item.title,
-      content: item.detail,
-      showCancel: false,
-      confirmText: '知道了',
-    });
+  // 点击分类卡片 → 进入该分类的完整消息列表
+  openCategory(event) {
+    const { category, title } = event.currentTarget.dataset;
+    wx.navigateTo({ url: `/pages/message/detail/index?category=${category}&title=${title}` });
   },
 
   // 开发调试：给自己生成一批示例消息（上线前删除本函数和对应按钮）

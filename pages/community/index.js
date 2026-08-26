@@ -1,81 +1,31 @@
+// 社区页：动态来自云数据库 posts 集合
+// 集合权限：所有用户可读（大家都能刷社区），仅创建者可写（只能改自己的动态）
+// 点赞走云函数 likePost（因为要修改别人的动态、还要给作者写消息）
+
 import { fetchCommentCounts } from '~/services/comments';
 import { isLoggedIn } from '~/services/auth';
 import { recordBrowsingHistory } from '~/services/userSocial';
+import formatTime from '../../utils/formatTime';
 
-const initialPosts = [
-  {
-    id: 1,
-    category: 'food',
-    author: '浙大干饭选手',
-    level: 4,
-    avatar: '/static/avatar1.png',
-    time: '1 小时前',
-    content: '今天发现玉泉一食堂的卤味窗口，鸡腿很入味，配上青菜和米饭刚刚好！',
-    dish: '招牌卤味饭',
-    visualDesc: '咸香入味 · 荤素搭配',
-    emoji: '🍗',
-    tone: 'orange',
-    location: '玉泉一食堂',
-    tags: ['食堂新发现', '卤味'],
-    likes: 66,
-    comments: 0,
-    collections: 26,
-    liked: false,
-    collected: false,
-  },
-  {
-    id: 2,
-    category: 'explore',
-    author: '小蓝今天吃什么',
-    level: 3,
-    avatar: '/static/miniprogram-icon-zju-bowl-144.png',
-    time: '2 小时前',
-    content: '怡膳堂二楼玫瑰简餐打卡！出餐很快，今天的套餐清爽又不会吃不饱。',
-    dish: '玫瑰简餐',
-    visualDesc: '快捷简餐 · 清爽均衡',
-    emoji: '🍱',
-    tone: 'green',
-    location: '怡膳堂二楼',
-    tags: ['探店打卡', '玫瑰简餐'],
-    likes: 48,
-    comments: 0,
-    collections: 19,
-    liked: false,
-    collected: true,
-  },
-  {
-    id: 3,
-    category: 'companion',
-    author: '周五不想一个人吃',
-    level: 2,
-    avatar: '/static/avatar1.png',
-    time: '3 小时前',
-    content: '今晚六点想去靓园吃饭，有没有同学一起拼桌？口味都可以，轻松聊天就好～',
-    dish: '晚餐拼桌',
-    visualDesc: '今天 18:00 · 还差 2 人',
-    emoji: '👥',
-    tone: 'blue',
-    location: '靓园',
-    tags: ['约饭拼桌', '晚餐'],
-    likes: 21,
-    comments: 0,
-    collections: 5,
-    liked: true,
-    collected: false,
-  },
+const CATEGORIES = [
+  { label: '全部动态', value: 'all', icon: '▱' },
+  { label: '美食分享', value: 'food', icon: '🍲' },
+  { label: '约饭拼桌', value: 'companion', icon: '🥂' },
+  { label: '探店打卡', value: 'explore', icon: '▤' },
 ];
 
 Page({
   data: {
-    categories: [
-      { label: '全部动态', value: 'all', icon: '▱' },
-      { label: '美食分享', value: 'food', icon: '🍲' },
-      { label: '约饭拼桌', value: 'companion', icon: '🥂' },
-      { label: '探店打卡', value: 'explore', icon: '▤' },
-    ],
+    categories: CATEGORIES,
     activeCategory: 'all',
-    posts: initialPosts,
-    displayPosts: initialPosts,
+    posts: [],
+    displayPosts: [],
+    loading: true,
+  },
+
+  // 每次进入页面都拉最新数据（从发布页返回、别人点了赞，都能反映出来）
+  onShow() {
+    this.fetchPosts();
   },
 
   onLoad(options) {
@@ -86,24 +36,44 @@ Page({
     });
   },
 
-  onShow() {
-    this.syncCommentCounts();
+  async fetchPosts() {
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('posts').orderBy('createdAt', 'desc').get();
+      const myOpenid = getApp().globalData.openid;
+      const posts = res.data.map((p) => ({
+        ...p,
+        displayTime: formatTime(p.createdAt),
+        liked: (p.likers || []).includes(myOpenid), // 我点过赞没有
+      }));
+      this.setData({
+        posts,
+        displayPosts: this.filterPosts(posts, this.data.activeCategory),
+        loading: false,
+      });
+      this.syncCommentCounts();
+    } catch (err) {
+      console.error('拉取动态失败', err);
+      this.setData({ loading: false });
+      wx.showToast({ title: '动态加载失败', icon: 'none' });
+    }
   },
 
+  // 补充每条动态的真实评论数（来自队友的评论云函数）
   async syncCommentCounts() {
     try {
-      const postIds = this.data.posts.map((post) => post.id);
+      const postIds = this.data.posts.map((p) => p._id);
       const { counts } = await fetchCommentCounts(postIds);
-      const posts = this.data.posts.map((post) => ({
-        ...post,
-        comments: counts[String(post.id)] || 0,
+      const posts = this.data.posts.map((p) => ({
+        ...p,
+        commentsCount: counts[String(p._id)] || 0,
       }));
       this.setData({
         posts,
         displayPosts: this.filterPosts(posts, this.data.activeCategory),
       });
     } catch (error) {
-      // 云函数尚未部署或网络不可用时保留当前评论数量。
+      // 评论服务未就绪时不影响动态浏览
     }
   },
 
@@ -120,78 +90,83 @@ Page({
   },
 
   updatePost(postId, updater) {
-    const posts = this.data.posts.map((post) => (post.id === postId ? updater(post) : post));
+    const posts = this.data.posts.map((post) => (post._id === postId ? updater(post) : post));
     this.setData({
       posts,
       displayPosts: this.filterPosts(posts, this.data.activeCategory),
     });
   },
 
-  toggleLike(event) {
-    const postId = Number(event.currentTarget.dataset.id);
-    this.updatePost(postId, (post) => ({
-      ...post,
-      liked: !post.liked,
-      likes: post.likes + (post.liked ? -1 : 1),
-    }));
+  // 点赞/取消点赞：云函数返回的是权威结果，以它为准刷新 UI
+  // （进阶做法是先本地变红再对账，叫"乐观更新"，下期可以聊）
+  async toggleLike(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.showLoading({ title: '请稍候…', mask: true });
+    try {
+      const res = await wx.cloud.callFunction({ name: 'likePost', data: { postId: id } });
+      const { liked, likes } = res.result;
+      this.updatePost(id, (post) => ({ ...post, liked, likes }));
+    } catch (err) {
+      console.error('点赞失败', err);
+      wx.showToast({ title: '点赞失败，请重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
-  toggleCollect(event) {
-    const postId = Number(event.currentTarget.dataset.id);
-    this.updatePost(postId, (post) => ({
-      ...post,
-      collected: !post.collected,
-      collections: post.collections + (post.collected ? -1 : 1),
-    }));
+  toggleCollect() {
+    wx.showToast({ title: '收藏功能即将接入', icon: 'none' });
   },
 
   openComments(event) {
-    const postId = Number(event.currentTarget.dataset.id);
-    const post = this.data.posts.find((item) => item.id === postId);
+    const { id } = event.currentTarget.dataset;
+    const post = this.data.posts.find((item) => item._id === id);
     if (!post) return;
 
     if (isLoggedIn()) {
       recordBrowsingHistory({
         type: 'post',
-        targetId: String(post.id),
+        targetId: String(post._id),
         title: post.dish || '校园美食分享',
         subtitle: post.content,
         image: post.image || post.avatar || '',
-        route: `/pages/comments/index?postId=${post.id}`,
+        route: `/pages/comments/index?postId=${post._id}`,
       }).catch(() => {});
     }
 
     wx.navigateTo({
-      url: '/pages/comments/index?postId=' + postId,
+      url: `/pages/comments/index?postId=${post._id}`,
       success: ({ eventChannel }) => {
-        eventChannel.emit('post', post);
-        eventChannel.on('commentCountChange', ({ postId: changedPostId, total }) => {
-          const changedId = Number(changedPostId);
-          this.updatePost(changedId, (item) => ({ ...item, comments: total }));
+        eventChannel.emit('post', {
+          ...post,
+          id: post._id,
+          author: post.authorName,
+          authorId: post.authorId || post.userId || '',
+        });
+        eventChannel.on('commentCountChange', ({ postId, total }) => {
+          this.updatePost(String(postId), (item) => ({ ...item, commentsCount: total }));
         });
       },
     });
   },
 
   openAuthorProfile(event) {
-    const postId = Number(event.currentTarget.dataset.id);
-    const post = this.data.posts.find((item) => item.id === postId);
+    const { id } = event.currentTarget.dataset;
+    const post = this.data.posts.find((item) => item._id === id);
     if (!post) return;
-    const userId = post.authorId || '';
-    const query = userId ? '?userId=' + encodeURIComponent(userId) : '?preview=1';
+    const userId = post.authorId || post.userId || '';
+    const query = userId ? `?userId=${encodeURIComponent(userId)}` : '?preview=1';
     wx.navigateTo({
-      url: '/pages/profile/index' + query,
-      success: ({ eventChannel }) => {
-        eventChannel.emit('profilePreview', {
-          id: userId,
-          name: post.author,
-          image: post.avatar,
-          introduction: post.authorIntroduction || '在校园里认真吃饭，也认真分享每一次美食发现。',
-          campus: post.campus || '玉泉校区',
-          star: '浙江大学生',
-          postCount: 1,
-        });
-      },
+      url: `/pages/profile/index${query}`,
+      success: ({ eventChannel }) => eventChannel.emit('profilePreview', {
+        id: userId,
+        name: post.authorName,
+        image: post.avatar,
+        introduction: post.authorIntroduction || '在校园里认真吃饭，也认真分享每一次美食发现。',
+        campus: post.campus || '玉泉校区',
+        star: '浙江大学生',
+        postCount: 1,
+      }),
     });
   },
 

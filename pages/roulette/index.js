@@ -123,13 +123,13 @@ const wheelItems = diningWindows.map((item, index) => {
     inverseAngle: -angle,
   };
 });
-const wheelBackground = 'conic-gradient(' + diningWindows
+const wheelBackground = `conic-gradient(${  diningWindows
   .map((item, index) => {
     const start = (index * sectorAngle).toFixed(4);
     const end = ((index + 1) * sectorAngle).toFixed(4);
-    return item.color + ' ' + start + 'deg ' + end + 'deg';
+    return `${item.color  } ${  start  }deg ${  end  }deg`;
   })
-  .join(', ') + ')';
+  .join(', ')  })`;
 
 Page({
   data: {
@@ -188,7 +188,7 @@ Page({
   onShareAppMessage() {
     return {
       title: this.data.result
-        ? '转盘推荐我去' + this.data.result.canteen + '，你也来试试！'
+        ? `转盘推荐我去${  this.data.result.canteen  }，你也来试试！`
         : '今天吃什么？让幸运转盘帮你决定',
       path: '/pages/roulette/index',
     };

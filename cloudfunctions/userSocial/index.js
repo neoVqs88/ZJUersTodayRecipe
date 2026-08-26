@@ -363,12 +363,12 @@ async function toggleFollow(event, currentUserId, currentUser, active) {
       await db.collection(MESSAGES_COLLECTION).add({
         data: {
           _openid: targetUser._openid,
-          type: 'interaction',
-          title: '新关注',
-          summary: `${currentUser.name || '一位同学'} 关注了你`,
-          detail: '去个人主页看看这位校园美食伙伴吧。',
-          icon: 'user-add',
-          theme: 'blue',
+          category: 'follow',
+          senderName: currentUser.name || '一位同学',
+          senderAvatar: currentUser.image || DEFAULT_AVATAR,
+          action: '关注了你',
+          content: '去个人主页看看这位校园美食伙伴吧。',
+          targetDesc: '',
           read: false,
           actorUserId: currentUserId,
           createdAt: db.serverDate(),

@@ -43,12 +43,12 @@ Page({
   },
 
   viewDish(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const dish = this.data.newDishes[index];
+    const dishIndex = Number(event.currentTarget.dataset.index);
+    const dish = this.data.newDishes[dishIndex];
     if (isLoggedIn()) {
       recordBrowsingHistory({
         type: 'dish',
-        targetId: `home-dish-${index}`,
+        targetId: `home-dish-${dishIndex}`,
         title: dish.name,
         subtitle: `${dish.location} · 推荐评分 ${dish.score}`,
         image: dish.image,

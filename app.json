@@ -10,6 +10,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/message/detail",
+      "name": "message-detail",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/roulette",
       "name": "roulette",
       "pages": ["index"]

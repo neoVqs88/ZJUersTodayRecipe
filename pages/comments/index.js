@@ -15,12 +15,12 @@ function formatCommentTime(value) {
   const now = new Date();
   const distance = now.getTime() - date.getTime();
   if (distance < 60 * 1000) return '刚刚';
-  if (distance < 60 * 60 * 1000) return Math.floor(distance / (60 * 1000)) + ' 分钟前';
-  if (distance < 24 * 60 * 60 * 1000) return Math.floor(distance / (60 * 60 * 1000)) + ' 小时前';
+  if (distance < 60 * 60 * 1000) return `${Math.floor(distance / (60 * 1000))  } 分钟前`;
+  if (distance < 24 * 60 * 60 * 1000) return `${Math.floor(distance / (60 * 60 * 1000))  } 小时前`;
   if (date.getFullYear() === now.getFullYear()) {
-    return (date.getMonth() + 1) + '月' + date.getDate() + '日';
+    return `${date.getMonth() + 1  }月${  date.getDate()  }日`;
   }
-  return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日';
+  return `${date.getFullYear()  }年${  date.getMonth() + 1  }月${  date.getDate()  }日`;
 }
 
 function formatComments(comments) {
@@ -128,9 +128,9 @@ Page({
     if (!profile) return;
 
     const targetId = userId || profile.userId || profile.authorId || '';
-    const query = targetId ? '?userId=' + encodeURIComponent(targetId) : '?preview=1';
+    const query = targetId ? `?userId=${  encodeURIComponent(targetId)}` : '?preview=1';
     wx.navigateTo({
-      url: '/pages/profile/index' + query,
+      url: `/pages/profile/index${  query}`,
       success: ({ eventChannel }) => {
         eventChannel.emit('profilePreview', {
           id: targetId,
@@ -145,8 +145,8 @@ Page({
   },
 
   goLogin() {
-    const redirect = encodeURIComponent('/pages/comments/index?postId=' + this.postId);
-    wx.navigateTo({ url: '/pages/login/login?redirect=' + redirect });
+    const redirect = encodeURIComponent(`/pages/comments/index?postId=${  this.postId}`);
+    wx.navigateTo({ url: `/pages/login/login?redirect=${  redirect}` });
   },
 
   async submitComment() {

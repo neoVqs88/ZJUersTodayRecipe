@@ -33,10 +33,11 @@
       <view class="message-list">
         <view
           class="message-card"
-          wx:for="{{displayMessages}}"
-          wx:key="id"
-          data-id="{{item._id}}"
-          bindtap="openMessage"
+          wx:for="{{displayCards}}"
+          wx:key="category"
+          data-category="{{item.category}}"
+          data-title="{{item.title}}"
+          bindtap="openCategory"
         >
           <view class="message-card__icon message-card__icon--{{item.theme}}">
             <t-icon name="{{item.icon}}" size="56rpx" color="#ffffff" />
@@ -53,13 +54,13 @@
 
           <view class="message-card__meta">
             <text class="message-card__time">{{item.displayTime}}</text>
-            <text wx:if="{{!item.read}}" class="message-card__badge message-card__badge--dot"></text>
+            <text wx:if="{{item.unreadCount}}" class="message-card__badge">{{item.unreadCount}}</text>
           </view>
           <text class="message-card__arrow">›</text>
         </view>
       </view>
 
-      <view wx:if="{{!loading && displayMessages.length === 0}}" class="message-empty">
+      <view wx:if="{{!loading && displayCards.length === 0}}" class="message-empty">
         <view class="message-empty__text">暂无消息</view>
         <!-- 开发调试入口：上线前删除 -->
         <t-button size="small" variant="outline" theme="primary" bindtap="seedMessages">生成示例消息（调试）</t-button>
