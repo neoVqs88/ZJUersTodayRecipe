@@ -27,13 +27,18 @@
           </view>
           <view class="profile-main__meta">zjuer ID：{{profile.displayId || '新同学'}}</view>
         </view>
-        <view class="profile-main__edit" wx:if="{{isMine}}" bindtap="editProfile">
-          <t-icon name="edit" size="25rpx" />
-          <text>编辑资料</text>
+        <view class="profile-main__actions" wx:if="{{isMine}}">
+          <view class="profile-main__action" bindtap="editProfile"><t-icon name="edit" size="25rpx" /><text>编辑</text></view>
+          <view class="profile-main__action" bindtap="openPrivacy"><t-icon name="lock-on" size="25rpx" /><text>隐私</text></view>
         </view>
-        <view class="profile-main__follow" wx:else bindtap="showDeveloping">
-          <t-icon name="add" size="25rpx" />
-          <text>关注</text>
+        <view
+          class="profile-main__follow {{social.isFollowing ? 'profile-main__follow--active' : ''}}"
+          wx:else
+          bindtap="toggleFollow"
+        >
+          <t-loading wx:if="{{followLoading}}" theme="circular" size="25rpx" />
+          <t-icon wx:else name="{{social.isFollowing ? 'check' : 'add'}}" size="25rpx" />
+          <text>{{social.isFollowing ? '已关注' : (social.canFollow ? '关注' : '暂不接受关注')}}</text>
         </view>
       </view>
 
@@ -47,14 +52,14 @@
       </view>
 
       <view class="profile-stats">
-        <view class="profile-stats__item" wx:for="{{stats}}" wx:key="label" bindtap="showDeveloping">
+        <view class="profile-stats__item {{!item.enabled ? 'profile-stats__item--disabled' : ''}}" wx:for="{{stats}}" wx:key="label" data-item="{{item}}" bindtap="handleStatTap">
           <text class="profile-stats__value">{{item.value}}</text>
           <text class="profile-stats__label">{{item.label}}</text>
         </view>
       </view>
     </view>
 
-    <view class="profile-section" wx:if="{{detailRows.length}}">
+    <view class="profile-section" wx:if="{{detailRows.length && !restricted}}">
       <view class="profile-section__heading">
         <view class="profile-section__heading-icon profile-section__heading-icon--blue"><t-icon name="user-circle" size="32rpx" /></view>
         <view>
@@ -78,23 +83,51 @@
         <view class="profile-section__heading-icon profile-section__heading-icon--green"><t-icon name="rice" size="32rpx" /></view>
         <view class="profile-section__heading-copy">
           <view class="profile-section__title">校园美食动态</view>
-          <view class="profile-section__subtitle">分享与打卡会汇集在这里</view>
+          <view class="profile-section__subtitle">{{social.canViewActivity ? '分享与公开打卡会汇集在这里' : '该用户设置了动态可见范围'}}</view>
         </view>
-        <view class="profile-section__filter">全部</view>
       </view>
-      <view class="profile-empty">
+
+      <scroll-view class="dynamic-filter-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{social.canViewActivity}}">
+        <view class="dynamic-filters">
+          <view
+            class="dynamic-filter {{activeDynamicFilter === item.value ? 'dynamic-filter--active' : ''}}"
+            wx:for="{{dynamicFilters}}"
+            wx:key="value"
+            data-value="{{item.value}}"
+            bindtap="selectDynamicFilter"
+          >{{item.label}}</view>
+        </view>
+      </scroll-view>
+
+      <view class="dynamic-list" wx:if="{{social.canViewActivity && displayDynamics.length}}">
+        <view class="dynamic-card" wx:for="{{displayDynamics}}" wx:key="id" data-id="{{item.id}}" bindtap="openDynamic">
+          <image class="dynamic-card__image" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+          <view class="dynamic-card__body">
+            <view class="dynamic-card__meta">
+              <view class="dynamic-card__type"><t-icon name="{{item.icon}}" size="23rpx" /> {{item.typeLabel}}</view>
+              <text>{{item.displayTime}}</text>
+            </view>
+            <view class="dynamic-card__title">{{item.title}}</view>
+            <view class="dynamic-card__content" wx:if="{{item.content}}">{{item.content}}</view>
+            <view class="dynamic-card__location" wx:if="{{item.location}}"><t-icon name="location" size="22rpx" /> {{item.location}}</view>
+          </view>
+          <t-icon name="chevron-right" size="28rpx" color="#a3adba" />
+        </view>
+      </view>
+
+      <view class="profile-empty" wx:else>
         <view class="profile-empty__illustration">
-          <view class="profile-empty__plate">🍜</view>
+          <view class="profile-empty__plate">{{social.canViewActivity ? '🍜' : '🔒'}}</view>
           <view class="profile-empty__sparkle">✦</view>
         </view>
         <view class="profile-empty__copy">
-          <view class="profile-empty__title">还没有公开动态</view>
-          <view class="profile-empty__desc">发布美食分享或完成三餐打卡后，将在这里留下校园食光。</view>
+          <view class="profile-empty__title">{{social.canViewActivity ? '还没有符合条件的动态' : '动态暂不可见'}}</view>
+          <view class="profile-empty__desc">{{social.canViewActivity ? '发布美食分享或开启打卡展示后，将在这里留下校园食光。' : '尊重对方的隐私设置，关注后可能解锁更多动态。'}}</view>
         </view>
       </view>
     </view>
 
-    <view class="profile-tip" wx:if="{{loadFailed}}">当前展示本地预览资料，部署最新版 ensureUser 云函数后会自动同步</view>
+    <view class="profile-tip" wx:if="{{loadFailed}}">当前展示本地预览资料，部署 userSocial 云函数后会自动同步社交数据</view>
     <view class="profile-scroll__bottom-space" />
   </scroll-view>
 </view>

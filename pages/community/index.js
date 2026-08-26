@@ -1,4 +1,6 @@
 import { fetchCommentCounts } from '~/services/comments';
+import { isLoggedIn } from '~/services/auth';
+import { recordBrowsingHistory } from '~/services/userSocial';
 
 const initialPosts = [
   {
@@ -147,6 +149,17 @@ Page({
     const postId = Number(event.currentTarget.dataset.id);
     const post = this.data.posts.find((item) => item.id === postId);
     if (!post) return;
+
+    if (isLoggedIn()) {
+      recordBrowsingHistory({
+        type: 'post',
+        targetId: String(post.id),
+        title: post.dish || '校园美食分享',
+        subtitle: post.content,
+        image: post.image || post.avatar || '',
+        route: `/pages/comments/index?postId=${post.id}`,
+      }).catch(() => {});
+    }
 
     wx.navigateTo({
       url: '/pages/comments/index?postId=' + postId,

@@ -1,0 +1,9 @@
+{
+  "name": "userSocial",
+  "version": "1.0.0",
+  "description": "用户主页动态、关注、隐私和浏览足迹服务",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -1,0 +1,26 @@
+<view class="social-list-page">
+  <t-navbar title="{{title}}" left-arrow />
+  <view class="social-list-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="加载中" /></view>
+  <view class="social-list-empty" wx:elif="{{hidden}}">
+    <view class="social-list-empty__icon"><t-icon name="lock-on" size="58rpx" /></view>
+    <view class="social-list-empty__title">该列表未公开</view>
+    <view class="social-list-empty__desc">尊重对方设置的社交隐私范围</view>
+  </view>
+  <view class="social-list-empty" wx:elif="{{!users.length}}">
+    <view class="social-list-empty__icon"><t-icon name="usergroup" size="58rpx" /></view>
+    <view class="social-list-empty__title">暂时还没有{{title}}</view>
+    <view class="social-list-empty__desc">在社区发现更多认真分享校园美食的同学</view>
+  </view>
+  <scroll-view class="social-list-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="social-user" wx:for="{{users}}" wx:key="id" data-user="{{item}}" bindtap="openProfile">
+      <image class="social-user__avatar" src="{{item.image}}" mode="aspectFill" />
+      <view class="social-user__copy">
+        <view class="social-user__name">{{item.name}}</view>
+        <view class="social-user__intro">{{item.introduction || '一起发现校园里的好味道'}}</view>
+        <view class="social-user__campus"><t-icon name="location" size="22rpx" /> {{item.campus}}</view>
+      </view>
+      <t-icon name="chevron-right" size="32rpx" color="#a1acba" />
+    </view>
+    <view class="social-list-bottom" />
+  </scroll-view>
+</view>

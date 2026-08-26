@@ -37,6 +37,15 @@
           <t-switch value="{{notificationsEnabled}}" bind:change="toggleNotifications" />
         </view>
 
+        <view class="setting-row" bindtap="openPrivacy">
+          <view class="setting-row__icon setting-row__icon--purple"><t-icon name="lock-on" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">隐私设置</view>
+            <view class="setting-row__description">管理资料、动态、关注列表和浏览足迹</view>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" />
+        </view>
+
         <view class="setting-row" bindtap="clearCache">
           <view class="setting-row__icon setting-row__icon--orange"><t-icon name="delete" size="38rpx" /></view>
           <view class="setting-row__copy">

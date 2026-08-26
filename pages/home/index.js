@@ -1,6 +1,7 @@
 import recognizeDish from '../../utils/recognizeDish';
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { createMealCheckin, fetchMealCheckinStats } from '~/services/mealCheckins';
+import { recordBrowsingHistory } from '~/services/userSocial';
 
 Page({
   data: {
@@ -42,7 +43,18 @@ Page({
   },
 
   viewDish(event) {
-    const dish = this.data.newDishes[event.currentTarget.dataset.index];
+    const index = Number(event.currentTarget.dataset.index);
+    const dish = this.data.newDishes[index];
+    if (isLoggedIn()) {
+      recordBrowsingHistory({
+        type: 'dish',
+        targetId: `home-dish-${index}`,
+        title: dish.name,
+        subtitle: `${dish.location} · 推荐评分 ${dish.score}`,
+        image: dish.image,
+        route: '/pages/home/index',
+      }).catch(() => {});
+    }
     wx.showModal({
       title: dish.name,
       content: `${dish.location}\n推荐评分 ${dish.score}`,

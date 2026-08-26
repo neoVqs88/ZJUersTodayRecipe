@@ -5,6 +5,16 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const USERS_COLLECTION = 'users';
+const FOLLOWS_COLLECTION = 'follows';
+const DEFAULT_PRIVACY = {
+  profileVisibility: 'public',
+  activityVisibility: 'public',
+  showCheckins: false,
+  showFollowing: true,
+  showFollowers: true,
+  allowFollow: true,
+  historyEnabled: true,
+};
 
 function cleanText(value, maxLength) {
   if (typeof value !== 'string') return '';
@@ -54,6 +64,19 @@ function getEditableProfile(profile = {}) {
   };
 }
 
+function normalizePrivacy(value = {}) {
+  const visibilityOptions = ['public', 'followers', 'private'];
+  return {
+    profileVisibility: visibilityOptions.includes(value.profileVisibility) ? value.profileVisibility : DEFAULT_PRIVACY.profileVisibility,
+    activityVisibility: visibilityOptions.includes(value.activityVisibility) ? value.activityVisibility : DEFAULT_PRIVACY.activityVisibility,
+    showCheckins: typeof value.showCheckins === 'boolean' ? value.showCheckins : DEFAULT_PRIVACY.showCheckins,
+    showFollowing: typeof value.showFollowing === 'boolean' ? value.showFollowing : DEFAULT_PRIVACY.showFollowing,
+    showFollowers: typeof value.showFollowers === 'boolean' ? value.showFollowers : DEFAULT_PRIVACY.showFollowers,
+    allowFollow: typeof value.allowFollow === 'boolean' ? value.allowFollow : DEFAULT_PRIVACY.allowFollow,
+    historyEnabled: typeof value.historyEnabled === 'boolean' ? value.historyEnabled : DEFAULT_PRIVACY.historyEnabled,
+  };
+}
+
 function toPublicUser(user) {
   return {
     id: user._id,
@@ -73,14 +96,15 @@ function toPublicUser(user) {
     favoriteCount: user.favoriteCount || 0,
     weeklyCheckIns: user.weeklyCheckIns || [false, false, false, false, false, false, false],
     streakDays: user.streakDays || 0,
+    privacy: normalizePrivacy(user.privacy),
     createdAt: user.createdAt || null,
     lastLoginAt: user.lastLoginAt || null,
   };
 }
 
-function toPublicProfile(user) {
+function toPublicProfile(user, canViewDetails = true) {
   const profile = toPublicUser(user);
-  return {
+  const publicProfile = {
     id: profile.id,
     name: profile.name,
     image: profile.image,
@@ -94,7 +118,18 @@ function toPublicProfile(user) {
     foodPreferences: profile.foodPreferences,
     checkInCount: profile.checkInCount,
     postCount: profile.postCount,
-    favoriteCount: profile.favoriteCount,
+  };
+  if (canViewDetails) return publicProfile;
+  return {
+    ...publicProfile,
+    introduction: '该用户设置了资料可见范围',
+    gender: '',
+    grade: '',
+    college: '',
+    hometown: '',
+    foodPreferences: [],
+    checkInCount: 0,
+    postCount: 0,
   };
 }
 
@@ -121,7 +156,25 @@ async function getPublicProfile(event, currentUserId) {
   if (!user || user.status !== 'active') {
     return { success: false, code: 'USER_NOT_FOUND', message: '该用户暂未完善个人主页' };
   }
-  return { success: true, user: toPublicProfile(user), isMine: userId === currentUserId };
+  const isMine = userId === currentUserId;
+  const privacy = normalizePrivacy(user.privacy);
+  let isFollowing = false;
+  if (!isMine && privacy.profileVisibility === 'followers') {
+    try {
+      const followId = crypto.createHash('sha256').update(`follow:${currentUserId}:${userId}`).digest('hex').slice(0, 32);
+      const result = await db.collection(FOLLOWS_COLLECTION).doc(followId).get();
+      isFollowing = Boolean(result.data && result.data.status === 'active');
+    } catch (error) {
+      isFollowing = false;
+    }
+  }
+  const canViewDetails = isMine || privacy.profileVisibility === 'public' || (privacy.profileVisibility === 'followers' && isFollowing);
+  return {
+    success: true,
+    user: toPublicProfile(user, canViewDetails),
+    isMine,
+    restricted: !canViewDetails,
+  };
 }
 
 async function updateProfile(event, currentUserId) {
@@ -157,9 +210,7 @@ exports.main = async (event = {}) => {
     const userRef = db.collection(USERS_COLLECTION).doc(userId);
     const existingUser = await readUser(userId);
     const profileUpdates = getProfileUpdates(event.profile);
-    const loginMethod = ['wechat', 'sms', 'restore'].includes(event.loginMethod)
-      ? event.loginMethod
-      : 'wechat';
+    const loginMethod = event.loginMethod === 'restore' ? 'restore' : 'wechat';
 
     if (!existingUser) {
       await userRef.set({
@@ -177,6 +228,7 @@ exports.main = async (event = {}) => {
           college: '',
           hometown: '',
           foodPreferences: [],
+          privacy: DEFAULT_PRIVACY,
           status: 'active',
           loginMethods: [loginMethod],
           checkInCount: 0,
@@ -194,6 +246,7 @@ exports.main = async (event = {}) => {
       await userRef.update({
         data: {
           ...profileUpdates,
+          privacy: normalizePrivacy(existingUser.privacy),
           loginMethods,
           status: 'active',
           updatedAt: db.serverDate(),

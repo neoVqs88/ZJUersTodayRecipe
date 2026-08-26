@@ -69,12 +69,6 @@
           "scene": null
         },
         {
-          "name": "loginCode",
-          "pathName": "pages/loginCode/loginCode",
-          "query": "",
-          "scene": null
-        },
-        {
           "name": "my",
           "pathName": "pages/my/index",
           "query": "",

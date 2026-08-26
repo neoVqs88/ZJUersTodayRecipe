@@ -82,6 +82,14 @@ Page({
     });
   },
 
+  openPrivacy() {
+    if (!this.data.loggedIn) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/social/privacy/index' });
+  },
+
   logout() {
     wx.showModal({
       title: '退出登录',

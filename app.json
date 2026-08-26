@@ -25,6 +25,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/social",
+      "name": "social",
+      "pages": ["list/index", "privacy/index", "history/index"]
+    },
+    {
       "root": "pages/checkins",
       "name": "checkins",
       "pages": ["index"]
@@ -43,11 +48,6 @@
       "root": "pages/login",
       "name": "login",
       "pages": ["login"]
-    },
-    {
-      "root": "pages/loginCode",
-      "name": "loginCode",
-      "pages": ["loginCode"]
     },
     {
       "root": "pages/dataCenter",

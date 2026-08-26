@@ -80,7 +80,12 @@ Page({
       getApp().setUnreadNum(unread);
     }
 
-    // 本期先用弹窗展示完整内容；独立详情页留到下个迭代
+    if (item.actorUserId) {
+      wx.navigateTo({ url: `/pages/profile/index?userId=${item.actorUserId}` });
+      return;
+    }
+
+    // 暂无业务跳转的普通消息使用弹窗展示完整内容。
     wx.showModal({
       title: item.title,
       content: item.detail,

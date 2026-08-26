@@ -10,17 +10,7 @@
     <t-button block icon="logo-wechat-stroke" loading="{{loadingType === 'wechat'}}" size="large" theme="primary" bindtap="loginWithWechat">
       微信快捷登录
     </t-button>
-
-    <view class="login__divider"><text>或使用手机号验证码登录</text></view>
-    <view class="login__phone">
-      <t-input borderless maxlength="11" placeholder="请输入手机号" type="number" value="{{phoneNumber}}" bindchange="onPhoneInput">
-        <view slot="label" class="login__prefix">+86</view>
-      </t-input>
-    </view>
-    <t-button block disabled="{{!isPhoneNumber}}" loading="{{loadingType === 'sms'}}" size="large" theme="primary" variant="outline" bindtap="sendCode">
-      获取短信验证码
-    </t-button>
-    <view class="login__tip">未注册的手机号验证后将自动创建账号</view>
+    <view class="login__tip">登录后将使用微信身份创建并同步你的校园美食账号</view>
   </view>
 
   <view class="login__agreement">
