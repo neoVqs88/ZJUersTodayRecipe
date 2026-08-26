@@ -1,5 +1,3 @@
-import request from '~/api/request';
-
 const TOKEN_KEY = 'access_token';
 const USER_KEY = 'current_user';
 const CLOUD_SESSION_PREFIX = 'cloud-session:';
@@ -119,25 +117,4 @@ export async function loginWithWechat() {
     user: result.user,
   });
   return result;
-}
-
-export function sendSmsCode(phoneNumber) {
-  return request('/auth/sms/send', 'POST', { phoneNumber });
-}
-
-export async function loginWithSms(phoneNumber, verifyCode) {
-  const response = await request('/auth/sms/login', 'POST', { phoneNumber, verifyCode });
-  const cloudResult = await ensureCloudUser({
-    profile: response.data.user || {},
-    loginMethod: 'sms',
-  });
-  saveSession({
-    token: response.data.token || getCloudSessionToken(cloudResult.user),
-    user: cloudResult.user,
-  });
-  return {
-    ...response.data,
-    isNewUser: cloudResult.isNewUser,
-    user: cloudResult.user,
-  };
 }

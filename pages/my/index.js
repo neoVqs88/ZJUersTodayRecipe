@@ -7,12 +7,13 @@ const MENU_GROUPS = [
     { name: '我的打卡', icon: 'calendar', color: 'green', type: 'checkins' },
     { name: '我的帖子', icon: 'root-list', color: 'blue', type: 'posts' },
     { name: '我的收藏', icon: 'star', color: 'orange', type: 'favorites' },
-    { name: '浏览记录', icon: 'time', color: 'purple', type: 'history' },
+    { name: '浏览足迹', icon: 'time', color: 'purple', type: 'history', url: '/pages/social/history/index' },
     { name: '饭搭子', icon: 'usergroup', color: 'green', type: 'partners', note: '一起干饭更快乐' },
   ],
   [
     { name: '我的举报', icon: 'error-circle', color: 'red', type: 'reports' },
     { name: '意见反馈', icon: 'chat', color: 'blue', type: 'feedback' },
+    { name: '隐私设置', icon: 'lock-on', color: 'purple', type: 'privacy', url: '/pages/social/privacy/index' },
     { name: '设置', icon: 'setting', color: 'gray', type: 'settings', url: '/pages/setting/index' },
   ],
 ];
@@ -87,7 +88,7 @@ Page({
   buildStats(user, loggedIn) {
     return [
       { label: '我的打卡', value: loggedIn ? user.checkInCount || 0 : 0, unit: '次', icon: 'calendar', color: 'green', type: 'checkins' },
-      { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue' },
+      { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue', type: 'posts' },
       { label: '我的收藏', value: loggedIn ? user.favoriteCount || 0 : 0, unit: '个', icon: 'star', color: 'orange' },
     ];
   },
@@ -155,6 +156,10 @@ Page({
       this.openCheckinHistory();
       return;
     }
+    if (type === 'posts') {
+      this.openMyProfile();
+      return;
+    }
     wx.showToast({ title: `${label}页面待完善`, icon: 'none' });
   },
 
@@ -168,6 +173,10 @@ Page({
     if (item.type !== 'settings' && !this.requireLogin()) return;
     if (item.type === 'checkins') {
       this.openCheckinHistory();
+      return;
+    }
+    if (item.type === 'posts') {
+      this.openMyProfile();
       return;
     }
     if (item.url) {

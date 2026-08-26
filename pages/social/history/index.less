@@ -1,0 +1,24 @@
+page { height: 100%; background: #f4f7fb; }
+.history-page { display: flex; height: 100vh; flex-direction: column; color: #172033; --td-navbar-bg-color: #f8fbff; }
+.history-clear { padding: 12rpx; color: #3478f6; font-size: 24rpx; }
+.history-filter-scroll { flex: none; width: 100%; padding: 20rpx 0 16rpx; white-space: nowrap; }
+.history-filters { display: inline-flex; gap: 12rpx; padding: 0 26rpx; }
+.history-filter { min-width: 92rpx; padding: 12rpx 24rpx; border: 1rpx solid #e1e8f1; border-radius: 28rpx; color: #758297; background: #fff; font-size: 21rpx; text-align: center; }
+.history-filter--active { border-color: #c8dcff; color: #286fdb; background: #eaf3ff; font-weight: 700; }
+.history-loading, .history-empty { display: flex; flex: 1; align-items: center; justify-content: center; flex-direction: column; }
+.history-empty__icon { display: flex; align-items: center; justify-content: center; width: 122rpx; height: 122rpx; border-radius: 36rpx; color: #6b9cde; background: #e8f2ff; }
+.history-empty__title { margin-top: 24rpx; color: #344155; font-size: 29rpx; font-weight: 750; }
+.history-empty__desc { width: 520rpx; margin-top: 12rpx; color: #929dac; font-size: 21rpx; line-height: 34rpx; text-align: center; }
+.history-scroll { flex: 1; height: 0; box-sizing: border-box; padding: 2rpx 24rpx; }
+.history-item { display: flex; align-items: center; box-sizing: border-box; min-height: 145rpx; padding: 18rpx; border: 1rpx solid #e5ecf4; border-radius: 24rpx; background: #fff; }
+.history-item + .history-item { margin-top: 14rpx; }
+.history-item__image, .history-item__icon { flex: none; width: 94rpx; height: 94rpx; margin-right: 17rpx; border-radius: 20rpx; background: #edf3fa; }
+.history-item__icon { display: flex; align-items: center; justify-content: center; color: #4f88d3; }
+.history-item__copy { flex: 1; min-width: 0; }
+.history-item__meta { display: flex; justify-content: space-between; color: #929dad; font-size: 17rpx; }
+.history-item__meta text:first-child { color: #4d86cf; }
+.history-item__title { margin-top: 8rpx; overflow: hidden; color: #2a3549; font-size: 24rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.history-item__subtitle { margin-top: 7rpx; overflow: hidden; color: #8b96a6; font-size: 19rpx; text-overflow: ellipsis; white-space: nowrap; }
+.history-item__count { margin: 0 7rpx 0 12rpx; color: #9aa5b4; font-size: 17rpx; }
+.history-tip { margin-top: 28rpx; color: #9aa5b4; font-size: 19rpx; text-align: center; }
+.history-bottom { height: calc(40rpx + env(safe-area-inset-bottom)); }

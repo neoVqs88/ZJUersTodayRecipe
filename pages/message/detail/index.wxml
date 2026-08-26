@@ -1,9 +1,10 @@
 <scroll-view class="detail" scroll-y>
   <view class="msg" wx:for="{{messages}}" wx:key="_id">
-    <view class="msg__avatar" style="background: {{item.avatarColor}}">{{item.senderInitial}}</view>
+    <image wx:if="{{item.senderAvatar}}" class="msg__avatar" src="{{item.senderAvatar}}" mode="aspectFill" data-user-id="{{item.actorUserId}}" bindtap="openSenderProfile" />
+    <view wx:else class="msg__avatar" style="background: {{item.avatarColor}}" data-user-id="{{item.actorUserId}}" bindtap="openSenderProfile">{{item.senderInitial}}</view>
     <view class="msg__body">
       <view class="msg__row">
-        <text class="msg__name">{{item.senderName}}</text>
+        <text class="msg__name" data-user-id="{{item.actorUserId}}" bindtap="openSenderProfile">{{item.senderName}}</text>
         <text class="msg__time">{{item.displayTime}}</text>
       </view>
       <view class="msg__action">{{item.action}}</view>

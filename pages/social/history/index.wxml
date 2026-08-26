@@ -1,0 +1,31 @@
+<view class="history-page">
+  <t-navbar title="浏览足迹" left-arrow>
+    <view slot="right" class="history-clear" bindtap="clearAll">清空</view>
+  </t-navbar>
+  <scroll-view class="history-filter-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="history-filters">
+      <view class="history-filter {{activeFilter === item.value ? 'history-filter--active' : ''}}" wx:for="{{filters}}" wx:key="value" data-value="{{item.value}}" bindtap="selectFilter">{{item.label}}</view>
+    </view>
+  </scroll-view>
+  <view class="history-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="加载足迹" /></view>
+  <view class="history-empty" wx:elif="{{!displayHistory.length}}">
+    <view class="history-empty__icon"><t-icon name="browse" size="62rpx" /></view>
+    <view class="history-empty__title">还没有浏览足迹</view>
+    <view class="history-empty__desc">浏览用户主页、帖子、菜品或食堂后，会在这里方便你再次找到。</view>
+  </view>
+  <scroll-view class="history-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="history-item" wx:for="{{displayHistory}}" wx:key="_id" data-item="{{item}}" data-id="{{item._id}}" bindtap="openHistory" bindlongpress="removeHistory">
+      <image class="history-item__image" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+      <view class="history-item__icon" wx:else><t-icon name="{{item.icon}}" size="38rpx" /></view>
+      <view class="history-item__copy">
+        <view class="history-item__meta"><text>{{item.typeLabel}}</text><text>{{item.displayTime}}</text></view>
+        <view class="history-item__title">{{item.title}}</view>
+        <view class="history-item__subtitle">{{item.subtitle || '点击再次查看'}}</view>
+      </view>
+      <view class="history-item__count" wx:if="{{item.visitCount > 1}}">{{item.visitCount}} 次</view>
+      <t-icon name="chevron-right" size="30rpx" color="#a1acba" />
+    </view>
+    <view class="history-tip">长按单条记录可以删除 · 浏览足迹仅自己可见</view>
+    <view class="history-bottom" />
+  </scroll-view>
+</view>

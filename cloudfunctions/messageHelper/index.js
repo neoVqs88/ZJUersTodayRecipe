@@ -1,6 +1,7 @@
 // 云函数：数据助手（开发调试用）
 // action=seed：给"当前调用者"重置示例数据（消息 + 动态）
 // 真实场景的消息写入（如"别人给你点赞"）由 likePost 等业务云函数完成
+const crypto = require('crypto');
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -30,6 +31,13 @@ exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext(); // 调用者的身份标识，云函数自动能拿到
 
   if (event.action === 'seed') {
+    const userId = crypto.createHash('sha256').update(String(OPENID)).digest('hex').slice(0, 32);
+    let user = {};
+    try {
+      user = (await db.collection('users').doc(userId).get()).data || {};
+    } catch (error) {
+      // 尚未创建用户资料时继续使用示例昵称和头像。
+    }
     // 清掉自己的旧数据，防止每点一次就多一堆
     await db.collection('messages').where({ _openid: OPENID }).remove();
     await db.collection('posts').where({ _openid: OPENID }).remove();
@@ -38,7 +46,14 @@ exports.main = async (event) => {
       data: { ...item, _openid: OPENID },
     }));
     const postTasks = SAMPLE_POSTS.map((item) => db.collection('posts').add({
-      data: { ...item, _openid: OPENID },
+      data: {
+        ...item,
+        _openid: OPENID,
+        userId,
+        authorId: userId,
+        authorName: user.name || item.authorName,
+        avatar: user.image || item.avatar,
+      },
     }));
     await Promise.all([...messageTasks, ...postTasks]);
     return { success: true, count: SAMPLE_MESSAGES.length + SAMPLE_POSTS.length };

@@ -3,6 +3,8 @@
 // 点赞走云函数 likePost（因为要修改别人的动态、还要给作者写消息）
 
 import { fetchCommentCounts } from '~/services/comments';
+import { isLoggedIn } from '~/services/auth';
+import { recordBrowsingHistory } from '~/services/userSocial';
 import formatTime from '../../utils/formatTime';
 
 const CATEGORIES = [
@@ -118,7 +120,54 @@ Page({
 
   openComments(event) {
     const { id } = event.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/comments/index?postId=${id}` });
+    const post = this.data.posts.find((item) => item._id === id);
+    if (!post) return;
+
+    if (isLoggedIn()) {
+      recordBrowsingHistory({
+        type: 'post',
+        targetId: String(post._id),
+        title: post.dish || '校园美食分享',
+        subtitle: post.content,
+        image: post.image || post.avatar || '',
+        route: `/pages/comments/index?postId=${post._id}`,
+      }).catch(() => {});
+    }
+
+    wx.navigateTo({
+      url: `/pages/comments/index?postId=${post._id}`,
+      success: ({ eventChannel }) => {
+        eventChannel.emit('post', {
+          ...post,
+          id: post._id,
+          author: post.authorName,
+          authorId: post.authorId || post.userId || '',
+        });
+        eventChannel.on('commentCountChange', ({ postId, total }) => {
+          this.updatePost(String(postId), (item) => ({ ...item, commentsCount: total }));
+        });
+      },
+    });
+  },
+
+  openAuthorProfile(event) {
+    const { id } = event.currentTarget.dataset;
+    const post = this.data.posts.find((item) => item._id === id);
+    if (!post) return;
+    const userId = post.authorId || post.userId || '';
+    const query = userId ? `?userId=${encodeURIComponent(userId)}` : '?preview=1';
+    wx.navigateTo({
+      url: `/pages/profile/index${query}`,
+      success: ({ eventChannel }) => eventChannel.emit('profilePreview', {
+        id: userId,
+        name: post.authorName,
+        image: post.avatar,
+        introduction: post.authorIntroduction || '在校园里认真吃饭，也认真分享每一次美食发现。',
+        campus: post.campus || '玉泉校区',
+        star: '浙江大学生',
+        postCount: 1,
+      }),
+    });
   },
 
   showPostMenu() {

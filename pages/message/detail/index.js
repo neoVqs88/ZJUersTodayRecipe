@@ -41,6 +41,12 @@ Page({
     }
   },
 
+  openSenderProfile(event) {
+    const { userId } = event.currentTarget.dataset;
+    if (!userId) return;
+    wx.navigateTo({ url: `/pages/profile/index?userId=${encodeURIComponent(userId)}` });
+  },
+
   onUnload() {
     // 批量把本页未读消息标记为已读（只能改自己的消息，数据库权限自动拦截越权）
     const db = wx.cloud.database();

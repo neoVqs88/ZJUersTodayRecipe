@@ -1,3 +1,6 @@
+import { isLoggedIn } from '~/services/auth';
+import { recordBrowsingHistory } from '~/services/userSocial';
+
 const diningWindows = [
   {
     id: 'maxwell-cafe',
@@ -165,6 +168,15 @@ Page({
         result: selected,
         history,
       });
+      if (isLoggedIn()) {
+        recordBrowsingHistory({
+          type: 'canteen',
+          targetId: selected.id,
+          title: `${selected.canteen} · ${selected.window}`,
+          subtitle: `${selected.dish}｜${selected.reason}`,
+          route: '/pages/roulette/index',
+        }).catch(() => {});
+      }
       wx.vibrateShort({ type: 'medium' });
     }, 4200);
   },

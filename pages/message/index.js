@@ -7,6 +7,7 @@ import formatTime from '../../utils/formatTime';
 // 分类的展示配置：标题、图标、配色、归属哪个标签页
 const CATEGORIES = {
   like_comment: { title: '点赞与评论', icon: 'thumb-up', theme: 'green', tab: 'interaction' },
+  follow: { title: '新的关注', icon: 'user-add', theme: 'blue', tab: 'interaction' },
   invite: { title: '饭搭子邀约', icon: 'usergroup', theme: 'orange', tab: 'interaction', tag: '新邀约', tagTheme: 'orange' },
   system: { title: '系统通知', icon: 'notification', theme: 'blue', tab: 'system' },
   checkin: { title: '打卡提醒', icon: 'calendar', theme: 'green', tab: 'system' },

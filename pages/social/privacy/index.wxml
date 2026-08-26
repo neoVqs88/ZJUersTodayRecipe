@@ -1,0 +1,41 @@
+<view class="privacy-page">
+  <t-navbar title="隐私设置" left-arrow />
+  <view class="privacy-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="读取隐私设置" /></view>
+  <scroll-view class="privacy-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="privacy-note"><t-icon name="lock-on" size="32rpx" /><text>昵称、头像和校区作为社区基础身份保留展示，其他资料与动态按以下范围控制。</text></view>
+
+    <view class="privacy-section">
+      <view class="privacy-section__title">主页可见范围</view>
+      <view class="privacy-card">
+        <view class="privacy-row" data-field="profileVisibility" bindtap="chooseVisibility">
+          <view class="privacy-row__icon privacy-row__icon--blue"><t-icon name="user-circle" size="35rpx" /></view>
+          <view class="privacy-row__copy"><view class="privacy-row__title">详细个人资料</view><view class="privacy-row__desc">签名、院系、家乡和口味标签</view></view>
+          <text class="privacy-row__value">{{profileVisibilityLabel}}</text><t-icon name="chevron-right" size="30rpx" />
+        </view>
+        <view class="privacy-row" data-field="activityVisibility" bindtap="chooseVisibility">
+          <view class="privacy-row__icon privacy-row__icon--green"><t-icon name="root-list" size="35rpx" /></view>
+          <view class="privacy-row__copy"><view class="privacy-row__title">主页动态</view><view class="privacy-row__desc">帖子分享和允许展示的打卡</view></view>
+          <text class="privacy-row__value">{{activityVisibilityLabel}}</text><t-icon name="chevron-right" size="30rpx" />
+        </view>
+        <view class="privacy-row">
+          <view class="privacy-row__icon privacy-row__icon--orange"><t-icon name="camera" size="35rpx" /></view>
+          <view class="privacy-row__copy"><view class="privacy-row__title">展示打卡动态</view><view class="privacy-row__desc">关闭时只有自己能在主页看到打卡</view></view>
+          <t-switch value="{{privacy.showCheckins}}" data-field="showCheckins" bind:change="toggleSetting" />
+        </view>
+      </view>
+    </view>
+
+    <view class="privacy-section">
+      <view class="privacy-section__title">社交与足迹</view>
+      <view class="privacy-card">
+        <view class="privacy-row"><view class="privacy-row__copy privacy-row__copy--plain"><view class="privacy-row__title">允许其他用户关注我</view><view class="privacy-row__desc">关闭后已有关注关系仍然保留</view></view><t-switch value="{{privacy.allowFollow}}" data-field="allowFollow" bind:change="toggleSetting" /></view>
+        <view class="privacy-row"><view class="privacy-row__copy privacy-row__copy--plain"><view class="privacy-row__title">公开我的关注列表</view><view class="privacy-row__desc">关闭后仅自己可以查看</view></view><t-switch value="{{privacy.showFollowing}}" data-field="showFollowing" bind:change="toggleSetting" /></view>
+        <view class="privacy-row"><view class="privacy-row__copy privacy-row__copy--plain"><view class="privacy-row__title">公开我的粉丝列表</view><view class="privacy-row__desc">关闭后仅自己可以查看</view></view><t-switch value="{{privacy.showFollowers}}" data-field="showFollowers" bind:change="toggleSetting" /></view>
+        <view class="privacy-row"><view class="privacy-row__copy privacy-row__copy--plain"><view class="privacy-row__title">记录浏览足迹</view><view class="privacy-row__desc">足迹仅自己可见，可随时单条或全部删除</view></view><t-switch value="{{privacy.historyEnabled}}" data-field="historyEnabled" bind:change="toggleSetting" /></view>
+      </view>
+    </view>
+
+    <view class="privacy-save"><t-button block theme="primary" size="large" loading="{{saving}}" bindtap="save">保存设置</t-button></view>
+    <view class="privacy-bottom" />
+  </scroll-view>
+</view>
