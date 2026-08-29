@@ -1,6 +1,7 @@
 import { getCurrentUser, isLoggedIn, refreshCloudUser } from '~/services/auth';
 import { fetchMealCheckinStats } from '~/services/mealCheckins';
 import { getAppearanceClass, getPreferences } from '~/services/preferences';
+import { fetchWeeklyInsights } from '~/services/weeklyInsights';
 
 const MENU_GROUPS = [
   [
@@ -37,6 +38,7 @@ Page({
     streakDays: 0,
     weeklyCheckInCount: 0,
     weeklyGoal: 7,
+    weeklyInsights: null,
     menuGroups: MENU_GROUPS,
   },
 
@@ -76,6 +78,7 @@ Page({
       // 接口失败时继续展示登录接口缓存的基础用户信息。
     }
     this.loadCheckInStats();
+    this.loadWeeklyInsights();
   },
 
   applyPreferences(preferences = getPreferences()) {
@@ -126,6 +129,20 @@ Page({
     } catch (error) {
       // 云端打卡功能未部署时继续展示用户缓存数据。
     }
+  },
+
+  async loadWeeklyInsights() {
+    try {
+      const weeklyInsights = await fetchWeeklyInsights();
+      this.setData({ weeklyInsights });
+    } catch (error) {
+      // 没有打卡记录或云函数未部署时，不影响个人中心其他内容。
+    }
+  },
+
+  openWeeklyInsights() {
+    if (!this.requireLogin()) return;
+    wx.navigateTo({ url: '/pages/weeklyInsights/index' });
   },
 
   requireLogin() {

@@ -1,0 +1,9 @@
+{
+  "name": "weeklyInsights",
+  "version": "1.0.0",
+  "description": "本周美食互动与营养统计服务",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

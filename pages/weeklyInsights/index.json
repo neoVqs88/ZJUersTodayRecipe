@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "本周美食报告",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-loading": "tdesign-miniprogram/loading/loading"
+  }
+}

@@ -46,6 +46,16 @@
       />
     </view>
 
+    <view class="insights-card" bindtap="openWeeklyInsights">
+      <view class="insights-card__header"><view><view class="insights-card__eyebrow">本周餐桌观察</view><view class="insights-card__title">和大家一起，好好吃饭</view></view><t-icon name="chevron-right" size="34rpx" color="{{isDarkMode ? '#98a2b3' : '#98a2b3'}}" /></view>
+      <view wx:if="{{weeklyInsights}}" class="insights-card__grid">
+        <view class="insights-card__item"><text class="insights-card__label">你的本命美食</text><text class="insights-card__value">{{weeklyInsights.favoriteDish ? weeklyInsights.favoriteDish.name : '记录一餐后揭晓'}}</text></view>
+        <view class="insights-card__item"><text class="insights-card__label">本周平台热门</text><text class="insights-card__value">{{weeklyInsights.popularDish ? weeklyInsights.popularDish.name : '等待更多记录'}}</text></view>
+      </view>
+      <view wx:else class="insights-card__placeholder">登录并记录三餐，查看你的本周美食画像</view>
+      <view class="insights-card__nutrition"><t-icon name="heart" size="27rpx" /> 营养分析：{{weeklyInsights && weeklyInsights.nutrition.ready ? '已生成本周概览' : '记录至少 3 餐后生成'}}</view>
+    </view>
+
     <view class="menu-card" wx:for="{{menuGroups}}" wx:for-item="group" wx:key="index">
       <view class="menu-row" wx:for="{{group}}" wx:key="type" data-item="{{item}}" bindtap="handleMenuTap">
         <view class="icon-box icon-box--{{item.color}}"><t-icon name="{{item.icon}}" size="38rpx" /></view>
