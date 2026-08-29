@@ -41,11 +41,20 @@ Page({
       const db = wx.cloud.database();
       const res = await db.collection('posts').orderBy('createdAt', 'desc').get();
       const myOpenid = getApp().globalData.openid;
-      const posts = res.data.map((p) => ({
-        ...p,
-        displayTime: formatTime(p.createdAt),
-        liked: (p.likers || []).includes(myOpenid), // 我点过赞没有
-      }));
+      const posts = res.data.map((p) => {
+        const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+        const locationName = typeof p.location === 'string'
+          ? p.location
+          : p.location && p.location.name ? p.location.name : p.locationName || '';
+        return {
+          ...p,
+          images,
+          image: p.image || images[0] || '',
+          locationName,
+          displayTime: formatTime(p.createdAt),
+          liked: (p.likers || []).includes(myOpenid), // 我点过赞没有
+        };
+      });
       this.setData({
         posts,
         displayPosts: this.filterPosts(posts, this.data.activeCategory),

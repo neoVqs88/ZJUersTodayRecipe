@@ -1,26 +1,106 @@
-<t-navbar title="发布动态" left-arrow />
-<view class="page">
-  <view class="release-container">
-    <view class="upload box">
-      <t-upload t-class="upload-class" media-type="{{['image']}}" files="{{originFiles}}" gridConfig="{{gridConfig}}" bind:success="handleSuccess" bind:remove="handleRemove" max="4" />
+<view class="release-page">
+  <t-navbar title="发布动态" left-arrow />
+  <scroll-view class="release-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="release-card release-card--editor">
+      <t-textarea
+        value="{{content}}"
+        placeholder="分享一顿好饭、一次探店，或者寻找今天的饭搭子……"
+        maxlength="500"
+        autosize="{{textareaAutosize}}"
+        indicator
+        disable-default-padding="{{true}}"
+        bind:change="handleContentChange"
+      />
+      <view class="upload-title">添加图片 <text>最多 4 张</text></view>
+      <t-upload
+        media-type="{{['image']}}"
+        files="{{originFiles}}"
+        grid-config="{{gridConfig}}"
+        config="{{uploadConfig}}"
+        max="4"
+        size-limit="{{10240}}"
+        bind:success="handleSuccess"
+        bind:remove="handleRemove"
+      />
     </view>
-    <view class="desc box">
-      <view class="desc-label">添加描述</view>
-      <t-textarea t-class="desc-class" t-class-textarea="placeholder-class" placeholder="分享你此刻的想法" maxlength="500" disableDefaultPadding="{{true}}" indicator />
+
+    <view class="release-section">
+      <view class="release-section__heading">
+        <view><text class="release-section__title">选择内容类型</text><text class="release-section__required">必选</text></view>
+        <text class="release-section__hint">帖子将展示在对应分类中</text>
+      </view>
+      <view class="type-grid">
+        <view
+          class="type-option {{selectedType === item.value ? 'type-option--active' : ''}}"
+          wx:for="{{postTypes}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          bindtap="selectPostType"
+        >
+          <text class="type-option__icon">{{item.icon}}</text>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+      <view class="companion-range" wx:if="{{selectedType === 'companion'}}">
+        <view class="companion-range__heading">期望约饭人数</view>
+        <view class="companion-range__row">
+          <view><text class="companion-range__label">最少人数</text><text class="companion-range__desc">达到后即可成行</text></view>
+          <t-stepper value="{{companionMin}}" min="2" max="20" bind:change="changeCompanionMin" />
+        </view>
+        <view class="companion-range__row">
+          <view><text class="companion-range__label">最多人数</text><text class="companion-range__desc">包含发起人在内</text></view>
+          <t-stepper value="{{companionMax}}" min="2" max="20" bind:change="changeCompanionMax" />
+        </view>
+        <view class="companion-range__summary">预计 {{companionMin}}–{{companionMax}} 人一起约饭</view>
+      </view>
     </view>
-    <view class="taggroup box">
-      <t-cell t-class-title="cell-title-class" t-class-note="cell-note-class" title="添加标签">
-        <block wx:for="{{tags}}" wx:key="index">
-          <t-check-tag t-class="tag-class" size="medium" default-checked="{{index===0}}" variant="dark" content="#{{item}}" slot="note" />
-        </block>
-      </t-cell>
+
+    <view class="release-section">
+      <view class="release-section__heading">
+        <view><text class="release-section__title">添加更多标签</text><text class="release-section__count">{{selectedTagCount}} / 4</text></view>
+        <text class="release-section__hint">方便大家发现内容</text>
+      </view>
+      <view class="topic-tags">
+        <t-check-tag
+          wx:for="{{topicTags}}"
+          wx:key="label"
+          t-class="topic-tag"
+          checked="{{item.checked}}"
+          content="# {{item.label}}"
+          data-label="{{item.label}}"
+          bind:change="toggleTopicTag"
+        />
+      </view>
     </view>
-    <view class="location box">
-      <t-cell title="所在位置" hover arrow leftIcon="location" bindtap="gotoMap" />
+
+    <view class="release-section location-section">
+      <view class="location-row">
+        <view class="location-row__icon"><t-icon name="location" size="36rpx" /></view>
+        <view class="location-row__copy">
+          <view class="location-row__title">分享所在位置</view>
+          <view class="location-row__desc">关闭时不会保存或展示位置信息</view>
+        </view>
+        <t-switch value="{{shareLocation}}" bind:change="toggleLocation" />
+      </view>
+      <view wx:if="{{shareLocation}}" class="selected-location" bindtap="chooseLocation">
+        <t-icon name="location" size="31rpx" />
+        <view class="selected-location__copy">
+          <text class="selected-location__name">{{location ? location.name : '点击选择位置'}}</text>
+          <text class="selected-location__address" wx:if="{{location && location.address}}">{{location.address}}</text>
+        </view>
+        <t-icon name="chevron-right" size="31rpx" />
+      </view>
     </view>
-    <view class="btngroup box">
-      <t-button t-class="btn-class" theme="light" icon="file-copy" content="存草稿" size="large" bindtap="saveDraft"></t-button>
-      <t-button t-class="btn-class" theme="primary" icon="upload" content="发布" size="large" bindtap="release"></t-button>
+
+    <view class="companion-tip" wx:if="{{selectedType === 'companion'}}">
+      <t-icon name="lightbulb" size="29rpx" />
+      <text>在发帖时讲清约饭地点，口味偏好和联系方式更有利于找到志同道合的饭搭子哦～</text>
     </view>
-  </view>
+
+    <view class="release-actions">
+      <t-button class="release-actions__button" theme="default" variant="outline" size="large" bindtap="saveDraft">保存草稿</t-button>
+      <t-button class="release-actions__button" theme="primary" size="large" loading="{{publishing}}" bindtap="release">发布动态</t-button>
+    </view>
+    <view class="release-bottom-space" />
+  </scroll-view>
 </view>

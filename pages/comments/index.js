@@ -1,5 +1,6 @@
 import { createComment, fetchComments, removeComment } from '~/services/comments';
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import { joinCompanionPost } from '~/services/companion';
 
 function parseDate(value) {
   if (!value) return null;
@@ -30,9 +31,19 @@ function formatComments(comments) {
   }));
 }
 
+function normalizePost(post = {}) {
+  const images = Array.isArray(post.images) ? post.images.filter(Boolean) : [];
+  if (!images.length && post.image) images.push(post.image);
+  return {
+    ...post,
+    displayImages: images.slice(0, 4),
+  };
+}
+
 Page({
   data: {
     post: null,
+    postImages: [],
     comments: [],
     total: 0,
     loading: true,
@@ -41,6 +52,8 @@ Page({
     inputValue: '',
     inputFocus: false,
     replyTarget: null,
+    companion: null,
+    joiningCompanion: false,
     loggedIn: false,
     currentUserImage: '/static/miniprogram-icon-zju-bowl-144.png',
   },
@@ -50,10 +63,107 @@ Page({
     this.eventChannel = this.getOpenerEventChannel();
     if (this.eventChannel && this.eventChannel.on) {
       this.eventChannel.on('post', (post) => {
-        this.setData({ post });
+        this.applyPost(post);
       });
     }
+    this.loadPostSummary();
     this.loadComments();
+  },
+
+  async loadPostSummary() {
+    if (!this.postId) return;
+    try {
+      const result = await wx.cloud.database().collection('posts').doc(this.postId).get();
+      if (result.data) {
+        const post = {
+          ...result.data,
+          id: result.data._id,
+          author: result.data.authorName,
+          authorId: result.data.authorId || result.data.userId || '',
+        };
+        this.applyPost(post);
+      }
+    } catch (error) {
+      // 从社区页进入时已有页面通道数据，数据库补读失败不影响评论功能。
+    }
+  },
+
+  previewPostImage(event) {
+    const urls = this.data.postImages || [];
+    if (!urls.length) return;
+    wx.previewImage({ current: event.currentTarget.dataset.src || urls[0], urls });
+  },
+
+  applyPost(source) {
+    const post = normalizePost(source);
+    let companion = null;
+    if (post.category === 'companion') {
+      const user = getCurrentUser() || {};
+      const authorId = post.authorId || post.userId || '';
+      const participantIds = Array.isArray(post.participantIds) ? post.participantIds.filter(Boolean) : [];
+      const normalizedIds = Array.from(new Set(authorId ? [authorId, ...participantIds] : participantIds));
+      const minParticipants = Math.min(Math.max(Number(post.minParticipants) || 2, 2), 20);
+      const maxParticipants = Math.max(minParticipants, Math.min(Math.max(Number(post.maxParticipants) || 4, 2), 20));
+      const participantCount = Math.max(normalizedIds.length, Number(post.participantCount) || 1);
+      const isAuthor = Boolean(user.id && user.id === authorId);
+      const joined = Boolean(user.id && normalizedIds.includes(user.id));
+      const full = participantCount >= maxParticipants;
+      let buttonText = '参加约饭';
+      if (isAuthor) buttonText = '你发起的约饭';
+      else if (joined) buttonText = '已参加约饭';
+      else if (full) buttonText = '报名已满';
+      companion = {
+        minParticipants,
+        maxParticipants,
+        participantCount,
+        isAuthor,
+        joined,
+        full,
+        buttonText,
+      };
+    }
+    this.setData({ post, postImages: post.displayImages, companion });
+  },
+
+  async joinCompanion() {
+    if (this.data.joiningCompanion || !this.data.companion) return;
+    if (!isLoggedIn()) {
+      this.goLogin();
+      return;
+    }
+    if (this.data.companion.isAuthor || this.data.companion.joined || this.data.companion.full) return;
+    this.setData({ joiningCompanion: true });
+    try {
+      const result = await joinCompanionPost(this.postId);
+      const companion = {
+        ...this.data.companion,
+        participantCount: result.participantCount,
+        joined: true,
+        full: result.full,
+        buttonText: '已参加约饭',
+      };
+      const currentUser = getCurrentUser() || {};
+      const participantIds = Array.from(new Set([
+        ...(this.data.post.participantIds || []),
+        currentUser.id,
+      ].filter(Boolean)));
+      this.setData({
+        companion,
+        'post.participantCount': result.participantCount,
+        'post.participantIds': participantIds,
+      });
+      wx.showToast({ title: result.alreadyJoined ? '你已经报名过啦' : '报名成功', icon: 'success' });
+    } catch (error) {
+      if (error.code === 'LOGIN_REQUIRED') this.goLogin();
+      else {
+        if (error.code === 'COMPANION_FULL') {
+          this.setData({ 'companion.full': true, 'companion.buttonText': '报名已满' });
+        }
+        wx.showToast({ title: error.message || '报名失败，请重试', icon: 'none' });
+      }
+    } finally {
+      this.setData({ joiningCompanion: false });
+    }
   },
 
   onShow() {
@@ -63,6 +173,7 @@ Page({
       loggedIn,
       currentUserImage: user.image || '/static/miniprogram-icon-zju-bowl-144.png',
     });
+    if (this.data.post) this.applyPost(this.data.post);
   },
 
   emitCommentCount(total) {

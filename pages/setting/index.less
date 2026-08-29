@@ -80,3 +80,20 @@
 }
 
 .font-icon { font-size: 28rpx; font-weight: 700; }
+
+.setting-danger {
+  margin-top: 34rpx;
+
+  &__title { margin: 0 12rpx 14rpx; color: #d92d20; font-size: var(--caption-size); }
+  &__card {
+    display: flex;
+    align-items: center;
+    padding: 24rpx 22rpx 24rpx 28rpx;
+    border: 1rpx solid rgba(217, 45, 32, 0.18);
+    border-radius: 24rpx;
+    background: var(--card-bg);
+  }
+  &__copy { flex: 1; min-width: 0; }
+  &__name { color: #d92d20; font-size: var(--title-size); }
+  &__description { margin-top: 8rpx; color: var(--text-secondary); font-size: var(--caption-size); }
+}

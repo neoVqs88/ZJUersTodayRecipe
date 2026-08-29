@@ -1,4 +1,4 @@
-import { clearSession, isLoggedIn } from '~/services/auth';
+import { clearSession, deleteCloudAccount, isLoggedIn } from '~/services/auth';
 import {
   getAppearanceClass,
   getFontSizeLabel,
@@ -20,6 +20,7 @@ Page({
     fontSize: 'standard',
     fontSizeLabel: '标准',
     appearanceClass: 'theme-light font-standard',
+    deletingAccount: false,
   },
 
   onLoad() {
@@ -100,6 +101,50 @@ Page({
         clearSession();
         wx.showToast({ title: '已退出登录', icon: 'success' });
         wx.switchTab({ url: '/pages/my/index' });
+      },
+    });
+  },
+
+  deleteAccount() {
+    if (this.data.deletingAccount) return;
+    wx.showModal({
+      title: '确认注销账号？',
+      content: '注销后个人资料、打卡、帖子、评论、关注关系和浏览足迹将被删除，且无法恢复。',
+      confirmText: '继续注销',
+      confirmColor: '#d92d20',
+      success: ({ confirm }) => {
+        if (confirm) this.confirmDeleteAccount();
+      },
+    });
+  },
+
+  confirmDeleteAccount() {
+    wx.showModal({
+      title: '最后确认',
+      content: '请输入“注销账号”以确认操作',
+      editable: true,
+      placeholderText: '注销账号',
+      confirmText: '永久注销',
+      confirmColor: '#d92d20',
+      success: async ({ confirm, content }) => {
+        if (!confirm) return;
+        if (String(content || '').trim() !== '注销账号') {
+          wx.showToast({ title: '输入内容不正确，已取消注销', icon: 'none' });
+          return;
+        }
+        this.setData({ deletingAccount: true });
+        wx.showLoading({ title: '正在注销', mask: true });
+        try {
+          await deleteCloudAccount();
+          wx.hideLoading();
+          wx.showToast({ title: '账号已注销', icon: 'success' });
+          setTimeout(() => wx.switchTab({ url: '/pages/my/index' }), 600);
+        } catch (error) {
+          wx.hideLoading();
+          wx.showToast({ title: error.message || '注销失败，请稍后重试', icon: 'none', duration: 2600 });
+        } finally {
+          this.setData({ deletingAccount: false, loggedIn: isLoggedIn() });
+        }
       },
     });
   },

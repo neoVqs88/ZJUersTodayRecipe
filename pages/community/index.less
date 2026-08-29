@@ -312,6 +312,15 @@ page {
     &--blue { background: linear-gradient(145deg, #e1efff, #b6d6ff); }
   }
 
+  &__image {
+    display: block;
+    width: 100%;
+    height: 360rpx;
+    margin-top: 16rpx;
+    border-radius: 18rpx;
+    background: #edf2f7;
+  }
+
   &__food {
     position: relative;
     z-index: 2;
@@ -350,21 +359,27 @@ page {
     margin-top: 15rpx;
   }
 
-  &__location,
   &__tag {
     padding: 5rpx 12rpx;
     border-radius: 18rpx;
     font-size: 19rpx;
   }
 
-  &__location {
-    background: #eaf7ef;
-    color: #4e9e76;
-  }
-
   &__tag {
     background: #edf3ff;
     color: #588be0;
+  }
+
+  &__place {
+    display: flex;
+    align-items: center;
+    margin-top: 13rpx;
+    overflow: hidden;
+    color: #8a94a3;
+    font-size: 19rpx;
+
+    text { margin-left: 6rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    &--shared { color: #5889cf; }
   }
 
   &__actions {
