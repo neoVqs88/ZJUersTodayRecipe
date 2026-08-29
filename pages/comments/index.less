@@ -15,6 +15,7 @@ page {
 
 .post-summary {
   display: flex;
+  flex-direction: column;
   flex: none;
   margin: 18rpx 22rpx 0;
   padding: 22rpx;
@@ -22,6 +23,8 @@ page {
   border-radius: 22rpx;
   background: #fff;
   box-shadow: 0 7rpx 20rpx rgba(33, 67, 108, 0.06);
+
+  &__header { display: flex; align-items: flex-start; }
 
   &__avatar {
     flex: none;
@@ -53,6 +56,37 @@ page {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
+
+  &__media {
+    display: flex;
+    flex-direction: column;
+    gap: 9rpx;
+    margin-top: 17rpx;
+    overflow: hidden;
+    border-radius: 16rpx;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    border-radius: 14rpx;
+    background: #eef2f6;
+  }
+}
+
+.companion-join {
+  margin-top: 18rpx;
+  padding: 19rpx;
+  border: 1rpx solid #dbe8fa;
+  border-radius: 18rpx;
+  background: #f4f8ff;
+
+  &__stats { display: flex; align-items: center; margin-bottom: 16rpx; }
+  &__stat { display: flex; flex: 1; align-items: center; flex-direction: column; color: #8793a5; font-size: 18rpx; }
+  &__value { margin-bottom: 3rpx; color: #334155; font-size: 28rpx; font-weight: 750; }
+  &__value--blue { color: #3478f6; }
+  &__divider { width: 1rpx; height: 43rpx; background: #dce4ef; }
+  &__hint { margin-top: 11rpx; color: #7e91ac; font-size: 18rpx; text-align: center; }
 }
 
 .comments-header {

@@ -32,10 +32,35 @@ Page({
       await loginWithWechat();
       this.finishLogin();
     } catch (error) {
+      if (error.code === 'ACCOUNT_DELETED') {
+        this.confirmReactivation();
+        return;
+      }
       this.showMessage(error.message || error.errMsg || '微信登录失败，请稍后重试');
     } finally {
       this.setData({ loadingType: '' });
     }
+  },
+
+  confirmReactivation() {
+    wx.showModal({
+      title: '账号已注销',
+      content: '该微信身份之前注销过账号。重新创建后将获得一个空白账号，已删除的数据无法恢复。',
+      confirmText: '重新创建',
+      confirmColor: '#3478f6',
+      success: async ({ confirm }) => {
+        if (!confirm || this.data.loadingType) return;
+        this.setData({ loadingType: 'wechat' });
+        try {
+          await loginWithWechat({ reactivate: true });
+          this.finishLogin();
+        } catch (error) {
+          this.showMessage(error.message || error.errMsg || '重新创建账号失败');
+        } finally {
+          this.setData({ loadingType: '' });
+        }
+      },
+    });
   },
 
   finishLogin() {

@@ -4,8 +4,11 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
+const command = db.command;
 const USERS_COLLECTION = 'users';
 const FOLLOWS_COLLECTION = 'follows';
+const OWNED_COLLECTIONS = ['mealRecords', 'checkins', 'posts', 'comments', 'browsingHistory', 'messages'];
+const ACCOUNT_DELETE_CONFIRMATION = 'DELETE_ACCOUNT';
 const DEFAULT_PRIVACY = {
   profileVisibility: 'public',
   activityVisibility: 'public',
@@ -100,6 +103,154 @@ function toPublicUser(user) {
     createdAt: user.createdAt || null,
     lastLoginAt: user.lastLoginAt || null,
   };
+}
+
+function isMissingCollection(error) {
+  const message = error.errMsg || error.message || '';
+  return /collection.*not exist|集合.*不存在|-502005/i.test(message);
+}
+
+async function removeWhere(collectionName, condition) {
+  try {
+    await db.collection(collectionName).where(condition).remove();
+  } catch (error) {
+    if (!isMissingCollection(error)) throw error;
+  }
+}
+
+async function deleteMealImages(userId) {
+  try {
+    const fileList = [];
+    for (let page = 0; page < 10; page += 1) {
+      const result = await db.collection('mealRecords').where({ userId }).skip(page * 100).limit(100).get();
+      fileList.push(...result.data.map((item) => item.imageFileId).filter((fileID) => /^cloud:\/\//.test(fileID)));
+      if (result.data.length < 100) break;
+    }
+    for (let index = 0; index < fileList.length; index += 50) {
+      await cloud.deleteFile({ fileList: fileList.slice(index, index + 50) });
+    }
+  } catch (error) {
+    if (!isMissingCollection(error)) console.warn('删除打卡图片失败，将继续注销账号', error);
+  }
+}
+
+async function validateSession(userId) {
+  const user = await readUser(userId);
+  if (!user) return { success: false, code: 'SESSION_INVALID', message: '登录状态已失效，请重新登录' };
+  if (user.status === 'deleted' || user.status === 'deleting') {
+    return { success: false, code: 'ACCOUNT_DELETED', message: '该账号已注销' };
+  }
+  if (user.status !== 'active') {
+    return { success: false, code: 'USER_DISABLED', message: '账号当前不可用，请联系管理员' };
+  }
+  return { success: true, user: toPublicUser(user) };
+}
+
+async function deleteAccount(event, context, userId) {
+  if (event.confirmation !== ACCOUNT_DELETE_CONFIRMATION) {
+    return { success: false, code: 'CONFIRMATION_REQUIRED', message: '请再次确认注销账号' };
+  }
+  const user = await readUser(userId);
+  if (!user || user.status === 'deleted') return { success: true, deleted: true, deletionVersion: 1 };
+  if (user.status !== 'active' && user.status !== 'deleting') {
+    return { success: false, code: 'USER_DISABLED', message: '账号当前不可注销，请联系管理员' };
+  }
+
+  const userRef = db.collection(USERS_COLLECTION).doc(userId);
+  await userRef.update({ data: { status: 'deleting', updatedAt: db.serverDate() } });
+  try {
+    await deleteMealImages(userId);
+    await Promise.all(OWNED_COLLECTIONS.map((collectionName) => removeWhere(collectionName, {
+      _openid: context.OPENID,
+    })));
+    await Promise.all([
+      removeWhere('mealRecords', { userId }),
+      removeWhere('checkins', { userId }),
+      removeWhere('posts', { userId }),
+      removeWhere('posts', { authorId: userId }),
+      removeWhere('posts', { user_id: userId }),
+      removeWhere('comments', { userId }),
+      removeWhere('browsingHistory', { userId }),
+      removeWhere('messages', { actorUserId: userId }),
+      removeWhere(FOLLOWS_COLLECTION, { followerId: userId }),
+      removeWhere(FOLLOWS_COLLECTION, { followingId: userId }),
+    ]);
+
+    await userRef.update({
+      data: {
+        name: '已注销用户',
+        image: '/static/miniprogram-icon-zju-bowl-144.png',
+        introduction: '',
+        gender: '保密',
+        grade: '保密',
+        college: '',
+        hometown: '',
+        foodPreferences: [],
+        privacy: {
+          profileVisibility: 'private',
+          activityVisibility: 'private',
+          showCheckins: false,
+          showFollowing: false,
+          showFollowers: false,
+          allowFollow: false,
+          historyEnabled: false,
+        },
+        loginMethods: [],
+        checkInCount: 0,
+        postCount: 0,
+        favoriteCount: 0,
+        weeklyCheckIns: [false, false, false, false, false, false, false],
+        streakDays: 0,
+        status: 'deleted',
+        deletedAt: db.serverDate(),
+        updatedAt: db.serverDate(),
+        deletionVersion: 1,
+      },
+    });
+  } catch (error) {
+    await userRef.update({ data: { status: 'active', deletionFailedAt: db.serverDate(), updatedAt: db.serverDate() } });
+    throw error;
+  }
+  return { success: true, deleted: true, deletionVersion: 1 };
+}
+
+async function reactivateAccount(event, userId) {
+  const existingUser = await readUser(userId);
+  if (!existingUser || existingUser.status !== 'deleted') {
+    return { success: false, code: 'ACCOUNT_NOT_DELETED', message: '当前账号不需要重新创建' };
+  }
+  const profileUpdates = getProfileUpdates(event.profile);
+  await db.collection(USERS_COLLECTION).doc(userId).update({
+    data: {
+      ...profileUpdates,
+      name: profileUpdates.name || 'zjuer_新同学',
+      image: profileUpdates.image || '/static/miniprogram-icon-zju-bowl-144.png',
+      campus: '玉泉校区',
+      city: '杭州',
+      star: '浙江大学生',
+      introduction: '',
+      gender: '保密',
+      grade: '保密',
+      college: '',
+      hometown: '',
+      foodPreferences: [],
+      privacy: DEFAULT_PRIVACY,
+      loginMethods: ['wechat'],
+      checkInCount: 0,
+      postCount: 0,
+      favoriteCount: 0,
+      weeklyCheckIns: [false, false, false, false, false, false, false],
+      streakDays: 0,
+      status: 'active',
+      deletedAt: command.remove(),
+      deletionVersion: command.remove(),
+      reactivatedAt: db.serverDate(),
+      updatedAt: db.serverDate(),
+      lastLoginAt: db.serverDate(),
+    },
+  });
+  const user = await readUser(userId);
+  return { success: true, isNewUser: true, reactivated: true, user: toPublicUser(user) };
 }
 
 function toPublicProfile(user, canViewDetails = true) {
@@ -204,6 +355,9 @@ exports.main = async (event = {}) => {
     }
 
     const userId = getUserId(context.OPENID);
+    if (event.action === 'validateSession') return await validateSession(userId);
+    if (event.action === 'deleteAccount') return await deleteAccount(event, context, userId);
+    if (event.action === 'reactivateAccount') return await reactivateAccount(event, userId);
     if (event.action === 'getProfile') return await getPublicProfile(event, userId);
     if (event.action === 'updateProfile') return await updateProfile(event, userId);
 
@@ -242,13 +396,18 @@ exports.main = async (event = {}) => {
         },
       });
     } else {
+      if (existingUser.status === 'deleted' || existingUser.status === 'deleting') {
+        return { success: false, code: 'ACCOUNT_DELETED', message: '该微信身份绑定的账号已注销，如需使用请重新创建账号' };
+      }
+      if (existingUser.status !== 'active') {
+        return { success: false, code: 'USER_DISABLED', message: '账号当前不可用，请联系管理员' };
+      }
       const loginMethods = Array.from(new Set([...(existingUser.loginMethods || []), loginMethod]));
       await userRef.update({
         data: {
           ...profileUpdates,
           privacy: normalizePrivacy(existingUser.privacy),
           loginMethods,
-          status: 'active',
           updatedAt: db.serverDate(),
           lastLoginAt: db.serverDate(),
         },
@@ -263,7 +422,7 @@ exports.main = async (event = {}) => {
     };
   } catch (error) {
     const message = error.errMsg || error.message || '云端用户初始化失败';
-    const collectionMissing = /collection.*not exist|集合.*不存在|-502005/i.test(message);
+    const collectionMissing = isMissingCollection(error);
     return {
       success: false,
       message: collectionMissing ? '请先在云开发数据库中创建 users 集合' : message,

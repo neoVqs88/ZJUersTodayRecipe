@@ -61,6 +61,17 @@
       <t-button block theme="danger" variant="outline" bindtap="logout">退出登录</t-button>
     </view>
 
+    <view wx:if="{{loggedIn}}" class="setting-danger">
+      <view class="setting-danger__title">账号管理</view>
+      <view class="setting-danger__card">
+        <view class="setting-danger__copy">
+          <view class="setting-danger__name">注销账号</view>
+          <view class="setting-danger__description">永久删除账号及其云端个人数据</view>
+        </view>
+        <t-button theme="danger" variant="text" loading="{{deletingAccount}}" bindtap="deleteAccount">注销</t-button>
+      </view>
+    </view>
+
     <view class="setting-page__version">zjuer 今天吃什么 · 当前版本 0.1.0</view>
   </scroll-view>
 </view>

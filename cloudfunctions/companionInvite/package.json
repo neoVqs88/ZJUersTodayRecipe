@@ -1,0 +1,9 @@
+{
+  "name": "companionInvite",
+  "version": "1.0.0",
+  "description": "约饭拼桌报名与发起人消息通知",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

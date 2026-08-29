@@ -100,5 +100,11 @@
   "resolveAlias": {
     "~/*": "/*"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于在用户主动开启分享位置时选择帖子展示地点"
+    }
+  },
+  "requiredPrivateInfos": ["chooseLocation"],
   "sitemapLocation": "sitemap.json"
 }

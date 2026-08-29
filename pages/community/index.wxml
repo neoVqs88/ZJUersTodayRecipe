@@ -63,7 +63,8 @@
 
         <view class="post-card__content">{{item.content}}</view>
 
-        <view class="post-card__visual post-card__visual--{{item.tone}}">
+        <image wx:if="{{item.image}}" class="post-card__image" src="{{item.image}}" mode="aspectFill" />
+        <view wx:else class="post-card__visual post-card__visual--{{item.tone}}">
           <text class="post-card__food">{{item.emoji}}</text>
           <view class="post-card__visual-copy">
             <text class="post-card__dish">{{item.dish}}</text>
@@ -72,8 +73,12 @@
         </view>
 
         <view class="post-card__tags">
-          <text class="post-card__location">● {{item.location}}</text>
           <text class="post-card__tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this"># {{tag}}</text>
+        </view>
+
+        <view wx:if="{{item.locationName}}" class="post-card__place {{item.shareLocation ? 'post-card__place--shared' : ''}}">
+          <t-icon name="location" size="24rpx" />
+          <text>{{item.locationName}}</text>
         </view>
 
         <view class="post-card__actions">

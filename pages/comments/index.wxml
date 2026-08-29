@@ -2,10 +2,38 @@
   <t-navbar title="评论" left-arrow />
 
   <view class="post-summary" wx:if="{{post}}">
-    <image class="post-summary__avatar" src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile" />
-    <view class="post-summary__body" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile">
-      <view class="post-summary__author">{{post.author}}</view>
-      <view class="post-summary__content">{{post.content}}</view>
+    <view class="post-summary__header">
+      <image class="post-summary__avatar" src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile" />
+      <view class="post-summary__body" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile">
+        <view class="post-summary__author">{{post.author}}</view>
+        <view class="post-summary__content">{{post.content}}</view>
+      </view>
+    </view>
+    <view class="post-summary__media" wx:if="{{postImages.length}}">
+      <image
+        class="post-summary__image"
+        wx:for="{{postImages}}"
+        wx:key="*this"
+        src="{{item}}"
+        data-src="{{item}}"
+        mode="widthFix"
+        bindtap="previewPostImage"
+      />
+    </view>
+    <view class="companion-join" wx:if="{{companion}}">
+      <view class="companion-join__stats">
+        <view class="companion-join__stat"><text class="companion-join__value">{{companion.minParticipants}}–{{companion.maxParticipants}}</text><text>预期约饭人数</text></view>
+        <view class="companion-join__divider" />
+        <view class="companion-join__stat"><text class="companion-join__value companion-join__value--blue">{{companion.participantCount}}</text><text>已报名人数</text></view>
+      </view>
+      <t-button
+        block
+        theme="primary"
+        loading="{{joiningCompanion}}"
+        disabled="{{companion.isAuthor || companion.joined || companion.full}}"
+        bindtap="joinCompanion"
+      >{{companion.buttonText}}</t-button>
+      <view class="companion-join__hint" wx:if="{{!companion.isAuthor && !companion.joined && !companion.full}}">报名成功后，发帖人会在消息页收到通知</view>
     </view>
   </view>
 
