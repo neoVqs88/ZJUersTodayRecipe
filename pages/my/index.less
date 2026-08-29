@@ -120,6 +120,25 @@
 
 .my-progress-wrap { margin-top: 24rpx; }
 
+.insights-card {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  border: 1rpx solid var(--border-color);
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, #f5f0ff, var(--card-bg));
+  box-shadow: var(--shadow);
+  &__header, &__grid { display: flex; justify-content: space-between; }
+  &__eyebrow { color: #805ad5; font-size: 22rpx; letter-spacing: 1rpx; }
+  &__title { margin-top: 8rpx; color: var(--text-primary); font-size: var(--title-size); font-weight: 700; }
+  &__grid { gap: 18rpx; margin-top: 26rpx; }
+  &__item { flex: 1; min-width: 0; padding: 18rpx; border-radius: 18rpx; background: rgba(255, 255, 255, .62); }
+  &__label, &__value { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__label { color: var(--text-secondary); font-size: var(--caption-size); }
+  &__value { margin-top: 8rpx; color: var(--text-primary); font-size: var(--body-size); font-weight: 700; }
+  &__placeholder { margin-top: 24rpx; color: var(--text-secondary); font-size: var(--caption-size); }
+  &__nutrition { margin-top: 20rpx; color: #805ad5; font-size: var(--caption-size); }
+}
+
 .menu-card {
   margin-top: 24rpx;
   padding: 0 28rpx;
