@@ -4,7 +4,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
-const command = db.command;
+const { command } = db;
 const USERS_COLLECTION = 'users';
 const FOLLOWS_COLLECTION = 'follows';
 const OWNED_COLLECTIONS = ['mealRecords', 'checkins', 'posts', 'comments', 'browsingHistory', 'messages'];
@@ -122,15 +122,30 @@ async function deleteMealImages(userId) {
   try {
     const fileList = [];
     for (let page = 0; page < 10; page += 1) {
+      // 分页查询必须按顺序执行，才能根据当前页判断是否结束。
+      // eslint-disable-next-line no-await-in-loop
       const result = await db.collection('mealRecords').where({ userId }).skip(page * 100).limit(100).get();
       fileList.push(...result.data.map((item) => item.imageFileId).filter((fileID) => /^cloud:\/\//.test(fileID)));
       if (result.data.length < 100) break;
     }
     for (let index = 0; index < fileList.length; index += 50) {
+      // 云存储批量删除按批次执行，避免一次请求超出文件数量限制。
+      // eslint-disable-next-line no-await-in-loop
       await cloud.deleteFile({ fileList: fileList.slice(index, index + 50) });
     }
   } catch (error) {
     if (!isMissingCollection(error)) console.warn('删除打卡图片失败，将继续注销账号', error);
+  }
+}
+
+async function readUser(userId) {
+  try {
+    const result = await db.collection(USERS_COLLECTION).doc(userId).get();
+    return result.data || null;
+  } catch (error) {
+    const message = error.errMsg || error.message || '';
+    if (error.errCode === -1 || /does not exist|not exist|不存在/i.test(message)) return null;
+    throw error;
   }
 }
 
@@ -282,17 +297,6 @@ function toPublicProfile(user, canViewDetails = true) {
     checkInCount: 0,
     postCount: 0,
   };
-}
-
-async function readUser(userId) {
-  try {
-    const result = await db.collection(USERS_COLLECTION).doc(userId).get();
-    return result.data || null;
-  } catch (error) {
-    const message = error.errMsg || error.message || '';
-    if (error.errCode === -1 || /does not exist|not exist|不存在/i.test(message)) return null;
-    throw error;
-  }
 }
 
 function cleanUserId(value) {

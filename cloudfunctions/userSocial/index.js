@@ -457,8 +457,11 @@ async function removeHistory(event, currentUserId, currentUser) {
 async function clearHistory(currentUserId, currentUser) {
   requireActiveUser(currentUser);
   for (let page = 0; page < 100; page += 1) {
+    // 每次删除后重新查询，直到当前用户没有剩余记录。
+    // eslint-disable-next-line no-await-in-loop
     const records = await db.collection(HISTORY_COLLECTION).where({ userId: currentUserId }).limit(100).get();
     if (!records.data.length) break;
+    // eslint-disable-next-line no-await-in-loop
     await Promise.all(records.data.map((record) => db.collection(HISTORY_COLLECTION).doc(record._id).remove()));
   }
   return { success: true };
