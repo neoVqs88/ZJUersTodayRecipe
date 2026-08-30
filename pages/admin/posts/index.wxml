@@ -1,0 +1,86 @@
+<view class="admin-posts">
+  <t-navbar title="帖子管理" left-arrow />
+
+  <view class="admin-posts__summary">
+    <view>
+      <view class="admin-posts__summary-title">社区内容</view>
+      <view class="admin-posts__summary-desc">共 {{total}} 篇帖子 · 删除操作将被记录</view>
+    </view>
+    <view class="admin-posts__exit" bindtap="exitAdmin">
+      <t-icon name="logout" size="28rpx" />
+      <text>退出管理</text>
+    </view>
+  </view>
+
+  <view class="admin-posts__migration" bindtap="migrateLikes">
+    <view class="admin-posts__migration-icon"><t-icon name="swap" size="30rpx" /></view>
+    <view class="admin-posts__migration-copy">
+      <view>迁移旧点赞数据</view>
+      <text>部署新版点赞后，在当前云环境执行一次</text>
+    </view>
+    <t-loading wx:if="{{migratingLikes}}" theme="circular" size="30rpx" />
+    <t-icon wx:else name="chevron-right" size="31rpx" />
+  </view>
+
+  <view wx:if="{{loading}}" class="admin-posts__state">
+    <t-loading theme="circular" size="42rpx" />
+    <text>正在加载帖子</text>
+  </view>
+
+  <view wx:elif="{{!posts.length}}" class="admin-posts__state admin-posts__state--empty">
+    <view class="admin-posts__empty-icon"><t-icon name="check-circle" size="62rpx" /></view>
+    <text class="admin-posts__empty-title">暂无可管理帖子</text>
+    <text class="admin-posts__empty-desc">社区目前没有已发布内容</text>
+  </view>
+
+  <view wx:else class="admin-posts__list">
+    <view class="admin-card" wx:for="{{posts}}" wx:key="id">
+      <view class="admin-card__head">
+        <image class="admin-card__avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="admin-card__author">
+          <view class="admin-card__name">{{item.authorName}}</view>
+          <view class="admin-card__meta">{{item.displayTime}}</view>
+        </view>
+        <view class="admin-card__category">{{item.categoryLabel}}</view>
+      </view>
+
+      <view class="admin-card__body">
+        <view class="admin-card__content">{{item.content || '（无文字内容）'}}</view>
+        <image
+          wx:if="{{item.displayImage}}"
+          class="admin-card__image"
+          src="{{item.displayImage}}"
+          mode="aspectFill"
+          data-id="{{item.id}}"
+          data-src="{{item.displayImage}}"
+          bindtap="previewImage"
+        />
+        <view wx:if="{{item.location}}" class="admin-card__location">
+          <t-icon name="location" size="24rpx" />
+          <text>{{item.location}}</text>
+        </view>
+        <view wx:if="{{item.tags.length}}" class="admin-card__tags">
+          <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">#{{tag}}</text>
+        </view>
+      </view>
+
+      <view class="admin-card__actions">
+        <t-button variant="outline" size="small" data-id="{{item.id}}" bindtap="viewPost">查看详情</t-button>
+        <t-button
+          theme="danger"
+          size="small"
+          loading="{{deletingId === item.id}}"
+          disabled="{{deletingId && deletingId !== item.id}}"
+          data-id="{{item.id}}"
+          bindtap="requestDelete"
+        >删除帖子</t-button>
+      </view>
+    </view>
+
+    <view class="admin-posts__more" wx:if="{{loadingMore}}">
+      <t-loading theme="circular" size="30rpx" />
+      <text>加载更多</text>
+    </view>
+    <view class="admin-posts__more" wx:elif="{{!hasMore}}">已经到底了</view>
+  </view>
+</view>

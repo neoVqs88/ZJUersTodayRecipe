@@ -1,0 +1,79 @@
+<view class="legal-page">
+  <t-navbar title="隐私政策" left-arrow />
+  <view class="legal-page__body">
+    <view class="legal-page__intro">
+      <view class="legal-page__title">“zjuer 今天吃什么”隐私政策</view>
+      <view class="legal-page__meta">版本 {{version}} · 生效日期 {{effectiveDate}}</view>
+      <view class="legal-page__lead">{{operatorName}}重视你的个人信息和隐私。本政策说明我们处理哪些信息、为何处理、如何保护，以及你如何访问、更正、删除或撤回授权。</view>
+    </view>
+
+    <view class="legal-page__warning">位置信息属于敏感个人信息。只有当你主动开启“分享所在位置”并选择地点时才会保存和公开展示；关闭开关不会保存位置。</view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">一、我们处理的信息</view>
+      <view class="info-table">
+        <view class="info-table__row"><view class="info-table__name">微信身份标识</view><text class="info-table__desc">云端获取微信提供的 OPENID，并生成内部用户标识，用于创建唯一账号、验证会话和防止一人多号。原始标识不应在公开帖子中展示。</text></view>
+        <view class="info-table__row"><view class="info-table__name">头像、昵称和个人资料</view><text class="info-table__desc">用于展示个人主页和社区身份。校区、身份、院系、家乡、口味偏好等由你自愿填写，可随时修改或通过隐私设置限制展示。</text></view>
+        <view class="info-table__row"><view class="info-table__name">帖子、评论和互动</view><text class="info-table__desc">包括文字、图片、标签、点赞、收藏、关注、约饭报名和举报，用于提供社区互动、内容管理和消息通知。</text></view>
+        <view class="info-table__row"><view class="info-table__name">用餐打卡与菜品图片</view><text class="info-table__desc">用于保存打卡记录、识别菜品名称并生成参考热量或营养信息。你选择的图片会上传至云存储并发送给菜品识别服务处理。</text></view>
+        <view class="info-table__row"><view class="info-table__name">位置信息</view><text class="info-table__desc">仅在你主动开启分享位置并选择地点时处理，用于在帖子中展示约饭或探店地点。发布前可关闭或重新选择。</text></view>
+        <view class="info-table__row"><view class="info-table__name">浏览足迹与偏好</view><text class="info-table__desc">用于展示历史访问记录、优化使用体验和执行深色模式、字体大小等设置。足迹功能可在隐私设置中关闭并清空。</text></view>
+        <view class="info-table__row"><view class="info-table__name">安全与管理记录</view><text class="info-table__desc">包括登录时间、异常状态、管理操作、删除原因和必要帖子快照，用于防止滥用、处理举报和保障服务安全。</text></view>
+      </view>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">二、处理目的与方式</view>
+      <text class="legal-page__item">创建、维护并验证你的账号，保存你主动提交的资料和内容。</text>
+      <text class="legal-page__item">提供美食推荐、搜索、打卡、菜品识别、社区互动、约饭和消息服务。</text>
+      <text class="legal-page__item">执行隐私设置、内容审核、举报处理、异常检测、故障排查和数据统计。</text>
+      <text class="legal-page__item">我们遵循最小必要原则，不会因你拒绝非必要信息而停止与该信息无关的基础功能。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">三、第三方服务与信息提供</view>
+      <text class="legal-page__paragraph"><text class="legal-page__emphasis">微信与腾讯云开发：</text>用于微信身份、云函数、数据库、云存储和基础运行服务，处理范围受相应平台规则约束。</text>
+      <text class="legal-page__paragraph"><text class="legal-page__emphasis">百度菜品识别服务：</text>当你主动提交菜品识别时，菜品图片会发送给该服务以返回候选名称和参考热量。请勿上传包含人脸、证件、联系方式或其他无关个人信息的图片。</text>
+      <text class="legal-page__paragraph"><text class="legal-page__emphasis">微信位置与地图能力：</text>当你主动选择位置或打开导航时，用于选择、展示和导航至目标地点。</text>
+      <text class="legal-page__paragraph">除上述实现功能所必需、取得你的单独同意或法律另有规定外，我们不会向其他组织提供个人信息，也不会出售个人信息。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">四、公开展示</view>
+      <text class="legal-page__paragraph">你发布的昵称、头像、帖子、评论、公开位置和互动数据可能被其他用户查看。请不要在公开内容中填写手机号、微信号、宿舍地址、实时轨迹或其他不希望公开的信息。约饭联系方式建议通过双方认可的安全方式交换。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">五、保存期限与账号注销</view>
+      <text class="legal-page__paragraph">我们在实现功能所必要期间保存信息。你删除内容或注销账号后，相关业务数据将被删除或去标识化；受备份周期、争议处理、安全审计或法定义务影响的必要记录可能在限定期限内保留，并停止用于其他目的。</text>
+      <text class="legal-page__paragraph">云服务的实际存储地点和备份周期以当前云环境及服务提供方配置为准。正式上线前，运营者应核对并补充明确保存期限。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">六、你的权利</view>
+      <text class="legal-page__item">在个人资料页访问、更正或补充资料。</text>
+      <text class="legal-page__item">在隐私设置中调整资料、动态、打卡、关注关系和足迹可见性。</text>
+      <text class="legal-page__item">通过系统设置撤回相册、位置等系统权限；撤回不影响此前合法处理。</text>
+      <text class="legal-page__item">删除自己的评论和足迹；帖子删除可通过意见反馈申请，并可在“我的—设置”申请注销账号。</text>
+      <text class="legal-page__item">通过{{contactChannel}}提出访问、更正、删除、解释或投诉请求。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">七、安全保护</view>
+      <text class="legal-page__paragraph">我们通过云端身份校验、数据库权限、最小化公开字段、管理会话、失败锁定和操作日志等措施保护数据。互联网服务无法保证绝对安全；发现安全事件后，我们会在合理范围内采取补救措施并按适用要求通知。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">八、未成年人信息</view>
+      <text class="legal-page__paragraph">本服务主要面向高校用户。不满十四周岁的用户应由监护人阅读并同意本政策后使用。我们发现未经监护人同意收集相关信息时，将在核实后删除或采取其他必要措施。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">九、政策更新与联系我们</view>
+      <text class="legal-page__paragraph">处理目的、方式或信息种类发生重要变化时，我们会更新政策并在依法需要时重新征得同意。</text>
+      <text class="legal-page__paragraph">运营者：{{operatorName}}。联系渠道：{{contactChannel}}。</text>
+    </view>
+
+    <view class="legal-page__footer">正式对外发布前，应由实际运营主体补充真实名称、有效联系方式、云服务地域和准确保存期限，并完成合规审阅。</view>
+  </view>
+</view>

@@ -1,0 +1,31 @@
+<view class="admin-login">
+  <t-navbar title="管理入口" left-arrow />
+  <view class="admin-login__content">
+    <view class="admin-login__badge"><t-icon name="lock-on" size="62rpx" /></view>
+    <view class="admin-login__title">社区内容管理</view>
+    <view class="admin-login__subtitle">管理操作会绑定当前微信身份并写入审计日志</view>
+
+    <view class="admin-login__form">
+      <view class="admin-login__label">管理密钥</view>
+      <view class="admin-login__input-wrap">
+        <input
+          class="admin-login__input"
+          password="{{!showKey}}"
+          value="{{key}}"
+          maxlength="128"
+          confirm-type="done"
+          placeholder="请输入预设管理密钥"
+          bindinput="onKeyInput"
+          bindconfirm="submit"
+        />
+        <view class="admin-login__eye" bindtap="toggleKeyVisibility"><t-icon name="browse" size="35rpx" /></view>
+      </view>
+      <t-button block theme="primary" size="large" loading="{{loading}}" bindtap="submit">验证并进入</t-button>
+    </view>
+
+    <view class="admin-login__notice">
+      <t-icon name="info-circle" size="29rpx" />
+      <text>连续输错 5 次将暂时锁定 15 分钟。请勿向非管理人员分享密钥。</text>
+    </view>
+  </view>
+</view>

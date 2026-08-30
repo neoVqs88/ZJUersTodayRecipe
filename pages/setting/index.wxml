@@ -57,6 +57,29 @@
       </view>
     </view>
 
+    <view class="setting-section">
+      <view class="setting-section__title">协议与政策</view>
+      <view class="setting-card">
+        <view class="setting-row" data-type="agreement" bindtap="openLegal">
+          <view class="setting-row__icon setting-row__icon--blue"><t-icon name="file-paste" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">用户协议</view>
+            <view class="setting-row__description">查看服务规则与用户行为规范</view>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" />
+        </view>
+
+        <view class="setting-row" data-type="privacy" bindtap="openLegal">
+          <view class="setting-row__icon setting-row__icon--green"><t-icon name="secured" size="38rpx" /></view>
+          <view class="setting-row__copy">
+            <view class="setting-row__title">隐私政策</view>
+            <view class="setting-row__description">了解个人信息的收集、使用与保护</view>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" />
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{loggedIn}}" class="setting-page__logout">
       <t-button block theme="danger" variant="outline" bindtap="logout">退出登录</t-button>
     </view>

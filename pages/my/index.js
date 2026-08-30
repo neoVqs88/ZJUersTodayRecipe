@@ -15,6 +15,7 @@ const MENU_GROUPS = [
     { name: '我的举报', icon: 'error-circle', color: 'red', type: 'reports' },
     { name: '意见反馈', icon: 'chat', color: 'blue', type: 'feedback' },
     { name: '隐私设置', icon: 'lock-on', color: 'purple', type: 'privacy', url: '/pages/social/privacy/index' },
+    { name: '管理入口', icon: 'lock-on', color: 'red', type: 'admin', url: '/pages/admin/login/index' },
     { name: '设置', icon: 'setting', color: 'gray', type: 'settings', url: '/pages/setting/index' },
   ],
 ];

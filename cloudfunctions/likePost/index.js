@@ -1,49 +1,170 @@
-// 云函数：点赞/取消点赞一条动态
-// 为什么必须走云函数：点赞要修改"别人的"动态记录（计数 + 点赞者列表），
-// 还要往"别人"的收件箱写消息——跨用户写入只有管理员权限的云函数能做
+const crypto = require('crypto');
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+
 const db = cloud.database();
-const _ = db.command;
+const POSTS_COLLECTION = 'posts';
+const LIKES_COLLECTION = 'postLikes';
+const USERS_COLLECTION = 'users';
+const MESSAGES_COLLECTION = 'messages';
+const MAX_STATE_POSTS = 20;
 
-exports.main = async (event) => {
-  const { OPENID } = cloud.getWXContext(); // 点赞者的身份
-  const { postId } = event;
-  if (!postId) return { success: false, message: '缺少 postId' };
+function sha256(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
 
-  const postRes = await db.collection('posts').doc(postId).get();
-  const post = postRes.data;
-  const hasLiked = (post.likers || []).includes(OPENID);
+function getUserId(openid) {
+  return sha256(openid).slice(0, 32);
+}
 
-  if (hasLiked) {
-    // 取消点赞：计数 -1，把自己移出点赞者列表
-    await db.collection('posts').doc(postId).update({
-      data: { likes: _.inc(-1), likers: _.pull(OPENID) },
-    });
-    return { success: true, liked: false, likes: post.likes - 1 };
+function getLikeId(postId, userId) {
+  return sha256(`post-like:${postId}:${userId}`).slice(0, 32);
+}
+
+function cleanId(value, maxLength = 80) {
+  const id = String(value || '').trim();
+  return id && id.length <= maxLength && /^[a-zA-Z0-9_:-]+$/.test(id) ? id : '';
+}
+
+function isPublished(post) {
+  const status = post && (post.post_status || post.status || 'published');
+  return status === 'published' || status === 'active';
+}
+
+async function readUser(userId) {
+  try {
+    const result = await db.collection(USERS_COLLECTION).doc(userId).get();
+    return result.data || null;
+  } catch (error) {
+    return null;
   }
+}
 
-  // 点赞：计数 +1，把自己加入点赞者列表
-  await db.collection('posts').doc(postId).update({
-    data: { likes: _.inc(1), likers: _.push(OPENID) },
-  });
+async function requireActiveUser(userId) {
+  const user = await readUser(userId);
+  if (!user || user.status !== 'active') {
+    const error = new Error('请先登录后再点赞');
+    error.code = 'LOGIN_REQUIRED';
+    throw error;
+  }
+  return user;
+}
 
-  // 给作者写一条"点赞与评论"消息（自己赞自己就不发了）
-  if (post._openid !== OPENID) {
-    await db.collection('messages').add({
+async function readLike(transaction, likeId) {
+  try {
+    const result = await transaction.collection(LIKES_COLLECTION).doc(likeId).get();
+    return result.data || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function toggleLike(event, userId, user) {
+  const postId = cleanId(event.postId);
+  if (!postId) {
+    const error = new Error('帖子信息无效');
+    error.code = 'INVALID_POST';
+    throw error;
+  }
+  const likeId = getLikeId(postId, userId);
+  const result = await db.runTransaction(async (transaction) => {
+    const postRef = transaction.collection(POSTS_COLLECTION).doc(postId);
+    let post;
+    try {
+      post = (await postRef.get()).data;
+    } catch (error) {
+      const notFound = new Error('帖子不存在或已被删除');
+      notFound.code = 'POST_NOT_FOUND';
+      throw notFound;
+    }
+    if (!post || !isPublished(post)) {
+      const unavailable = new Error('帖子不存在或当前不可点赞');
+      unavailable.code = 'POST_UNAVAILABLE';
+      throw unavailable;
+    }
+
+    const likeRef = transaction.collection(LIKES_COLLECTION).doc(likeId);
+    const existing = await readLike(transaction, likeId);
+    const wasActive = Boolean(existing && existing.status === 'active');
+    const liked = !wasActive;
+    const currentLikes = Math.max(Number(post.likes) || 0, 0);
+    const likes = liked ? currentLikes + 1 : Math.max(currentLikes - 1, 0);
+
+    await likeRef.set({
       data: {
-        _openid: post._openid, // 注意：写进的是"作者"的收件箱
-        category: 'like_comment',
-        senderName: `同学${OPENID.slice(-4)}`, // 还没有昵称系统，先用 openid 尾号代替
-        action: '赞了你的动态',
-        content: '',
-        targetDesc: post.dish,
-        read: false,
-        createdAt: new Date(),
+        postId,
+        userId,
+        status: liked ? 'active' : 'deleted',
+        createdAt: existing ? existing.createdAt || db.serverDate() : db.serverDate(),
+        updatedAt: db.serverDate(),
+        deletedAt: liked ? null : db.serverDate(),
       },
     });
+    await postRef.update({ data: { likes, updatedAt: db.serverDate() } });
+    return { liked, likes, post };
+  });
+
+  const authorId = result.post.authorId || result.post.userId || '';
+  if (result.liked && authorId !== userId && result.post._openid) {
+    try {
+      await db.collection(MESSAGES_COLLECTION).add({
+        data: {
+          _openid: result.post._openid,
+          category: 'like_comment',
+          senderName: user.name || '一位同学',
+          senderAvatar: user.image || '/static/miniprogram-icon-zju-bowl-144.png',
+          actorUserId: userId,
+          postId,
+          action: '赞了你的动态',
+          content: '',
+          targetDesc: String(result.post.content || result.post.dish || '校园美食分享').slice(0, 80),
+          read: false,
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate(),
+        },
+      });
+    } catch (error) {
+      console.warn('点赞成功，但消息通知写入失败', error);
+    }
   }
 
-  return { success: true, liked: true, likes: post.likes + 1 };
+  return { success: true, liked: result.liked, likes: result.likes };
+}
+
+async function getLikeStates(event, userId) {
+  const postIds = Array.from(new Set((event.postIds || []).map((id) => cleanId(id)).filter(Boolean))).slice(0, MAX_STATE_POSTS);
+  const entries = await Promise.all(postIds.map(async (postId) => {
+    try {
+      const like = (await db.collection(LIKES_COLLECTION).doc(getLikeId(postId, userId)).get()).data;
+      return [postId, Boolean(like && like.status === 'active')];
+    } catch (error) {
+      return [postId, false];
+    }
+  }));
+  const states = entries.reduce((result, [postId, liked]) => {
+    result[postId] = liked;
+    return result;
+  }, {});
+  return { success: true, states };
+}
+
+exports.main = async (event = {}) => {
+  try {
+    const context = cloud.getWXContext();
+    if (!context.OPENID) return { success: false, code: 'LOGIN_REQUIRED', message: '无法获取当前微信身份' };
+    const userId = getUserId(context.OPENID);
+    const user = await requireActiveUser(userId);
+    if (event.action === 'states') return await getLikeStates(event, userId);
+    if (!event.action || event.action === 'toggle') return await toggleLike(event, userId, user);
+    return { success: false, code: 'UNSUPPORTED_ACTION', message: '不支持的点赞操作' };
+  } catch (error) {
+    const message = error.errMsg || error.message || '点赞服务暂时不可用';
+    const collectionMissing = /collection.*postLikes.*not exist|postLikes.*不存在|-502005/i.test(message);
+    return {
+      success: false,
+      code: error.code || 'LIKE_SERVICE_ERROR',
+      message: collectionMissing ? '请先在云数据库中创建 postLikes 集合' : message,
+    };
+  }
 };

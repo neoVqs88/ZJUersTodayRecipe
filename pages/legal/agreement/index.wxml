@@ -1,0 +1,68 @@
+<view class="legal-page">
+  <t-navbar title="用户协议" left-arrow />
+  <view class="legal-page__body">
+    <view class="legal-page__intro">
+      <view class="legal-page__title">“zjuer 今天吃什么”用户协议</view>
+      <view class="legal-page__meta">版本 {{version}} · 生效日期 {{effectiveDate}}</view>
+      <view class="legal-page__lead">欢迎使用“zjuer 今天吃什么”。本协议由你与{{operatorName}}共同订立。请在注册或使用服务前仔细阅读，特别关注个人信息、用户内容、约饭安全和责任限制条款。</view>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">一、服务说明</view>
+      <text class="legal-page__paragraph">本小程序提供校园餐饮信息、随机推荐、菜品识别、用餐打卡、美食社区、评论互动、关注、饭搭子邀约及消息通知等功能。部分功能仍处于开发或试运行阶段，具体以实际页面为准。</text>
+      <text class="legal-page__paragraph">本项目并非浙江大学官方应用，也不代表学校、食堂或商户作出承诺。食堂开放时间、菜品、价格和位置可能发生变化，请以现场信息为准。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">二、账号与使用资格</view>
+      <text class="legal-page__item">微信登录后，系统依据当前微信身份创建唯一账号。请勿转让账号、冒用他人身份或绕过安全控制。</text>
+      <text class="legal-page__item">你应保证填写的资料真实、合法，不使用具有冒充、侮辱、误导性质的昵称、头像或介绍。</text>
+      <text class="legal-page__item">未来接入浙江大学统一身份认证时，校园身份仅用于认证与校园服务，不等同于学校对用户内容的认可。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">三、用户行为规范</view>
+      <text class="legal-page__paragraph">你不得发布或传播违法违规、虚假欺诈、侮辱诽谤、侵犯隐私、侵害知识产权、恶意营销、诱导交易或其他可能损害他人权益和校园秩序的内容。</text>
+      <text class="legal-page__item">不得未经同意公开他人的姓名、联系方式、位置、照片、聊天记录等个人信息。</text>
+      <text class="legal-page__item">不得利用自动化工具批量注册、刷赞、刷评论、恶意举报或干扰服务运行。</text>
+      <text class="legal-page__item">约饭帖子不得用于商业招揽、危险活动或违法交易。线下见面应自行确认身份并注意人身、财产和饮食安全。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">四、用户内容与授权</view>
+      <text class="legal-page__paragraph">你保留对原创内容依法享有的权利。为展示、存储、审核、备份和向其他用户提供相关功能，你授予本项目在服务范围内使用、复制、展示、格式转换和传播该内容的非独占、可撤销许可。</text>
+      <text class="legal-page__paragraph">你应确保有权上传相关文字和图片。内容被删除、账号注销或服务终止后，我们将依照隐私政策处理；依法需要保存的安全记录和审核记录除外。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">五、菜品识别与营养信息</view>
+      <text class="legal-page__paragraph">菜品名称、热量和营养结果由自动识别及第三方数据生成，仅供日常记录与参考，可能存在误差，不构成医疗、营养诊断或饮食治疗建议。过敏、疾病或特殊饮食需求应咨询专业人士并核对食堂实际配料。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">六、内容管理与违规处理</view>
+      <text class="legal-page__paragraph">为保护社区安全，我们可以依法对内容进行审核，并根据违规程度采取拒绝发布、降低展示、删除内容、限制功能、暂停或注销账号等措施。管理操作应保留必要日志。对处理结果有异议，可通过{{contactChannel}}反馈。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">七、服务变更与责任边界</view>
+      <text class="legal-page__item">因网络、云服务、第三方接口、设备权限、系统维护或不可抗力导致的中断，我们会在合理范围内修复，但不保证服务始终无错误或不间断。</text>
+      <text class="legal-page__item">用户自行发布的信息和线下约饭行为由相应用户负责。本项目不参与交易，也不对用户间承诺、食品品质或线下活动结果提供担保。</text>
+      <text class="legal-page__item">在法律允许范围内，因用户违反本协议或侵害第三方权益产生的责任由用户自行承担。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">八、退出、注销与协议更新</view>
+      <text class="legal-page__paragraph">你可以退出登录，也可以在“我的—设置”中申请注销账号。注销将清理或去标识化相关业务数据，必要的安全、审计和合规记录可能在限定期限内保留。</text>
+      <text class="legal-page__paragraph">功能或处理规则发生重要变化时，我们会更新协议并以合理方式提示。若变化依法需要重新同意，我们会再次征得你的同意。</text>
+    </view>
+
+    <view class="legal-page__section">
+      <view class="legal-page__heading">九、未成年人保护与联系我们</view>
+      <text class="legal-page__paragraph">不满十四周岁的用户应在监护人同意和指导下使用服务。若发现未取得监护人同意处理了相关信息，请通过{{contactChannel}}联系我们。</text>
+      <text class="legal-page__paragraph">运营者：{{operatorName}}。联系渠道：{{contactChannel}}。</text>
+    </view>
+
+    <view class="legal-page__footer">本协议为当前项目版本规则。正式对外发布前，应由实际运营主体补充真实名称、地址或有效联系方式并完成合规审阅。</view>
+  </view>
+</view>

@@ -243,7 +243,6 @@ Page({
           emoji: type.emoji,
           tone: type.tone,
           likes: 0,
-          likers: [],
           commentsCount: 0,
           collections: 0,
           status: 'published',
