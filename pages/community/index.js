@@ -43,9 +43,9 @@ Page({
       const myOpenid = getApp().globalData.openid;
       const posts = res.data.map((p) => {
         const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
-        const locationName = typeof p.location === 'string'
-          ? p.location
-          : p.location && p.location.name ? p.location.name : p.locationName || '';
+        let locationName = p.locationName || '';
+        if (typeof p.location === 'string') locationName = p.location;
+        if (p.location && p.location.name) locationName = p.location.name;
         return {
           ...p,
           images,

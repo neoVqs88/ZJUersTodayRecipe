@@ -227,7 +227,7 @@ Page({
   },
 
   handleStatTap(event) {
-    const item = event.currentTarget.dataset.item;
+    const { item } = event.currentTarget.dataset;
     if (!item || !item.enabled) {
       wx.showToast({ title: '该内容未公开', icon: 'none' });
       return;

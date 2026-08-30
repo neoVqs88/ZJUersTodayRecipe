@@ -92,7 +92,7 @@ async function joinCompanionPost(postId, currentUserId, currentUser, openid) {
 
   if (!transactionResult.alreadyJoined && transactionResult.post._openid) {
     try {
-      const post = transactionResult.post;
+      const { post } = transactionResult;
       await db.collection(MESSAGES_COLLECTION).add({
         data: {
           _openid: post._openid,
