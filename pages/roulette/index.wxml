@@ -52,7 +52,13 @@
           <t-icon name="shop" size="50rpx" color="#ffffff" />
         </view>
         <view class="result-card__heading-copy">
-          <view class="result-card__canteen">{{result.canteen}}</view>
+          <view class="result-card__heading-main">
+            <view class="result-card__canteen">{{result.canteen}}</view>
+            <view class="result-card__navigate" catchtap="navigateToCanteen">
+              <t-icon name="location" size="26rpx" color="#3478f6" />
+              导航
+            </view>
+          </view>
           <view class="result-card__campus">{{result.campus}}</view>
         </view>
       </view>

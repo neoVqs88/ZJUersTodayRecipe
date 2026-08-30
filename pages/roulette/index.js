@@ -10,6 +10,9 @@ const diningWindows = [
     window: '咖啡与轻食窗口',
     dish: '拿铁咖啡配三明治',
     reason: '适合想简单吃一点、顺便找个地方休息或学习的时候。',
+    address: '浙江大学玉泉校区内麦斯威咖啡吧',
+    latitude: 30.267,
+    longitude: 120.1204,
     color: '#ffe08a',
   },
   {
@@ -20,6 +23,9 @@ const diningWindows = [
     window: '一楼自选窗口',
     dish: '一荤两素套餐',
     reason: '菜品选择丰富、搭配自由，是日常用餐的稳妥选择。',
+    address: '浙江大学玉泉校区怡膳堂一楼',
+    latitude: 30.2659,
+    longitude: 120.121,
     color: '#a9d8ff',
   },
   {
@@ -30,6 +36,9 @@ const diningWindows = [
     window: '小乐惠',
     dish: '特色盖浇饭',
     reason: '口味丰富、分量充足，适合今天想吃得满足一些。',
+    address: '浙江大学玉泉校区怡膳堂二楼小乐惠',
+    latitude: 30.2659,
+    longitude: 120.121,
     color: '#ffc4d9',
   },
   {
@@ -40,6 +49,9 @@ const diningWindows = [
     window: '玫瑰简餐',
     dish: '今日简餐套餐',
     reason: '出餐快捷、荤素均衡，赶时间时也能好好吃饭。',
+    address: '浙江大学玉泉校区怡膳堂二楼玫瑰简餐',
+    latitude: 30.2659,
+    longitude: 120.121,
     color: '#d4c2ff',
   },
   {
@@ -50,6 +62,9 @@ const diningWindows = [
     window: '大众餐窗口',
     dish: '家常套餐',
     reason: '家常口味、价格友好，适合不知道吃什么的普通一天。',
+    address: '浙江大学玉泉校区玉泉二食堂',
+    latitude: 30.265,
+    longitude: 120.12,
     color: '#ffeba1',
   },
   {
@@ -60,6 +75,9 @@ const diningWindows = [
     window: '自选餐窗口',
     dish: '今日自选菜',
     reason: '窗口多、选择面广，可以按今天的食欲自由搭配。',
+    address: '浙江大学玉泉校区玉泉一食堂',
+    latitude: 30.2645,
+    longitude: 120.119,
     color: '#aee7dc',
   },
   {
@@ -70,6 +88,9 @@ const diningWindows = [
     window: '米线窗口',
     dish: '招牌过桥米线',
     reason: '汤热味鲜、配菜丰富，想吃汤粉面时就选它。',
+    address: '浙江大学玉泉校区过桥米线窗口',
+    latitude: 30.265,
+    longitude: 120.12,
     color: '#c7e9ac',
   },
   {
@@ -80,6 +101,9 @@ const diningWindows = [
     window: '卤味窗口',
     dish: '招牌卤味饭',
     reason: '卤香浓郁、十分下饭，适合今天想吃重口一点。',
+    address: '浙江大学玉泉校区玉泉一食堂卤味窗口',
+    latitude: 30.2645,
+    longitude: 120.119,
     color: '#ffc6a3',
   },
   {
@@ -90,6 +114,9 @@ const diningWindows = [
     window: '特色餐窗口',
     dish: '今日特色套餐',
     reason: '换个食堂探索新口味，也许会发现新的常吃窗口。',
+    address: '浙江大学玉泉校区玉泉四食堂',
+    latitude: 30.2655,
+    longitude: 120.1178,
     color: '#f6b9ec',
   },
   {
@@ -100,6 +127,9 @@ const diningWindows = [
     window: '风味餐窗口',
     dish: '风味小炒套餐',
     reason: '现点现做、香气十足，适合想改善一下伙食的时候。',
+    address: '浙江大学玉泉校区靓园',
+    latitude: 30.2668,
+    longitude: 120.1168,
     color: '#9fc8ff',
   },
   {
@@ -110,6 +140,9 @@ const diningWindows = [
     window: '大众餐窗口',
     dish: '营养套餐',
     reason: '荤素均衡、方便快捷，为今天补充满满能量。',
+    address: '浙江大学玉泉校区玉泉五食堂',
+    latitude: 30.2648,
+    longitude: 120.1175,
     color: '#f7d37f',
   },
 ];
@@ -179,6 +212,23 @@ Page({
       }
       wx.vibrateShort({ type: 'medium' });
     }, 4200);
+  },
+
+  navigateToCanteen() {
+    const { result } = this.data;
+    if (!result || !Number.isFinite(result.latitude) || !Number.isFinite(result.longitude)) {
+      wx.showToast({ title: '暂无该地点的导航信息', icon: 'none' });
+      return;
+    }
+
+    wx.openLocation({
+      latitude: result.latitude,
+      longitude: result.longitude,
+      name: `${result.canteen} · ${result.window}`,
+      address: result.address,
+      scale: 18,
+      fail: () => wx.showToast({ title: '地图打开失败，请稍后重试', icon: 'none' }),
+    });
   },
 
   onUnload() {

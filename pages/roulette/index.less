@@ -286,13 +286,36 @@ page {
   }
 
   &__heading-copy {
+    flex: 1;
+    min-width: 0;
     margin-left: 20rpx;
   }
-
+  &__heading-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12rpx;
+  }
   &__canteen {
+    overflow: hidden;
     color: #20283a;
     font-size: 34rpx;
     font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &__navigate {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 4rpx;
+    height: 48rpx;
+    padding: 0 14rpx;
+    border: 1rpx solid #cfe0fb;
+    border-radius: 24rpx;
+    background: #f7fbff;
+    color: #3478f6;
+    font-size: 22rpx;
   }
 
   &__campus {
