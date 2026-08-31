@@ -95,7 +95,7 @@ Page({
   },
 
   selectCommunityTab(event) {
-    const value = event.currentTarget.dataset.value;
+    const { value } = event.currentTarget.dataset;
     if (value === 'poll') {
       wx.showToast({ title: '新菜公投正在筹备', icon: 'none' });
       return;
