@@ -21,11 +21,6 @@ if (config.isMock) {
 
 App({
   onLaunch() {
-    // 启动时拿到自己的 openid（判断"我有没有点过赞"等场景要用），存全局
-    wx.cloud.callFunction({ name: 'userHelper' })
-      .then((res) => { this.globalData.openid = res.result.openid; })
-      .catch((err) => console.error('获取 openid 失败', err));
-
     this.globalData.userInfo = getCurrentUser();
     this.checkSession();
     this.globalData.preferences = getPreferences();
@@ -55,7 +50,6 @@ App({
   },
   globalData: {
     userInfo: null,
-    openid: null, // 自己的身份标识（启动时通过 userHelper 云函数获取）
     unreadNum: 0, // 未读消息数量
     socket: null, // SocketTask 对象
     preferences: null,

@@ -40,8 +40,11 @@ Page({
     try {
       const db = wx.cloud.database();
       const res = await db.collection('posts').orderBy('createdAt', 'desc').get();
-      const myOpenid = getApp().globalData.openid;
-      const posts = res.data.map((p) => {
+      const visibleData = res.data.filter((post) => {
+        const status = post.post_status || post.status || 'published';
+        return status === 'published' || status === 'active';
+      });
+      const posts = visibleData.map((p) => {
         const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
         let locationName = p.locationName || '';
         if (typeof p.location === 'string') locationName = p.location;
@@ -52,7 +55,7 @@ Page({
           image: p.image || images[0] || '',
           locationName,
           displayTime: formatTime(p.createdAt),
-          liked: (p.likers || []).includes(myOpenid), // 我点过赞没有
+          liked: false,
         };
       });
       this.setData({
@@ -60,11 +63,38 @@ Page({
         displayPosts: this.filterPosts(posts, this.data.activeCategory),
         loading: false,
       });
+      this.syncLikeStates();
       this.syncCommentCounts();
     } catch (err) {
       console.error('拉取动态失败', err);
       this.setData({ loading: false });
       wx.showToast({ title: '动态加载失败', icon: 'none' });
+    }
+  },
+
+  async syncLikeStates() {
+    if (!isLoggedIn() || !this.data.posts.length) return;
+    try {
+      const response = await wx.cloud.callFunction({
+        name: 'likePost',
+        data: {
+          action: 'states',
+          postIds: this.data.posts.map((post) => post._id),
+        },
+      });
+      const result = response.result || {};
+      if (!result.success) return;
+      const states = result.states || {};
+      const posts = this.data.posts.map((post) => ({
+        ...post,
+        liked: Boolean(states[String(post._id)]),
+      }));
+      this.setData({
+        posts,
+        displayPosts: this.filterPosts(posts, this.data.activeCategory),
+      });
+    } catch (error) {
+      // 点赞状态加载失败不影响帖子浏览。
     }
   },
 
@@ -110,10 +140,16 @@ Page({
   // （进阶做法是先本地变红再对账，叫"乐观更新"，下期可以聊）
   async toggleLike(event) {
     const { id } = event.currentTarget.dataset;
+    if (!isLoggedIn()) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     wx.showLoading({ title: '请稍候…', mask: true });
     try {
-      const res = await wx.cloud.callFunction({ name: 'likePost', data: { postId: id } });
-      const { liked, likes } = res.result;
+      const res = await wx.cloud.callFunction({ name: 'likePost', data: { action: 'toggle', postId: id } });
+      const result = res.result || {};
+      if (!result.success) throw new Error(result.message || '点赞失败，请重试');
+      const { liked, likes } = result;
       this.updatePost(id, (post) => ({ ...post, liked, likes }));
     } catch (err) {
       console.error('点赞失败', err);

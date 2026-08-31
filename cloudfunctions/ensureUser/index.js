@@ -7,6 +7,7 @@ const db = cloud.database();
 const { command } = db;
 const USERS_COLLECTION = 'users';
 const FOLLOWS_COLLECTION = 'follows';
+const POST_LIKES_COLLECTION = 'postLikes';
 const OWNED_COLLECTIONS = ['mealRecords', 'checkins', 'posts', 'comments', 'browsingHistory', 'messages'];
 const ACCOUNT_DELETE_CONFIRMATION = 'DELETE_ACCOUNT';
 const DEFAULT_PRIVACY = {
@@ -22,6 +23,17 @@ const DEFAULT_PRIVACY = {
 function cleanText(value, maxLength) {
   if (typeof value !== 'string') return '';
   return value.trim().slice(0, maxLength);
+}
+
+function getConsentRecord(consent = {}) {
+  const agreementVersion = cleanText(consent.agreementVersion, 20);
+  const privacyVersion = cleanText(consent.privacyVersion, 20);
+  if (!agreementVersion || !privacyVersion) return null;
+  return {
+    agreementVersion,
+    privacyVersion,
+    agreedAt: db.serverDate(),
+  };
 }
 
 function getUserId(openid) {
@@ -138,6 +150,44 @@ async function deleteMealImages(userId) {
   }
 }
 
+async function deleteUserLikes(userId) {
+  try {
+    for (let batch = 0; batch < 100; batch += 1) {
+      // 每批删除后重新查询，避免 skip 因数据减少而漏项。
+      // eslint-disable-next-line no-await-in-loop
+      const result = await db.collection(POST_LIKES_COLLECTION).where({ userId }).limit(20).get();
+      if (!result.data.length) break;
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(result.data.map((like) => db.runTransaction(async (transaction) => {
+        const likeRef = transaction.collection(POST_LIKES_COLLECTION).doc(like._id);
+        let currentLike;
+        try {
+          currentLike = (await likeRef.get()).data;
+        } catch (error) {
+          return;
+        }
+        if (currentLike.status === 'active' && currentLike.postId) {
+          const postRef = transaction.collection('posts').doc(currentLike.postId);
+          try {
+            const post = (await postRef.get()).data;
+            await postRef.update({
+              data: {
+                likes: Math.max((Number(post.likes) || 0) - 1, 0),
+                updatedAt: db.serverDate(),
+              },
+            });
+          } catch (error) {
+            // 帖子已经不存在时只清理点赞记录。
+          }
+        }
+        await likeRef.remove();
+      })));
+    }
+  } catch (error) {
+    if (!isMissingCollection(error)) throw error;
+  }
+}
+
 async function readUser(userId) {
   try {
     const result = await db.collection(USERS_COLLECTION).doc(userId).get();
@@ -175,6 +225,7 @@ async function deleteAccount(event, context, userId) {
   await userRef.update({ data: { status: 'deleting', updatedAt: db.serverDate() } });
   try {
     await deleteMealImages(userId);
+    await deleteUserLikes(userId);
     await Promise.all(OWNED_COLLECTIONS.map((collectionName) => removeWhere(collectionName, {
       _openid: context.OPENID,
     })));
@@ -235,6 +286,7 @@ async function reactivateAccount(event, userId) {
     return { success: false, code: 'ACCOUNT_NOT_DELETED', message: '当前账号不需要重新创建' };
   }
   const profileUpdates = getProfileUpdates(event.profile);
+  const consent = getConsentRecord(event.consent);
   await db.collection(USERS_COLLECTION).doc(userId).update({
     data: {
       ...profileUpdates,
@@ -251,6 +303,7 @@ async function reactivateAccount(event, userId) {
       foodPreferences: [],
       privacy: DEFAULT_PRIVACY,
       loginMethods: ['wechat'],
+      ...(consent ? { consent } : {}),
       checkInCount: 0,
       postCount: 0,
       favoriteCount: 0,
@@ -369,6 +422,7 @@ exports.main = async (event = {}) => {
     const existingUser = await readUser(userId);
     const profileUpdates = getProfileUpdates(event.profile);
     const loginMethod = event.loginMethod === 'restore' ? 'restore' : 'wechat';
+    const consent = getConsentRecord(event.consent);
 
     if (!existingUser) {
       await userRef.set({
@@ -389,6 +443,7 @@ exports.main = async (event = {}) => {
           privacy: DEFAULT_PRIVACY,
           status: 'active',
           loginMethods: [loginMethod],
+          ...(consent ? { consent } : {}),
           checkInCount: 0,
           postCount: 0,
           favoriteCount: 0,
@@ -412,6 +467,7 @@ exports.main = async (event = {}) => {
           ...profileUpdates,
           privacy: normalizePrivacy(existingUser.privacy),
           loginMethods,
+          ...(consent ? { consent } : {}),
           updatedAt: db.serverDate(),
           lastLoginAt: db.serverDate(),
         },

@@ -110,8 +110,8 @@ export function getWechatProfile() {
   });
 }
 
-export async function ensureCloudUser({ profile = {}, loginMethod = 'wechat' } = {}) {
-  const result = await callEnsureUser({ profile: getCloudProfile(profile), loginMethod });
+export async function ensureCloudUser({ profile = {}, loginMethod = 'wechat', consent = {} } = {}) {
+  const result = await callEnsureUser({ profile: getCloudProfile(profile), loginMethod, consent });
   if (!result.success || !result.user) {
     throw createServiceError(result, '云端用户初始化失败');
   }
@@ -147,19 +147,19 @@ export async function deleteCloudAccount() {
   return result;
 }
 
-export async function reactivateCloudAccount(profile = {}) {
-  const result = await callEnsureUser({ action: 'reactivateAccount', profile: getCloudProfile(profile) });
+export async function reactivateCloudAccount(profile = {}, consent = {}) {
+  const result = await callEnsureUser({ action: 'reactivateAccount', profile: getCloudProfile(profile), consent });
   if (!result.success || !result.user) throw createServiceError(result, '重新创建账号失败');
   saveSession({ token: getCloudSessionToken(result.user), user: result.user });
   wx.setStorageSync(SESSION_CHECK_KEY, Date.now());
   return result;
 }
 
-export async function loginWithWechat({ reactivate = false } = {}) {
+export async function loginWithWechat({ reactivate = false, consent = {} } = {}) {
   const profile = await getWechatProfile();
   const result = reactivate
-    ? await reactivateCloudAccount(profile)
-    : await ensureCloudUser({ profile, loginMethod: 'wechat' });
+    ? await reactivateCloudAccount(profile, consent)
+    : await ensureCloudUser({ profile, loginMethod: 'wechat', consent });
   saveSession({
     token: getCloudSessionToken(result.user),
     user: result.user,

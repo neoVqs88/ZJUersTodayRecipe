@@ -1,5 +1,6 @@
 import Toast from 'tdesign-miniprogram/toast/index';
 import { loginWithWechat } from '~/services/auth';
+import { getLegalConsent } from '~/config/legal';
 
 Page({
   data: {
@@ -29,7 +30,7 @@ Page({
     if (!this.ensureAgreement() || this.data.loadingType) return;
     this.setData({ loadingType: 'wechat' });
     try {
-      await loginWithWechat();
+      await loginWithWechat({ consent: getLegalConsent() });
       this.finishLogin();
     } catch (error) {
       if (error.code === 'ACCOUNT_DELETED') {
@@ -52,7 +53,7 @@ Page({
         if (!confirm || this.data.loadingType) return;
         this.setData({ loadingType: 'wechat' });
         try {
-          await loginWithWechat({ reactivate: true });
+          await loginWithWechat({ reactivate: true, consent: getLegalConsent() });
           this.finishLogin();
         } catch (error) {
           this.showMessage(error.message || error.errMsg || '重新创建账号失败');
@@ -76,6 +77,10 @@ Page({
 
   showAgreement(event) {
     const { type } = event.currentTarget.dataset;
-    this.showMessage(type === 'privacy' ? '隐私政策页面待接入' : '用户协议页面待接入', 'warning');
+    wx.navigateTo({
+      url: type === 'privacy'
+        ? '/pages/legal/privacy/index'
+        : '/pages/legal/agreement/index',
+    });
   },
 });

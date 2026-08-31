@@ -73,6 +73,16 @@
       "root": "pages/release",
       "name": "release",
       "pages": ["index"]
+    },
+    {
+      "root": "pages/admin",
+      "name": "admin",
+      "pages": ["login/index", "posts/index"]
+    },
+    {
+      "root": "pages/legal",
+      "name": "legal",
+      "pages": ["agreement/index", "privacy/index"]
     }
   ],
   "window": {

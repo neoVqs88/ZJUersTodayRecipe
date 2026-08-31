@@ -22,9 +22,9 @@ const SAMPLE_MESSAGES = [
 
 // 示例动态（author 就是调用者自己，这样队友给你点赞时你能收到真消息）
 const SAMPLE_POSTS = [
-  { category: 'food', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '今天发现玉泉一食堂的卤味窗口，鸡腿很入味，配上青菜和米饭刚刚好！', dish: '招牌卤味饭', visualDesc: '咸香入味 · 荤素搭配', emoji: '🍗', tone: 'orange', location: '玉泉一食堂', tags: ['食堂新发现', '卤味'], likes: 0, likers: [], commentsCount: 0, createdAt: new Date(now - 2 * HOUR) },
-  { category: 'explore', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '怡膳堂二楼玫瑰简餐打卡！出餐很快，今天的套餐清爽又不会吃不饱。', dish: '玫瑰简餐', visualDesc: '快捷简餐 · 清爽均衡', emoji: '🍱', tone: 'green', location: '怡膳堂二楼', tags: ['探店打卡', '玫瑰简餐'], likes: 0, likers: [], commentsCount: 0, createdAt: new Date(now - 5 * HOUR) },
-  { category: 'companion', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '今晚六点想去靓园吃饭，有没有同学一起拼桌？口味都可以，轻松聊天就好～', dish: '晚餐拼桌', visualDesc: '今天 18:00 · 还差 2 人', emoji: '👥', tone: 'blue', location: '靓园', tags: ['约饭拼桌', '晚餐'], likes: 0, likers: [], commentsCount: 0, createdAt: new Date(now - DAY) },
+  { category: 'food', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '今天发现玉泉一食堂的卤味窗口，鸡腿很入味，配上青菜和米饭刚刚好！', dish: '招牌卤味饭', visualDesc: '咸香入味 · 荤素搭配', emoji: '🍗', tone: 'orange', location: '玉泉一食堂', tags: ['食堂新发现', '卤味'], likes: 0, commentsCount: 0, createdAt: new Date(now - 2 * HOUR) },
+  { category: 'explore', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '怡膳堂二楼玫瑰简餐打卡！出餐很快，今天的套餐清爽又不会吃不饱。', dish: '玫瑰简餐', visualDesc: '快捷简餐 · 清爽均衡', emoji: '🍱', tone: 'green', location: '怡膳堂二楼', tags: ['探店打卡', '玫瑰简餐'], likes: 0, commentsCount: 0, createdAt: new Date(now - 5 * HOUR) },
+  { category: 'companion', authorName: '我', level: 1, avatar: '/static/avatar1.png', content: '今晚六点想去靓园吃饭，有没有同学一起拼桌？口味都可以，轻松聊天就好～', dish: '晚餐拼桌', visualDesc: '今天 18:00 · 还差 2 人', emoji: '👥', tone: 'blue', location: '靓园', tags: ['约饭拼桌', '晚餐'], likes: 0, commentsCount: 0, createdAt: new Date(now - DAY) },
 ];
 
 exports.main = async (event) => {

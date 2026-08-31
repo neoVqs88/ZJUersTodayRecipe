@@ -91,6 +91,15 @@ Page({
     wx.navigateTo({ url: '/pages/social/privacy/index' });
   },
 
+  openLegal(event) {
+    const { type } = event.currentTarget.dataset;
+    wx.navigateTo({
+      url: type === 'privacy'
+        ? '/pages/legal/privacy/index'
+        : '/pages/legal/agreement/index',
+    });
+  },
+
   logout() {
     wx.showModal({
       title: '退出登录',
