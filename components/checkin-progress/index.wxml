@@ -4,11 +4,11 @@
     <view class="progress-card__desc">{{subtitle}}</view>
   </view>
   <view class="progress-card__art">
-    <view class="progress-card__paper">✓<text>✓</text><text>✓</text></view>
+    <view class="progress-card__paper">✓<text class="progress-card__paper-line">✓</text><text class="progress-card__paper-line">✓</text></view>
     <view class="progress-card__pen" />
   </view>
   <view class="progress-card__count">
-    <view><text>{{count}}</text> / {{goal}}</view>
+    <view><text class="progress-card__count-value">{{count}}</text> / {{goal}}</view>
     <view class="progress-card__label">本周已打卡天数</view>
   </view>
   <text class="progress-card__arrow">›</text>

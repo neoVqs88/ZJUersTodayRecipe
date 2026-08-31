@@ -1,0 +1,18 @@
+<view class="dish-page">
+  <scroll-view class="dish-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="dish-top"><view class="dish-top__back" bindtap="goBack">‹</view><view class="dish-top__collect" bindtap="toggleCollect"><t-icon name="{{collected ? 'star-filled' : 'star'}}" size="34rpx" color="{{collected ? '#ff6b4a' : '#1d2118'}}" /></view></view>
+    <image class="dish-hero" src="{{dish.image}}" mode="aspectFill" />
+    <view class="dish-sheet">
+      <text class="dish-sheet__eyebrow">{{dish.english}}</text>
+      <view class="dish-sheet__title-row"><text class="dish-sheet__title">{{dish.name}}</text><view><text class="dish-sheet__score">{{dish.score}}</text><text> / 5</text></view></view>
+      <view class="dish-sheet__meta"><view bindtap="openLocation"><t-icon name="location" size="22rpx" /><text>{{dish.place}}</text></view><view><text>{{dish.price}}</text></view></view>
+      <view class="dish-sheet__tags"><text wx:for="{{dish.flavor}}" wx:key="*this">{{item}}</text></view>
+      <view class="dish-sheet__divider"></view>
+      <text class="dish-sheet__section">为什么值得这一餐</text><text class="dish-sheet__desc">{{dish.desc}}</text>
+      <view class="taste-note"><text>饭友印象</text><text>“出餐稳定，味道舒服，适合不知道吃什么的日子。”</text></view>
+      <view class="dish-sheet__facts"><view><text class="dish-sheet__fact-value">12 min</text><text>预计排队</text></view><view><text class="dish-sheet__fact-value">86%</text><text>再次选择</text></view><view><text class="dish-sheet__fact-value">328</text><text>本月记录</text></view></view>
+      <view class="dish-sheet__button" bindtap="recordMeal">把它记进今天的一餐</view>
+    </view>
+    <view class="dish-bottom"></view>
+  </scroll-view>
+</view>

@@ -5,13 +5,78 @@ import { recordBrowsingHistory } from '~/services/userSocial';
 
 Page({
   data: {
-    newDishes: [
-      { name: '黄焖鸡米饭', location: '第一食堂 · 二楼', shortLocation: '一食堂', score: '4.8', image: '/static/home/card0.png' },
-      { name: '照烧鸡排饭', location: '第二食堂 · 一楼', shortLocation: '二食堂', score: '4.7', image: '/static/home/card1.png' },
-      { name: '红烧牛肉面', location: '风味窗口 · 面之道', shortLocation: '风味窗口', score: '4.6', image: '/static/home/card2.png' },
+    dateLabel: '',
+    mealTickets: [
+      {
+        name: '桂花糖藕',
+        campus: '玉泉',
+        time: '12:20',
+        note: '江南的甜，适合今天这场小雨。',
+        match: 92,
+        flavor: '清甜',
+        price: '¥8–12',
+        image: '/static/figma/ticket-lotus-opaque.webp',
+      },
+      {
+        name: '山野菌菇面',
+        campus: '怡膳堂一楼',
+        time: '12:26',
+        note: '一碗热汤面，把午后的疲惫慢慢熨平。',
+        match: 89,
+        flavor: '清淡鲜香',
+        price: '¥10–15',
+        image: '/static/figma/ticket-mushroom-noodle.webp',
+      },
+      {
+        name: '酸汤肥牛',
+        campus: '玉泉二食堂',
+        time: '12:31',
+        note: '酸香醒胃，适合需要一点精神的今天。',
+        match: 86,
+        flavor: '酸辣',
+        price: '¥15–20',
+        image: '/static/figma/ticket-sour-beef.webp',
+      },
+      {
+        name: '番茄肥牛饭',
+        campus: '玉泉一食堂',
+        time: '12:35',
+        note: '酸甜浓郁，是不会轻易出错的午餐答案。',
+        match: 94,
+        flavor: '酸甜',
+        price: '¥15–20',
+        image: '/static/figma/ticket-tomato-beef.webp',
+      },
     ],
+    activeTicket: {
+      name: '桂花糖藕',
+      campus: '玉泉',
+      time: '12:20',
+      note: '江南的甜，适合今天这场小雨。',
+      match: 92,
+      flavor: '清甜',
+      price: '¥8–12',
+      image: '/static/figma/ticket-lotus-opaque.webp',
+    },
+    ticketIndex: 0,
+    isShuffling: false,
+    newDishes: [
+      { name: '番茄肥牛饭', location: '玉泉一食堂 · 二楼', shortLocation: '酸甜浓郁', score: '4.9', image: '/static/figma/rank-tomato-beef.webp' },
+      { name: '山野菌菇面', location: '怡膳堂 · 一楼', shortLocation: '清淡鲜香', score: '4.8', image: '/static/figma/rank-mushroom-noodle.webp' },
+      { name: '酸汤肥牛', location: '玉泉二食堂 · 风味档', shortLocation: '酸辣开胃', score: '4.7', image: '/static/figma/rank-sour-beef.webp' },
+      { name: '石锅拌饭', location: '玉泉四食堂 · 一楼', shortLocation: '咸香热辣', score: '4.6', image: '/static/figma/rank-stone-pot.webp' },
+    ],
+    moments: ['想吃热乎的', '预算 15 元内', '离我近一点'],
     checkInDays: 0,
     weeklyGoal: 7,
+  },
+
+  onLoad(options = {}) {
+    const date = new Date();
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    this.setData({ dateLabel: `${weekdays[date.getDay()]} · ${months[date.getMonth()]} ${date.getDate()}` });
+    if (options.checkin === '1') setTimeout(() => this.checkIn(), 350);
   },
 
   onShow() {
@@ -39,7 +104,36 @@ Page({
   },
 
   makeDecision() {
-    wx.navigateTo({ url: '/pages/roulette/index' });
+    if (this.data.isShuffling) return;
+
+    const { mealTickets, ticketIndex } = this.data;
+    let step = 0;
+    let nextIndex = ticketIndex;
+    this.setData({ isShuffling: true });
+
+    this.ticketTimer = setInterval(() => {
+      nextIndex = (nextIndex + 1) % mealTickets.length;
+      step += 1;
+      this.setData({
+        activeTicket: mealTickets[nextIndex],
+        ticketIndex: nextIndex,
+      });
+
+      if (step < 10) return;
+      clearInterval(this.ticketTimer);
+      this.ticketTimer = null;
+      this.setData({ isShuffling: false });
+      wx.vibrateShort({ type: 'light' });
+    }, 105);
+  },
+
+  openFeatured() {
+    if (this.data.isShuffling) return;
+    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(this.data.activeTicket.name)}` });
+  },
+
+  onUnload() {
+    if (this.ticketTimer) clearInterval(this.ticketTimer);
   },
 
   viewDish(event) {
@@ -55,12 +149,7 @@ Page({
         route: '/pages/home/index',
       }).catch(() => {});
     }
-    wx.showModal({
-      title: dish.name,
-      content: `${dish.location}\n推荐评分 ${dish.score}`,
-      showCancel: false,
-      confirmText: '知道了',
-    });
+    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(dish.name)}` });
   },
 
   async checkIn() {
@@ -133,7 +222,7 @@ Page({
   },
 
   showMore() {
-    wx.showToast({ title: '菜品列表即将上线', icon: 'none' });
+    wx.reLaunch({ url: '/pages/canteen/index' });
   },
 
   showCheckInHistory() {

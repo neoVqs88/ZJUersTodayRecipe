@@ -1,85 +1,9 @@
-<view class="message-page">
-  <t-navbar t-class="message-navbar" />
-
-  <scroll-view class="message-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="message-hero">
-      <image class="message-hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
-      <view class="message-hero__brand">
-        <text class="message-hero__brand-en">zjuer</text>
-        <text class="message-hero__brand-cn">今天吃什么</text>
-        <text class="message-hero__sparkle">✦</text>
-      </view>
-      <view class="message-hero__title">消息</view>
-    </view>
-
-    <view class="message-panel">
-      <view class="message-tabs">
-        <view
-          class="message-tabs__item {{activeTab === 'interaction' ? 'message-tabs__item--active' : ''}}"
-          data-tab="interaction"
-          bindtap="switchMessageTab"
-        >
-          互动消息
-        </view>
-        <view
-          class="message-tabs__item {{activeTab === 'system' ? 'message-tabs__item--active' : ''}}"
-          data-tab="system"
-          bindtap="switchMessageTab"
-        >
-          系统消息
-        </view>
-      </view>
-
-      <view class="message-list">
-        <view
-          class="message-card"
-          wx:for="{{displayCards}}"
-          wx:key="category"
-          data-category="{{item.category}}"
-          data-title="{{item.title}}"
-          bindtap="openCategory"
-        >
-          <view class="message-card__icon message-card__icon--{{item.theme}}">
-            <t-icon name="{{item.icon}}" size="56rpx" color="#ffffff" />
-          </view>
-
-          <view class="message-card__content">
-            <view class="message-card__title-row">
-              <text class="message-card__title">{{item.title}}</text>
-              <text wx:if="{{item.tag}}" class="message-card__tag message-card__tag--{{item.tagTheme}}">{{item.tag}}</text>
-            </view>
-            <view class="message-card__summary">{{item.summary}}</view>
-            <view class="message-card__detail">{{item.detail}}</view>
-          </view>
-
-          <view class="message-card__meta">
-            <text class="message-card__time">{{item.displayTime}}</text>
-            <text wx:if="{{item.unreadCount}}" class="message-card__badge">{{item.unreadCount}}</text>
-          </view>
-          <text class="message-card__arrow">›</text>
-        </view>
-      </view>
-
-      <view wx:if="{{!loading && displayCards.length === 0}}" class="message-empty">
-        <view class="message-empty__text">暂无消息</view>
-        <!-- 开发调试入口：上线前删除 -->
-        <t-button size="small" variant="outline" theme="primary" bindtap="seedMessages">生成示例消息（调试）</t-button>
-      </view>
-
-      <view class="companion-banner" bindtap="goCompanion">
-        <view class="companion-banner__people">
-          <view class="companion-banner__person companion-banner__person--blue">●</view>
-          <view class="companion-banner__person companion-banner__person--green">●</view>
-        </view>
-        <view class="companion-banner__divider"></view>
-        <view class="companion-banner__copy">
-          <view class="companion-banner__title">寻找饭搭子，一起吃得更开心</view>
-          <view class="companion-banner__desc">发现身边的饭友，分享美食日常</view>
-        </view>
-        <view class="companion-banner__button">去看看 <text>›</text></view>
-      </view>
-
-      <view class="message-scroll__bottom-space"></view>
-    </view>
-  </scroll-view>
-</view>
+<view class="message-page"><scroll-view class="message-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+  <view class="detail-head"><text class="back" bindtap="goBack">‹</text><view><text>消息</text><text>TABLEMATE · SYSTEM · COMMUNITY</text></view><text class="read-all" bindtap="markAllRead">全部已读</text></view>
+  <view class="message-tabs"><view class="{{activeTab === 'interaction' ? 'active' : ''}}" data-tab="interaction" bindtap="switchMessageTab">全部</view><view data-tab="interaction" bindtap="switchMessageTab">饭局</view><view data-tab="interaction" bindtap="switchMessageTab">互动</view><view class="{{activeTab === 'system' ? 'active' : ''}}" data-tab="system" bindtap="switchMessageTab">系统</view></view>
+  <view class="unread-card"><view><text>今天</text><text>{{displayCards.length}} 条未读</text></view><view><text>饭局快开始了</text><text>优先查看时间变动</text></view></view>
+  <text class="section-label">刚才的消息</text>
+  <view class="message-card {{index === displayCards.length - 1 ? 'soft' : ''}}" wx:for="{{displayCards}}" wx:key="category" data-category="{{item.category}}" data-title="{{item.title}}" bindtap="openCategory"><view class="letter">讯</view><view class="message-copy"><text>{{item.title}}</text><text>{{item.detail || item.summary}}</text></view><view class="message-meta"><text>{{item.displayTime}}</text><text wx:if="{{item.unreadCount}}"></text><text>›</text></view></view>
+  <view wx:if="{{!loading && !displayCards.length}}" class="message-empty"><text>暂时没有新消息</text><t-button size="small" variant="outline" bindtap="seedMessages">生成示例消息</t-button></view>
+  <text class="message-foot">只保留必要提醒；通知偏好可在“我的”中调整</text><view class="bottom-space"></view>
+</scroll-view></view>

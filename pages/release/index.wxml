@@ -1,6 +1,7 @@
 <view class="release-page">
-  <t-navbar title="发布动态" left-arrow />
+  <t-navbar title="写一张饭帖" left-arrow />
   <scroll-view class="release-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="release-intro"><text>SHARE A MEAL</text><text>把这一餐，留在饭桌边</text><text>一张图片、一点感受，就足够成为一篇饭帖。</text></view>
     <view class="release-card release-card--editor">
       <t-textarea
         value="{{content}}"
@@ -99,7 +100,7 @@
 
     <view class="release-actions">
       <t-button class="release-actions__button" theme="default" variant="outline" size="large" bindtap="saveDraft">保存草稿</t-button>
-      <t-button class="release-actions__button" theme="primary" size="large" loading="{{publishing}}" bindtap="release">发布动态</t-button>
+      <t-button class="release-actions__button release-actions__publish" theme="primary" size="large" loading="{{publishing}}" bindtap="release">发布饭帖</t-button>
     </view>
     <view class="release-bottom-space" />
   </scroll-view>

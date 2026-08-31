@@ -1,0 +1,43 @@
+.figma-nav-shell {
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 10rpx 38rpx calc(16rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.figma-nav {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 116rpx;
+  padding: 12rpx;
+  border-radius: 44rpx;
+  background: #e7eee4;
+  pointer-events: auto;
+
+  &__item {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    height: 92rpx;
+    border-radius: 28rpx;
+    transition: background .18s ease;
+
+    &--active { background: #fffcf6; }
+  }
+
+  &__icon {
+    width: 36rpx;
+    height: 36rpx;
+    filter: brightness(0) saturate(100%) invert(10%) sepia(9%) saturate(1080%) hue-rotate(31deg) brightness(94%) contrast(94%);
+  }
+
+  &__item--active &__icon {
+    filter: brightness(0) saturate(100%) invert(55%) sepia(93%) saturate(2517%) hue-rotate(330deg) brightness(102%) contrast(101%);
+  }
+}

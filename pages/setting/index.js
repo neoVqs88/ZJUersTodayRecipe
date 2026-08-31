@@ -109,7 +109,7 @@ Page({
         if (!confirm) return;
         clearSession();
         wx.showToast({ title: '已退出登录', icon: 'success' });
-        wx.switchTab({ url: '/pages/my/index' });
+        wx.reLaunch({ url: '/pages/my/index' });
       },
     });
   },
@@ -147,7 +147,7 @@ Page({
           await deleteCloudAccount();
           wx.hideLoading();
           wx.showToast({ title: '账号已注销', icon: 'success' });
-          setTimeout(() => wx.switchTab({ url: '/pages/my/index' }), 600);
+          setTimeout(() => wx.reLaunch({ url: '/pages/my/index' }), 600);
         } catch (error) {
           wx.hideLoading();
           wx.showToast({ title: error.message || '注销失败，请稍后重试', icon: 'none', duration: 2600 });

@@ -1,93 +1,26 @@
-<view class="home-page">
-  <nav title-text="zjuer今天吃什么" />
-
-  <scroll-view class="home-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="hero">
-      <image class="hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
-      <view class="hero__brand">
-        <text class="hero__brand-en">zjuer</text>
-        <text class="hero__brand-cn">今天吃什么</text>
-        <text class="hero__sparkle">✦</text>
-      </view>
-
-      <view class="search" bindtap="goSearch">
-        <t-icon name="search" size="42rpx" color="#9aa4b2" />
-        <text class="search__placeholder">搜索菜品、食堂、窗口</text>
+<view class="figma-screen home-screen">
+  <scroll-view class="screen-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="screen-head">
+      <text class="eyebrow">{{dateLabel}}</text>
+      <text class="screen-title">今天，想吃点什么？</text>
+      <text class="screen-desc">让午饭像抽一张温柔又古怪的签。</text>
+    </view>
+    <view class="chips"><view class="chip" wx:for="{{moments}}" wx:key="*this">{{index === 0 ? '♙' : index === 1 ? '♨' : '⊙'}} {{item}}</view></view>
+    <view class="meal-ticket {{isShuffling ? 'meal-ticket--shuffling' : ''}}" bindtap="openFeatured">
+      <view class="ticket-copy"><text>午餐签 · {{activeTicket.time}}</text><text class="ticket-title">{{activeTicket.name}} · {{activeTicket.campus}}</text><text class="ticket-note">{{activeTicket.note}}</text></view>
+      <view class="ticket-image"><image src="{{activeTicket.image}}" mode="aspectFit" /></view>
+      <text class="ticket-match">✓ {{activeTicket.match}}% 合你口味</text>
+    </view>
+    <view class="chips ticket-chips"><view class="chip">⌾ {{activeTicket.campus}}</view><view class="chip">⌁ {{activeTicket.flavor}}</view><view class="chip">⊙ {{activeTicket.price}}</view></view>
+    <view class="reroll-button {{isShuffling ? 'reroll-button--busy' : ''}}" bindtap="makeDecision">{{isShuffling ? '饭签轮换中…' : '再摇一次｜换一道命运'}}</view>
+    <view class="section-row"><text class="section-title">热门菜品榜</text><text class="section-link" bindtap="showMore">完整榜单 →</text></view>
+    <view class="ranking">
+      <view class="rank-row" wx:for="{{newDishes}}" wx:key="name" data-index="{{index}}" bindtap="viewDish">
+        <text class="rank-no">0{{index + 1}}</text><image src="{{item.image}}" mode="aspectFill" />
+        <view class="rank-copy"><text>{{item.name}}</text><text>{{index === 0 ? '426 人' : index === 1 ? '381 人' : index === 2 ? '344 人' : '298 人'}} · {{item.location}}</text></view><text class="rank-arrow">›</text>
       </view>
     </view>
-
-    <view class="content-card new-section">
-      <view class="section-header">
-        <view class="section-header__main">
-          <view class="section-header__icon section-header__icon--yellow">★</view>
-          <text class="section-header__title">新品推荐</text>
-          <text class="section-header__subtitle">新鲜上新，尝鲜不迷路</text>
-        </view>
-        <view class="section-header__more" bindtap="showMore">更多 <text>›</text></view>
-      </view>
-
-      <view class="dish-grid">
-        <view class="dish-card" wx:for="{{newDishes}}" wx:key="name" bindtap="viewDish" data-index="{{index}}">
-          <view class="dish-card__image-wrap">
-            <image class="dish-card__image" src="{{item.image}}" mode="aspectFill" />
-            <text class="dish-card__tag">上新</text>
-          </view>
-          <view class="dish-card__name">{{item.name}}</view>
-          <view class="dish-card__location"><text class="dish-card__pin">●</text>{{item.shortLocation}}</view>
-          <view class="dish-card__score"><text>★</text> {{item.score}}</view>
-        </view>
-      </view>
-    </view>
-
-    <view class="content-card roulette-card">
-      <view class="section-header section-header--inside">
-        <view class="section-header__main">
-          <view class="section-header__icon section-header__icon--purple">
-            <t-icon name="add" size="30rpx" color="#ffffff" />
-          </view>
-          <text class="section-header__title">吃啥转转乐</text>
-        </view>
-        <text class="roulette-card__hint">选择困难？转一转就有啦</text>
-      </view>
-
-      <view class="roulette-card__body">
-        <view class="roulette-card__copy">
-          <view class="roulette-card__title">让幸运转盘帮你决定</view>
-          <view class="roulette-card__desc">今天吃什么？转一转就知道！</view>
-          <view class="roulette-card__button" bindtap="makeDecision">去转一转 <text>›</text></view>
-        </view>
-
-        <image
-          class="roulette-card__image"
-          src="/static/home/roulette.jpg"
-          mode="aspectFill"
-          bindtap="makeDecision"
-        />
-      </view>
-    </view>
-
-    <view class="checkin-section">
-      <view class="section-header section-header--plain">
-        <view class="section-header__main">
-          <view class="section-header__icon section-header__icon--blue">
-            <t-icon name="camera" size="30rpx" color="#ffffff" />
-          </view>
-          <text class="section-header__title">三餐拍照打卡</text>
-          <text class="section-header__subtitle">记录三餐，点亮每一天</text>
-        </view>
-        <view class="section-header__more" bindtap="showCheckInHistory">更多 <text>›</text></view>
-      </view>
-
-      <view class="checkin-banner" bindtap="checkIn">
-        <image class="checkin-banner__image" src="/static/home/meal-checkin.jpg" mode="widthFix" />
-        <view class="checkin-banner__button">去打卡 <text>›</text></view>
-      </view>
-    </view>
-
-    <view class="home-progress-wrap">
-      <checkin-progress count="{{checkInDays}}" goal="{{weeklyGoal}}" bind:tap="showCheckInHistory" />
-    </view>
-
-    <view class="home-scroll__bottom-space"></view>
+    <view class="nav-clear"></view>
   </scroll-view>
+  <figma-nav active="today" />
 </view>

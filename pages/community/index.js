@@ -21,10 +21,18 @@ Page({
     posts: [],
     displayPosts: [],
     loading: true,
+    activeCommunityTab: 'posts',
+    unreadNum: 0,
+    communityTabs: [
+      { label: '饭帖', value: 'posts' },
+      { label: '找同桌', value: 'companion' },
+      { label: '新菜公投', value: 'poll' },
+    ],
   },
 
   // 每次进入页面都拉最新数据（从发布页返回、别人点了赞，都能反映出来）
   onShow() {
+    this.loadUnreadNum();
     this.fetchPosts();
   },
 
@@ -70,6 +78,33 @@ Page({
       this.setData({ loading: false });
       wx.showToast({ title: '动态加载失败', icon: 'none' });
     }
+  },
+
+  async loadUnreadNum() {
+    if (!isLoggedIn()) {
+      this.setData({ unreadNum: 0 });
+      return;
+    }
+    try {
+      const result = await wx.cloud.database().collection('messages').where({ read: false }).count();
+      this.setData({ unreadNum: Math.max(0, Number(result.total) || 0) });
+    } catch (error) {
+      // 消息集合尚未创建或暂时不可访问时，不显示错误的红点。
+      this.setData({ unreadNum: 0 });
+    }
+  },
+
+  selectCommunityTab(event) {
+    const value = event.currentTarget.dataset.value;
+    if (value === 'poll') {
+      wx.showToast({ title: '新菜公投正在筹备', icon: 'none' });
+      return;
+    }
+    this.setData({
+      activeCommunityTab: value,
+      activeCategory: value === 'companion' ? 'companion' : 'all',
+      displayPosts: this.filterPosts(this.data.posts, value === 'companion' ? 'companion' : 'all'),
+    });
   },
 
   async syncLikeStates() {
@@ -233,6 +268,7 @@ Page({
 
   viewActivities() {
     this.setData({
+      activeCommunityTab: 'companion',
       activeCategory: 'companion',
       displayPosts: this.filterPosts(this.data.posts, 'companion'),
     });
@@ -240,5 +276,9 @@ Page({
 
   goRelease() {
     wx.navigateTo({ url: '/pages/release/index' });
+  },
+
+  goMessages() {
+    wx.navigateTo({ url: '/pages/message/index' });
   },
 });

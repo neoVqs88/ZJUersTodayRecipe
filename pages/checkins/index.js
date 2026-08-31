@@ -8,6 +8,8 @@ const MEAL_LABELS = {
   snack: '加餐',
 };
 
+const THUMB_POSITIONS = ['north-east', 'south-east', 'south-west', 'north-west'];
+
 function parseDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
@@ -33,6 +35,8 @@ function formatRecord(record) {
   const hasCalories = Number.isFinite(calories) && calories >= 0;
   return {
     ...record,
+    imageUrl: record.imageUrl || record.imageFileId || record.fileID || '',
+    recordDateKey: getRecordDateKey(record),
     mealLabel: MEAL_LABELS[record.mealType] || '加餐',
     displayTime: formatDateTime(record.mealTime || record.createdAt, record.dateKey),
     confidenceText: record.confidence ? `${(record.confidence * 100).toFixed(1)}%` : '待确认',
@@ -42,11 +46,34 @@ function formatRecord(record) {
   };
 }
 
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getRecordDateKey(record) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(record.dateKey || '')) return record.dateKey;
+  const date = parseDate(record.mealTime || record.createdAt);
+  return date ? getLocalDateKey(date) : '';
+}
+
+function getSelectedDateLabel(dateKey) {
+  if (!dateKey) return '';
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const prefix = dateKey === getLocalDateKey() ? '今天' : `${month} / ${day}`;
+  return `${prefix} · ${weekdays[date.getDay()]}`;
+}
+
 Page({
   data: {
     loading: true,
     refreshing: false,
     activeFilter: 'all',
+    weekLabels: ['一', '二', '三', '四', '五', '六', '日'],
     filters: [
       { label: '全部', value: 'all' },
       { label: '早餐', value: 'breakfast' },
@@ -56,6 +83,12 @@ Page({
     ],
     records: [],
     displayRecords: [],
+    calendarDays: [],
+    selectedRecord: null,
+    selectedDateKey: '',
+    selectedDateLabel: '',
+    selectedDayRecords: [],
+    currentMonth: '',
     stats: {
       totalCount: 0,
       weeklyCount: 0,
@@ -66,8 +99,14 @@ Page({
 
   onLoad() {
     if (!isLoggedIn()) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 500);
+      const selectedDateKey = getLocalDateKey();
+      this.setData({
+        loading: false,
+        currentMonth: this.getMonthLabel(),
+        selectedDateKey,
+        selectedDateLabel: getSelectedDateLabel(selectedDateKey),
+        calendarDays: this.buildCalendar([], selectedDateKey),
+      });
     }
   },
 
@@ -83,9 +122,21 @@ Page({
     try {
       const result = await fetchMealCheckins(100);
       const records = (result.records || []).map(formatRecord);
+      const todayKey = getLocalDateKey();
+      const monthPrefix = todayKey.slice(0, 7);
+      const selectedDateKey = records.some((record) => record.recordDateKey === todayKey)
+        ? todayKey
+        : (records.find((record) => record.recordDateKey.startsWith(monthPrefix)) || {}).recordDateKey || todayKey;
+      const selectedDayRecords = records.filter((record) => record.recordDateKey === selectedDateKey);
       this.setData({
         records,
         displayRecords: this.filterRecords(records, this.data.activeFilter),
+        calendarDays: this.buildCalendar(records, selectedDateKey),
+        selectedDateKey,
+        selectedDateLabel: getSelectedDateLabel(selectedDateKey),
+        selectedDayRecords,
+        selectedRecord: selectedDayRecords[0] || null,
+        currentMonth: this.getMonthLabel(),
         stats: result.stats || this.data.stats,
       });
     } catch (error) {
@@ -93,6 +144,67 @@ Page({
     } finally {
       this.setData({ loading: false, refreshing: false });
     }
+  },
+
+  getMonthLabel() {
+    const date = new Date();
+    return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+  },
+
+  buildCalendar(records, selectedDateKey = getLocalDateKey()) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+    const count = new Date(year, month + 1, 0).getDate();
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const recordsByDate = records.reduce((result, record) => {
+      if (!record.recordDateKey.startsWith(monthPrefix)) return result;
+      if (!result[record.recordDateKey]) result[record.recordDateKey] = [];
+      result[record.recordDateKey].push(record);
+      return result;
+    }, {});
+    const days = Array.from({ length: firstWeekday }, () => ({ empty: true }));
+    for (let day = 1; day <= count; day += 1) {
+      const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+      const dayRecords = recordsByDate[dateKey] || [];
+      const recordsWithImage = dayRecords.filter((record) => record.imageUrl);
+      const representative = recordsWithImage.length
+        ? recordsWithImage[Math.floor(Math.random() * recordsWithImage.length)]
+        : null;
+      days.push({
+        day,
+        dateKey,
+        hasMeal: dayRecords.length > 0,
+        today: day === now.getDate(),
+        selected: dateKey === selectedDateKey,
+        representativeImage: representative ? representative.imageUrl : '',
+        representativeName: representative ? representative.dishName : '',
+        thumbPosition: THUMB_POSITIONS[Math.floor(Math.random() * THUMB_POSITIONS.length)],
+      });
+    }
+    return days;
+  },
+
+  selectDay(event) {
+    const { date } = event.currentTarget.dataset;
+    if (!date) return;
+    const selectedDayRecords = this.data.records.filter((record) => record.recordDateKey === date);
+    this.setData({
+      selectedDateKey: date,
+      selectedDateLabel: getSelectedDateLabel(date),
+      selectedDayRecords,
+      selectedRecord: selectedDayRecords[0] || null,
+      calendarDays: this.data.calendarDays.map((item) => ({
+        ...item,
+        selected: item.dateKey === date,
+      })),
+    });
+  },
+
+  selectRecord(event) {
+    const record = this.data.records.find((item) => String(item.id) === String(event.currentTarget.dataset.id));
+    if (record) this.setData({ selectedRecord: record });
   },
 
   refreshRecords() {
@@ -127,6 +239,6 @@ Page({
   },
 
   goCheckIn() {
-    wx.switchTab({ url: '/pages/home/index' });
+    wx.reLaunch({ url: '/pages/home/index' });
   },
 });

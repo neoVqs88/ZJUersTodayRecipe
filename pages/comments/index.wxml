@@ -1,126 +1,13 @@
 <view class="comments-page">
-  <t-navbar title="评论" left-arrow />
-
-  <view class="post-summary" wx:if="{{post}}">
-    <view class="post-summary__header">
-      <image class="post-summary__avatar" src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile" />
-      <view class="post-summary__body" data-source="post" data-user-id="{{post.authorId}}" catchtap="openUserProfile">
-        <view class="post-summary__author">{{post.author}}</view>
-        <view class="post-summary__content">{{post.content}}</view>
-      </view>
-    </view>
-    <view class="post-summary__media" wx:if="{{postImages.length}}">
-      <image
-        class="post-summary__image"
-        wx:for="{{postImages}}"
-        wx:key="*this"
-        src="{{item}}"
-        data-src="{{item}}"
-        mode="widthFix"
-        bindtap="previewPostImage"
-      />
-    </view>
-    <view class="companion-join" wx:if="{{companion}}">
-      <view class="companion-join__stats">
-        <view class="companion-join__stat"><text class="companion-join__value">{{companion.minParticipants}}–{{companion.maxParticipants}}</text><text>预期约饭人数</text></view>
-        <view class="companion-join__divider" />
-        <view class="companion-join__stat"><text class="companion-join__value companion-join__value--blue">{{companion.participantCount}}</text><text>已报名人数</text></view>
-      </view>
-      <t-button
-        block
-        theme="primary"
-        loading="{{joiningCompanion}}"
-        disabled="{{companion.isAuthor || companion.joined || companion.full}}"
-        bindtap="joinCompanion"
-      >{{companion.buttonText}}</t-button>
-      <view class="companion-join__hint" wx:if="{{!companion.isAuthor && !companion.joined && !companion.full}}">报名成功后，发帖人会在消息页收到通知</view>
-    </view>
-  </view>
-
-  <view class="comments-header">
-    <text>全部评论</text>
-    <text class="comments-header__count">{{total}}</text>
-  </view>
-
-  <scroll-view
-    class="comments-list"
-    scroll-y
-    enhanced
-    show-scrollbar="{{false}}"
-    refresher-enabled
-    refresher-triggered="{{refreshing}}"
-    bindrefresherrefresh="refreshComments"
-  >
-    <view class="comments-list__loading" wx:if="{{loading}}">
-      <t-loading theme="circular" size="42rpx" text="加载评论中" />
-    </view>
-
-    <view class="comments-list__empty" wx:elif="{{!comments.length}}">
-      <view class="comments-list__empty-icon">💬</view>
-      <view class="comments-list__empty-title">还没有评论</view>
-      <view class="comments-list__empty-desc">来分享你的看法，成为第一个评论的人吧</view>
-    </view>
-
-    <view
-      class="comment-item"
-      wx:for="{{comments}}"
-      wx:key="id"
-      data-id="{{item.id}}"
-      bindlongpress="handleCommentLongPress"
-    >
-      <image class="comment-item__avatar" src="{{item.authorImage}}" mode="aspectFill" data-id="{{item.id}}" data-user-id="{{item.userId}}" catchtap="openUserProfile" />
-      <view class="comment-item__body">
-        <view class="comment-item__top">
-          <text class="comment-item__name" data-id="{{item.id}}" data-user-id="{{item.userId}}" catchtap="openUserProfile">{{item.authorName}}</text>
-          <text class="comment-item__mine" wx:if="{{item.isMine}}">我</text>
-          <text class="comment-item__time">{{item.displayTime}}</text>
-        </view>
-        <view class="comment-item__content">
-          <text class="comment-item__reply-name" wx:if="{{item.replyToName}}">回复 {{item.replyToName}}：</text>
-          {{item.content}}
-        </view>
-        <view
-          class="comment-item__reply"
-          data-id="{{item.id}}"
-          data-name="{{item.authorName}}"
-          bindtap="startReply"
-        >
-          回复
-        </view>
-      </view>
-    </view>
-
-    <view class="comments-list__bottom-space"></view>
+  <view class="comments-head"><text bindtap="goBack">‹</text><view><text>一条饭帖</text><text>COMMUNITY NOTE</text></view><text>•••</text></view>
+  <scroll-view class="comments-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshComments" show-scrollbar="{{false}}">
+    <view class="author-card" wx:if="{{post}}"><image src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" bindtap="openUserProfile"/><view><text>{{post.author}}</text><text>今天 · 校园饭桌边</text></view><view>关注</view></view>
+    <view class="post-detail" wx:if="{{post}}"><text class="post-copy">{{post.content}}</text><view class="post-images" wx:if="{{postImages.length}}"><image wx:for="{{postImages}}" wx:key="*this" src="{{item}}" data-src="{{item}}" mode="widthFix" bindtap="previewPostImage"/></view></view>
+    <view class="companion-join" wx:if="{{companion}}"><view><text>{{companion.minParticipants}}–{{companion.maxParticipants}} 人</text><text>预期约饭人数</text></view><view><text>{{companion.participantCount}}</text><text>已报名</text></view><button disabled="{{companion.isAuthor || companion.joined || companion.full}}" bindtap="joinCompanion">{{companion.buttonText}}</button></view>
+    <view class="vote-strip"><view><text>像桂花</text><text>48</text></view><view><text>站甜品</text><text>31</text></view><view><text>站菜</text><text>17</text></view></view>
+    <view class="comment-title"><text>评论 · {{total}}</text><text>按“有用”排序</text></view>
+    <view class="comment-item" wx:for="{{comments}}" wx:key="id" data-id="{{item.id}}" bindlongpress="handleCommentLongPress"><image src="{{item.authorImage}}" mode="aspectFill" data-user-id="{{item.userId}}" bindtap="openUserProfile"/><view><text>{{item.authorName}}</text><text><text wx:if="{{item.replyToName}}">回复 {{item.replyToName}}：</text>{{item.content}}</text><text data-id="{{item.id}}" data-name="{{item.authorName}}" bindtap="startReply">有用 · 回复</text></view></view>
+    <view wx:if="{{!loading && !comments.length}}" class="empty-comments">还没有评论，来写下第一句有味道的话。</view><view class="composer-space"></view>
   </scroll-view>
-
-  <view class="comment-composer">
-    <view class="comment-composer__reply" wx:if="{{replyTarget}}">
-      <text>回复 {{replyTarget.name}}</text>
-      <text class="comment-composer__cancel" bindtap="clearReply">取消</text>
-    </view>
-    <view class="comment-composer__row">
-      <image
-        class="comment-composer__avatar"
-        src="{{currentUserImage}}"
-        mode="aspectFill"
-      />
-      <input
-        class="comment-composer__input"
-        value="{{inputValue}}"
-        focus="{{inputFocus}}"
-        maxlength="300"
-        confirm-type="send"
-        cursor-spacing="24"
-        placeholder="{{loggedIn ? (replyTarget ? '回复 ' + replyTarget.name : '友善评论，分享你的看法') : '登录后参与讨论'}}"
-        bindinput="onInput"
-        bindconfirm="submitComment"
-      />
-      <view
-        class="comment-composer__send {{inputValue && !submitting ? 'comment-composer__send--active' : ''}}"
-        bindtap="submitComment"
-      >
-        {{submitting ? '发送中' : '发送'}}
-      </view>
-    </view>
-  </view>
+  <view class="comment-composer"><view wx:if="{{replyTarget}}" class="reply-tip">回复 {{replyTarget.name}} <text bindtap="clearReply">取消</text></view><view><input value="{{inputValue}}" focus="{{inputFocus}}" maxlength="300" confirm-type="send" placeholder="写一句有味道的评论…" bindinput="onInput" bindconfirm="submitComment"/><button bindtap="submitComment">{{submitting ? '发送中' : '发送 ›'}}</button></view></view>
 </view>

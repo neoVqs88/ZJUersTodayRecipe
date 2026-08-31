@@ -72,7 +72,7 @@ Page({
     }
     const pages = getCurrentPages();
     if (pages.length > 1) wx.navigateBack();
-    else wx.switchTab({ url: '/pages/my/index' });
+    else wx.reLaunch({ url: '/pages/my/index' });
   },
 
   showAgreement(event) {

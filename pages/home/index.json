@@ -3,7 +3,6 @@
   "usingComponents": {
     "t-button": "tdesign-miniprogram/button/button",
     "t-icon": "tdesign-miniprogram/icon/icon",
-    "checkin-progress": "/components/checkin-progress/index",
-    "nav": "/components/nav"
+    "figma-nav": "/components/figma-nav/index"
   }
 }

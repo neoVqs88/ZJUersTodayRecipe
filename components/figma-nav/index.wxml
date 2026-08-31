@@ -1,0 +1,14 @@
+<view class="figma-nav-shell">
+  <view class="figma-nav">
+    <view
+      wx:for="{{items}}"
+      wx:key="key"
+      class="figma-nav__item {{active === item.key ? 'figma-nav__item--active' : ''}}"
+      data-key="{{item.key}}"
+      data-url="{{item.url}}"
+      bindtap="changePage"
+    >
+      <image class="figma-nav__icon" src="{{item.icon}}" mode="aspectFit" />
+    </view>
+  </view>
+</view>

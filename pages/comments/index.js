@@ -58,6 +58,8 @@ Page({
     currentUserImage: '/static/miniprogram-icon-zju-bowl-144.png',
   },
 
+  goBack() { wx.navigateBack(); },
+
   onLoad(options) {
     this.postId = String(options.postId || '');
     this.eventChannel = this.getOpenerEventChannel();
