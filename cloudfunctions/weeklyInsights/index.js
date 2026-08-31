@@ -37,6 +37,23 @@ function topDish(records) {
   return entry ? { name: entry[0], count: entry[1] } : null;
 }
 
+function getValidCalories(record) {
+  const value = record.nutritionAnalysis && record.nutritionAnalysis.caloriesPer100g;
+  if (value === null || value === undefined || value === '') return null;
+  const calories = Number(value);
+  return Number.isFinite(calories) && calories >= 0 ? calories : null;
+}
+
+function getAverageNutrition(records, field) {
+  const values = records
+    .map((record) => record.nutritionAnalysis && record.nutritionAnalysis[field])
+    .filter((value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)))
+    .map(Number);
+  return values.length
+    ? Math.round((values.reduce((total, value) => total + value, 0) / values.length) * 10) / 10
+    : null;
+}
+
 function getWeekLabel(keys) {
   return `${keys[0].slice(5).replace('-', '月')}日 - ${keys[6].slice(5).replace('-', '月')}日`;
 }
@@ -49,10 +66,10 @@ exports.main = async () => {
     const result = await db.collection(COLLECTION).where({ status: 'active', dateKey: _.in(keys) }).limit(1000).get();
     const records = result.data || [];
     const mine = records.filter((record) => record.userId === userId(OPENID));
-    const nutritionRecords = mine.filter((record) => Number.isFinite(Number(record.nutritionAnalysis && record.nutritionAnalysis.caloriesPer100g)));
+    const nutritionRecords = mine.filter((record) => getValidCalories(record) !== null);
     const nutritionReady = mine.length >= MIN_MEALS_FOR_ANALYSIS && nutritionRecords.length >= MIN_MEALS_FOR_ANALYSIS;
     const averageCalories = nutritionRecords.length
-      ? Math.round(nutritionRecords.reduce((total, record) => total + Number(record.nutritionAnalysis.caloriesPer100g), 0) / nutritionRecords.length)
+      ? Math.round(nutritionRecords.reduce((total, record) => total + getValidCalories(record), 0) / nutritionRecords.length)
       : 0;
     return {
       success: true,
@@ -65,6 +82,9 @@ exports.main = async () => {
         mealCount: mine.length,
         calorieCount: nutritionRecords.length,
         averageCalories,
+        averageProtein: getAverageNutrition(nutritionRecords, 'protein'),
+        averageCarbohydrate: getAverageNutrition(nutritionRecords, 'carbohydrate'),
+        averageFat: getAverageNutrition(nutritionRecords, 'fat'),
         minimumMeals: MIN_MEALS_FOR_ANALYSIS,
         message: nutritionReady
           ? '基于本周已记录且有热量数据的餐次估算'
