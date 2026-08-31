@@ -1,65 +1,17 @@
-<t-navbar title="搜索" left-arrow />
-<view class="page search-page">
-  <view class="search-input">
-    <t-search
-      t-class-input-container="t-class__input-container"
-      t-class-input="t-search__input"
-      value="{{searchValue}}"
-      leftIcon="search"
-      action="取消"
-      shape="round"
-      placeholder="请搜索你想要的内容"
-      bind:submit="handleSubmit"
-      bind:action-click="actionHandle"
-      focus
-    ></t-search>
-  </view>
-  <view class="search-wrap">
-    <view class="history-wrap">
-      <view class="search-header">
-        <text class="search-title">历史记录</text>
-        <t-icon name="delete" size="large" class="search-clear" bind:click="handleClearHistory" />
-      </view>
-      <view class="search-content">
-        <view
-          class="search-item"
-          hover-class="hover-history-item"
-          wx:for="{{historyWords}}"
-          bind:tap="handleHistoryTap"
-          bindlongpress="deleteCurr"
-          data-index="{{index}}"
-          wx:key="*this"
-        >
-          <t-tag class="history-item margin-12" max-width="{{343}}" variant="light">{{item}}</t-tag>
-        </view>
-      </view>
-    </view>
-    <view class="popular-wrap">
-      <view class="search-header">
-        <text class="search-title">搜索发现</text>
-      </view>
-      <view class="search-content">
-        <view
-          class="search-item"
-          hover-class="hover-history-item"
-          wx:for="{{popularWords}}"
-          bind:tap="handlePopularTap"
-          data-index="{{index}}"
-          wx:key="*this"
-        >
-          <t-tag class="popular-item margin-12" max-width="{{343}}" variant="light" icon="search"> {{item}} </t-tag>
-        </view>
-      </view>
-    </view>
-  </view>
-  <t-dialog
-    visible="{{dialogShow}}"
-    content="{{dialog.message}}"
-    bindconfirm="confirm"
-    bind:close="close"
-    confirm-btn="确定"
-    cancel-btn="{{dialog.showCancelButton ? '取消' : null}}"
-    t-class-confirm="dialog__button-confirm"
-    t-class-cancel="dialog__button-cancel"
-  />
+<view class="search-page">
+  <scroll-view class="search-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="search-head"><view class="search-head__back" bindtap="actionHandle">‹</view><text class="search-head__title">{{hasSearched ? '「' + searchValue + '」的结果' : '搜一口想吃的'}}</text><text class="search-head__desc">{{hasSearched ? '8 道菜 · 3 个食堂 · 1 个饭帖' : '食堂、菜名，甚至一种模糊的念头。'}}</text></view>
+    <view class="search-field"><t-icon name="search" size="32rpx" color="#696c61"/><input value="{{searchValue}}" placeholder="输入菜名、食堂或口味…" confirm-type="search" bindconfirm="handleSubmit" focus="{{!hasSearched}}" /><text wx:if="{{searchValue}}" bindtap="clearSearch">×</text></view>
+    <scroll-view class="quick-scroll" scroll-x show-scrollbar="{{false}}"><view class="quick-list"><view wx:for="{{quickWords}}" wx:key="*this" data-value="{{item}}" bindtap="handleQuickTap">{{item}}</view></view></scroll-view>
+    <block wx:if="{{!hasSearched}}">
+      <view class="memory"><text class="memory__eyebrow">RECENT TASTES</text><text class="memory__title">你最近想过这些</text><text class="memory__desc">不必记得菜名，先记住当时的念头。</text><view class="memory__words"><text wx:for="{{historyWords.length ? historyWords : quickWords}}" wx:key="*this" data-value="{{item}}" bindtap="handleQuickTap">{{item}}</text></view><view class="memory__divider"></view><text class="memory__hint-title">不知道叫什么也没关系</text><text class="memory__hint">试试“热的、清淡、五分钟能吃到”。</text></view>
+      <view class="section-head"><text>热搜念头</text><text bindtap="handleClearHistory">换一批</text></view><view class="hot-list"><view wx:for="{{popularWords.length ? popularWords : ['酸汤肥牛','山野菌菇面','晚餐少排队','15元以内']}}" wx:key="*this" data-value="{{item}}" bindtap="handleQuickTap"><text>0{{index + 1}}</text><text>{{item}}</text><text>→</text></view></view>
+    </block>
+    <block wx:else>
+      <view class="best" data-index="0" bindtap="openDish"><view class="best__copy"><text class="best__eyebrow">BEST MATCH · {{results[0].match}}</text><text class="best__name">{{results[0].name}}</text><text class="best__desc">酸香醒胃 · 玉泉校区</text><text class="best__meta">{{results[0].price}} · 晚餐热度正在上升</text><view>今晚可去 ›</view></view><image src="{{results[0].image}}" mode="aspectFill"/></view>
+      <view class="section-head"><text>还找到这些</text><text>{{results.length}} 条</text></view><view class="result-list"><view wx:for="{{results}}" wx:key="name" data-index="{{index}}" bindtap="openDish"><image src="{{item.image}}" mode="aspectFill"/><view><text>{{item.name}}</text><text>{{item.place}} · {{item.price}}</text></view><text>{{item.match}}</text></view></view>
+    </block>
+    <view class="bottom-space"></view>
+  </scroll-view>
+  <t-dialog visible="{{dialogShow}}" content="{{dialog.message}}" bindconfirm="confirm" bind:close="close" confirm-btn="确定" cancel-btn="取消" />
 </view>

@@ -1,119 +1,17 @@
 <view class="community-page">
-  <t-navbar title="zjuer今天吃什么" />
-
   <scroll-view class="community-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="community-hero">
-      <image class="community-hero__campus" src="/static/bg_navbar.png" mode="aspectFill" />
-      <view class="community-hero__brand">
-        <text class="community-hero__brand-en">zjuer</text>
-        <text class="community-hero__brand-cn">今天吃什么</text>
-        <text class="community-hero__sparkle">✦</text>
-      </view>
-
-      <view class="companion-card">
-        <image
-          class="companion-card__image"
-          src="/static/community/companion-banner.png"
-          mode="aspectFill"
-        />
-        <view class="companion-card__copy">
-          <view class="companion-card__title">寻找饭搭子</view>
-          <view class="companion-card__desc">一起约饭、拼桌、探店</view>
-          <view class="companion-card__actions">
-            <view class="companion-card__primary" bindtap="publishInvitation">
-              <t-icon name="user-add" size="28rpx" color="#ffffff" />
-              发布邀约
-            </view>
-            <view class="companion-card__secondary" bindtap="viewActivities">
-              <t-icon name="calendar" size="28rpx" color="#2f9b70" />
-              查看活动
-            </view>
-          </view>
-        </view>
-
-      </view>
+    <view class="community-head"><view><text>饭桌边</text><text>把一顿饭，坐成一张有回声的桌。</text></view><view class="message-entry" bindtap="goMessages"><image src="/static/figma/community-message.svg" mode="aspectFit" /><view wx:if="{{unreadNum > 0}}" class="message-entry__badge"></view></view><view class="release-btn" bindtap="goRelease">＋ 发饭帖</view></view>
+    <view class="community-tabs"><view wx:for="{{communityTabs}}" wx:key="value" class="{{activeCommunityTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectCommunityTab">{{item.label}}</view></view>
+    <view class="trend-strip"><text class="bar"></text><text>饭桌气象 · 热汤 ↑　独食 ↓　慢一点</text></view>
+    <view class="post-card" wx:for="{{displayPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="openComments">
+      <view class="post-tag"># {{item.tags && item.tags[0] ? item.tags[0] : item.category === 'companion' ? '约饭拼桌' : '雨天吃什么'}}</view>
+      <text class="post-title">{{item.dish || item.title || '今天这一餐，被认真记住了'}}</text>
+      <text class="post-author">{{item.authorName || '匿名同学'}} · {{item.locationName || '玉泉'}} · {{item.displayTime}}</text>
+      <view class="post-body" wx:if="{{item.image}}"><view><text>味觉票据</text><text>{{item.content}}</text><text>{{item.locationName || '校园食堂'}}</text></view><image src="{{item.image}}" mode="aspectFill" /></view>
+      <text wx:else class="post-content">{{item.content}}</text>
+      <view class="post-actions"><view catchtap="toggleLike" data-id="{{item._id}}">{{item.liked ? '♥' : '♨'}} 喜欢 {{item.likes || 0}}</view><view>♙ 回应 {{item.commentsCount || 0}}</view><view catchtap="toggleCollect">⊙ 收好</view></view>
     </view>
-
-    <view class="category-bar">
-      <view
-        class="category-bar__item {{activeCategory === item.value ? 'category-bar__item--active' : ''}}"
-        wx:for="{{categories}}"
-        wx:key="value"
-        data-value="{{item.value}}"
-        bindtap="selectCategory"
-      >
-        <text class="category-bar__icon">{{item.icon}}</text>
-        <text>{{item.label}}</text>
-      </view>
-    </view>
-
-    <view class="post-list">
-      <view class="post-card" wx:for="{{displayPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="openComments">
-        <view class="post-card__header">
-          <image class="post-card__avatar" src="{{item.avatar}}" mode="aspectFill" data-id="{{item._id}}" catchtap="openAuthorProfile" />
-          <view class="post-card__author" data-id="{{item._id}}" catchtap="openAuthorProfile">
-            <view class="post-card__name-row">
-              <text class="post-card__name">{{item.authorName}}</text>
-              <text class="post-card__level">Lv.{{item.level}}</text>
-            </view>
-            <text class="post-card__time">{{item.displayTime}}</text>
-          </view>
-          <view class="post-card__more" data-id="{{item._id}}" catchtap="showPostMenu">•••</view>
-        </view>
-
-        <view class="post-card__content">{{item.content}}</view>
-
-        <image wx:if="{{item.image}}" class="post-card__image" src="{{item.image}}" mode="aspectFill" />
-        <view wx:else class="post-card__visual post-card__visual--{{item.tone}}">
-          <text class="post-card__food">{{item.emoji}}</text>
-          <view class="post-card__visual-copy">
-            <text class="post-card__dish">{{item.dish}}</text>
-            <text class="post-card__visual-desc">{{item.visualDesc}}</text>
-          </view>
-        </view>
-
-        <view class="post-card__tags">
-          <text class="post-card__tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this"># {{tag}}</text>
-        </view>
-
-        <view wx:if="{{item.locationName}}" class="post-card__place {{item.shareLocation ? 'post-card__place--shared' : ''}}">
-          <t-icon name="location" size="24rpx" />
-          <text>{{item.locationName}}</text>
-        </view>
-
-        <view class="post-card__actions">
-          <view
-            class="post-card__action {{item.liked ? 'post-card__action--liked' : ''}}"
-            data-id="{{item._id}}"
-            catchtap="toggleLike"
-          >
-            <t-icon name="{{item.liked ? 'thumb-up-filled' : 'thumb-up'}}" size="34rpx" />
-            <text>{{item.likes}}</text>
-          </view>
-          <view class="post-card__action" data-id="{{item._id}}" catchtap="openComments">
-            <t-icon name="chat" size="34rpx" />
-            <text>{{item.commentsCount}}</text>
-          </view>
-          <view
-            class="post-card__action {{item.collected ? 'post-card__action--collected' : ''}}"
-            data-id="{{item._id}}"
-            catchtap="toggleCollect"
-          >
-            <t-icon name="{{item.collected ? 'star-filled' : 'star'}}" size="36rpx" />
-            <text>{{item.collections}}</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="post-list__empty" wx:if="{{!displayPosts.length}}">
-        这个分类还没有内容，来发布第一篇吧
-      </view>
-    </view>
-
-    <view class="release-button" bindtap="goRelease">
-      <t-icon name="add" size="48rpx" color="#ffffff" />
-    </view>
-
-    <view class="community-scroll__bottom-space"></view>
-  </scroll-view>
+    <view wx:if="{{!loading && !displayPosts.length}}" class="empty-feed">今天还没有新饭帖，来做第一个分享的人。</view>
+    <view class="feed-more">继续往下，是今天新鲜的饭帖　›</view><view class="nav-space"></view>
+  </scroll-view><figma-nav active="community" />
 </view>

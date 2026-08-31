@@ -63,7 +63,7 @@ Component({
   methods: {
     handleChange(e) {
       const { value } = e.detail;
-      wx.switchTab({ url: `/pages/${value}/index` });
+      wx.reLaunch({ url: `/pages/${value}/index` });
     },
 
     /** 设置未读消息数量 */

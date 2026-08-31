@@ -22,6 +22,12 @@ Page({
     loading: true,
   },
 
+  goBack() { wx.navigateBack(); },
+
+  markAllRead() {
+    wx.showToast({ title: '已全部标为已读', icon: 'none' });
+  },
+
   // 每次进入页面都拉最新数据（从详情页返回时也会触发，未读数自动刷新）
   onShow() {
     this.fetchMessages();
@@ -95,6 +101,6 @@ Page({
   },
 
   goCompanion() {
-    wx.switchTab({ url: '/pages/community/index' });
+    wx.reLaunch({ url: '/pages/community/index' });
   },
 });

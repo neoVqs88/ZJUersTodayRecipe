@@ -1,0 +1,11 @@
+<view class="canteen-page">
+  <scroll-view class="canteen-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-head"><text class="page-head__title">食堂与菜品</text><text class="page-head__desc">沿着校园的气味，找一顿刚刚好的饭。</text></view>
+    <view class="search-box" bindtap="goSearch"><text>搜索食堂、菜名或一种念头…</text></view>
+    <view class="quick-chips"><view>⌾ 紫金港</view><view>◷ 营业中</view><view>♙ 少排队</view></view>
+    <view class="map-card" bindtap="openCampusMap"><image src="/static/figma/campus-map.webp" mode="aspectFill"/><view class="map-caption"><text>开饭地图</text><text>玉泉校区 · 点击查看</text></view></view>
+    <view class="section-title"><text>此刻值得去</text><text>12 个去处</text></view>
+    <view class="dish-list"><view class="dish {{index === 1 ? 'dish--green' : ''}}" wx:for="{{dishes}}" wx:key="name" data-index="{{index}}" bindtap="openDish"><image src="{{item.image}}" mode="aspectFit"/><view><text>{{index === 0 ? '留学生食堂' : index === 1 ? '临湖餐厅' : '麦香餐厅'}}</text><text>{{item.name}} · {{item.price}}</text></view><text>★ {{item.score}}</text></view></view>
+    <view class="bottom-space"></view>
+  </scroll-view><figma-nav active="canteen" />
+</view>

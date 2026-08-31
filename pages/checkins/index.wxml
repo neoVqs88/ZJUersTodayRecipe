@@ -1,70 +1,25 @@
-<view class="checkins-page">
-  <t-navbar title="我的打卡" left-arrow />
-
-  <view class="checkins-summary">
-    <view class="checkins-summary__copy">
-      <view class="checkins-summary__eyebrow">MEAL MOMENTS</view>
-      <view class="checkins-summary__title">记录每一顿校园好味道</view>
-      <view class="checkins-summary__desc">图片与识别结果已安全保存在云端</view>
-    </view>
-    <view class="checkins-summary__stats">
-      <view><view><text class="checkins-summary__stat-value">{{stats.weeklyCount}}</text>/{{stats.weeklyGoal}}</view><text class="checkins-summary__stat-label">本周天数</text></view>
-      <view><text class="checkins-summary__stat-value">{{stats.totalCount}}</text><text class="checkins-summary__stat-label">累计打卡</text></view>
-      <view><text class="checkins-summary__stat-value">{{stats.streakDays}}</text><text class="checkins-summary__stat-label">连续天数</text></view>
-    </view>
-  </view>
-
-  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="filter-list">
-      <view
-        class="filter-item {{activeFilter === item.value ? 'filter-item--active' : ''}}"
-        wx:for="{{filters}}"
-        wx:key="value"
-        data-value="{{item.value}}"
-        bindtap="selectFilter"
-      >{{item.label}}</view>
-    </view>
-  </scroll-view>
-
-  <scroll-view
-    class="record-scroll"
-    scroll-y
-    enhanced
-    show-scrollbar="{{false}}"
-    refresher-enabled
-    refresher-triggered="{{refreshing}}"
-    bindrefresherrefresh="refreshRecords"
-  >
-    <view class="record-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="加载云端打卡" /></view>
-
-    <view class="record-empty" wx:elif="{{!displayRecords.length}}">
-      <view class="record-empty__icon"><t-icon name="camera" size="62rpx" /></view>
-      <view class="record-empty__title">还没有打卡内容</view>
-      <view class="record-empty__desc">拍下今天的饭菜，让每一餐都成为校园生活的记录。</view>
-      <view class="record-empty__button" bindtap="goCheckIn">去完成第一次打卡</view>
-    </view>
-
-    <view class="record-list" wx:else>
-      <view class="record-card" wx:for="{{displayRecords}}" wx:key="id">
-        <image class="record-card__image" src="{{item.imageFileId}}" mode="aspectFill" data-url="{{item.imageFileId}}" bindtap="previewImage" />
-        <view class="record-card__body">
-          <view class="record-card__meta">
-            <text class="record-card__meal record-card__meal--{{item.mealType}}">{{item.mealLabel}}</text>
-            <text class="record-card__time">{{item.displayTime}}</text>
-          </view>
-          <view class="record-card__name">{{item.dishName}}</view>
-          <view class="record-card__confidence"><t-icon name="scan" size="25rpx" /> 菜品识别置信度 {{item.confidenceText}}</view>
-          <view class="nutrition-card {{item.nutritionReady ? 'nutrition-card--ready' : ''}}" data-id="{{item.id}}" bindtap="showNutrition">
-            <view class="nutrition-card__icon"><t-icon name="chart-bubble" size="29rpx" /></view>
-            <view class="nutrition-card__copy">
-              <view class="nutrition-card__title">{{item.nutritionTitle}}</view>
-              <view class="nutrition-card__desc">{{item.nutritionDesc}}</view>
-            </view>
-            <t-icon name="chevron-right" size="30rpx" color="#98a2b3" />
-          </view>
-        </view>
+<view class="history-page">
+  <scroll-view class="history-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshRecords" show-scrollbar="{{false}}">
+    <view class="history-head"><text>食历</text><text>把日子摆成一桌，看看这个月吃成了什么。</text></view>
+    <view class="history-tabs"><view class="active">▣ 月</view><view>◷ 周</view><view>⌁ 味觉云</view></view>
+    <view class="month-row"><text>{{currentMonth}}</text><text>‹　›</text></view>
+    <view class="week-row"><text wx:for="{{weekLabels}}" wx:key="*this">{{item}}</text></view>
+    <view class="calendar">
+      <view class="calendar-day" wx:for="{{calendarDays}}" wx:key="index" data-date="{{item.dateKey}}" bindtap="selectDay">
+        <view wx:if="{{!item.empty}}" class="date-circle {{item.selected ? 'selected' : ''}}"><text>{{item.day}}</text><view wx:if="{{item.hasMeal && !item.representativeImage}}" class="meal-dot"></view></view>
+        <image wx:if="{{item.representativeImage}}" class="calendar-thumb calendar-thumb--{{item.thumbPosition}}" src="{{item.representativeImage}}" mode="aspectFill" data-url="{{item.representativeImage}}" aria-label="{{item.representativeName}}" />
       </view>
     </view>
-    <view class="record-scroll__bottom-space" />
-  </scroll-view>
+    <view class="day-records">
+      <view class="day-records__head"><text>{{selectedDateLabel}}</text><text>{{selectedDayRecords.length}} 餐</text></view>
+      <view wx:for="{{selectedDayRecords}}" wx:key="id" class="receipt" data-id="{{item.id}}" bindtap="selectRecord">
+        <view class="receipt-bar"></view>
+        <view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text></view>
+        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" catchtap="previewImage" data-url="{{item.imageUrl}}" />
+      </view>
+      <view wx:if="{{!selectedDayRecords.length}}" class="receipt empty"><text>这一天还没有被记住的一餐</text><text>选择有菜品缩略图的日期，可以查看当天全部记录。</text></view>
+    </view>
+    <view class="history-summary"><text>本月 {{stats.totalCount}} 餐被记住 · 连续 {{stats.streakDays}} 天</text><view bindtap="goCheckIn">＋ 记一餐</view></view>
+    <view class="nav-space"></view>
+  </scroll-view><figma-nav active="history" />
 </view>

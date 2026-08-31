@@ -5,6 +5,6 @@
     "t-icon": "tdesign-miniprogram/icon/icon",
     "t-tag": "tdesign-miniprogram/tag/tag",
     "checkin-progress": "/components/checkin-progress/index",
-    "nav": "/components/nav"
+    "figma-nav": "/components/figma-nav/index"
   }
 }

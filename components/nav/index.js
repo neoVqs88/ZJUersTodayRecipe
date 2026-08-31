@@ -86,7 +86,7 @@ Component({
       const that = this;
       const { isSidebar, url } = e.detail.item;
       if (isSidebar) {
-        wx.switchTab({
+        wx.reLaunch({
           url: `/${url}`,
         }).then(() => {
           // 防止点回tab时，sidebar依旧是展开模式

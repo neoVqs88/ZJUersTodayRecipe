@@ -5,18 +5,16 @@ import { fetchWeeklyInsights } from '~/services/weeklyInsights';
 
 const MENU_GROUPS = [
   [
-    { name: '我的打卡', icon: 'calendar', color: 'green', type: 'checkins' },
-    { name: '我的帖子', icon: 'root-list', color: 'blue', type: 'posts' },
-    { name: '我的收藏', icon: 'star', color: 'orange', type: 'favorites' },
-    { name: '浏览足迹', icon: 'time', color: 'purple', type: 'history', url: '/pages/social/history/index' },
-    { name: '饭搭子', icon: 'usergroup', color: 'green', type: 'partners', note: '一起干饭更快乐' },
+    { name: '我的收藏', caption: '收好的味道', icon: 'star', type: 'favorites' },
+    { name: '关注与饭友', caption: '一起吃饭的人', icon: 'usergroup', type: 'following', url: '/pages/social/list/index?type=following' },
+    { name: '消息', caption: '互动与邀约', icon: 'notification', type: 'message', url: '/pages/message/index' },
+    { name: '浏览足迹', caption: '最近看过', icon: 'time', type: 'history', url: '/pages/social/history/index' },
   ],
   [
-    { name: '我的举报', icon: 'error-circle', color: 'red', type: 'reports' },
-    { name: '意见反馈', icon: 'chat', color: 'blue', type: 'feedback' },
-    { name: '隐私设置', icon: 'lock-on', color: 'purple', type: 'privacy', url: '/pages/social/privacy/index' },
-    { name: '管理入口', icon: 'lock-on', color: 'red', type: 'admin', url: '/pages/admin/login/index' },
-    { name: '设置', icon: 'setting', color: 'gray', type: 'settings', url: '/pages/setting/index' },
+    { name: '管理入口', caption: '内容治理', icon: 'secured', type: 'admin', url: '/pages/admin/login/index' },
+    { name: '隐私与通知', caption: '可见范围', icon: 'lock-on', type: 'privacy', url: '/pages/social/privacy/index' },
+    { name: '账号设置', caption: '外观与账号', icon: 'setting', type: 'settings', url: '/pages/setting/index' },
+    { name: '意见反馈', caption: '告诉我们', icon: 'chat', type: 'feedback' },
   ],
 ];
 
@@ -40,6 +38,9 @@ Page({
     weeklyCheckInCount: 0,
     weeklyGoal: 7,
     weeklyInsights: null,
+    tasteBars: [
+      { label: '清淡', value: 88 }, { label: '微辣', value: 64 }, { label: '甜口', value: 42 },
+    ],
     menuGroups: MENU_GROUPS,
   },
 

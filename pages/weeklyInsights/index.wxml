@@ -1,25 +1,35 @@
-<view class="insights-page">
-  <view class="insights-hero"><view class="insights-hero__eyebrow">WEEKLY FOOD REPORT</view><view class="insights-hero__title">你的本周餐桌</view><view class="insights-hero__week">{{insights.weekLabel}}</view></view>
-  <view wx:if="{{loading}}" class="insights-loading"><t-loading theme="circular" text="正在整理本周数据" /></view>
-  <block wx:elif="{{insights}}">
-    <view class="insights-section-title">平台互动</view>
-    <view class="dish-grid">
-      <view class="dish-card dish-card--mine"><view class="dish-card__icon">♥</view><view class="dish-card__label">你的本命美食</view><view class="dish-card__name">{{insights.favoriteDish ? insights.favoriteDish.name : '还没有记录'}}</view><view class="dish-card__desc">{{insights.favoriteDesc}}</view></view>
-      <view class="dish-card dish-card--popular"><view class="dish-card__icon">★</view><view class="dish-card__label">平台用户热门</view><view class="dish-card__name">{{insights.popularDish ? insights.popularDish.name : '等待上榜'}}</view><view class="dish-card__desc">{{insights.popularDesc}}</view></view>
+<view class="health-page">
+  <scroll-view class="health-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="health-head">
+      <view><text>健康分析</text><text>近 30 天 · 来自食历</text></view>
+      <view>按周</view>
     </view>
-    <view class="insights-section-title">营养分析 <text>参考值</text></view>
-    <view class="nutrition-card">
-      <view class="nutrition-card__headline">{{insights.nutrition.ready ? '本周营养概览已生成' : '再记录几餐，生成你的营养概览'}}</view>
-      <view class="nutrition-card__desc">{{insights.nutrition.message}}</view>
-      <view wx:if="{{insights.nutrition.ready}}" class="nutrition-stats">
-        <view><text>平均热量</text><strong>{{insights.nutrition.averageCalories}}</strong><text>千卡/100克</text></view>
-        <view><text>蛋白质</text><strong>{{insights.nutrition.averageProtein || '—'}}</strong><text>克/100克</text></view>
-        <view><text>碳水</text><strong>{{insights.nutrition.averageCarbohydrate || '—'}}</strong><text>克/100克</text></view>
-        <view><text>脂肪</text><strong>{{insights.nutrition.averageFat || '—'}}</strong><text>克/100克</text></view>
-        <view><text>有效热量数据</text><strong>{{insights.nutrition.calorieCount}}</strong><text>餐</text></view>
+    <view wx:if="{{loading}}" class="insights-loading"><t-loading theme="circular" text="正在整理本周数据" /></view>
+    <block wx:elif="{{insights}}">
+      <view class="score-card">
+        <view><text>膳食与规律符合度</text><view><text>{{score}}</text><text>/ 100</text></view><text>本周营养记录已更新</text></view>
+        <view><text>本周餐桌</text><text>{{insights.weekLabel}}</text><view><text></text></view></view>
       </view>
-      <view wx:else class="nutrition-progress">已记录 {{insights.nutrition.mealCount}} / {{insights.nutrition.minimumMeals}} 餐</view>
-    </view>
-    <view class="insights-footnote">营养数据来自菜品识别结果，仅作饮食记录参考，不替代专业营养建议。</view>
-  </block>
+      <view class="chart-title"><text>本周最常吃的美食</text><text>记录次数帮助你看见自己的口味</text></view>
+      <view class="dish-grid">
+        <view class="dish-card dish-card--mine"><text class="dish-card__icon">♥</text><text class="dish-card__label">你的本命美食</text><text class="dish-card__name">{{insights.favoriteDish ? insights.favoriteDish.name : '还没有记录'}}</text><text class="dish-card__desc">{{insights.favoriteDesc}}</text></view>
+        <view class="dish-card dish-card--popular"><text class="dish-card__icon">★</text><text class="dish-card__label">平台用户热门</text><text class="dish-card__name">{{insights.popularDish ? insights.popularDish.name : '等待上榜'}}</text><text class="dish-card__desc">{{insights.popularDesc}}</text></view>
+      </view>
+      <view class="chart-title nutrition-title"><text>营养分析</text><text>基于菜品图片的 AI 估算，仅作记录参考</text></view>
+      <view class="nutrition-card">
+        <text class="nutrition-card__headline">{{insights.nutrition.ready ? '本周营养概览已生成' : '再记录几餐，生成你的营养概览'}}</text>
+        <text class="nutrition-card__desc">{{insights.nutrition.message}}</text>
+        <view wx:if="{{insights.nutrition.ready}}" class="nutrition-stats">
+          <view><text>平均热量</text><strong>{{insights.nutrition.averageCalories}}</strong><text>千卡/100克</text></view>
+          <view><text>蛋白质</text><strong>{{insights.nutrition.averageProtein || '—'}}</strong><text>克/100克</text></view>
+          <view><text>碳水</text><strong>{{insights.nutrition.averageCarbohydrate || '—'}}</strong><text>克/100克</text></view>
+          <view><text>脂肪</text><strong>{{insights.nutrition.averageFat || '—'}}</strong><text>克/100克</text></view>
+        </view>
+        <view wx:else class="nutrition-progress">已记录 {{insights.nutrition.mealCount}} / {{insights.nutrition.minimumMeals}} 餐</view>
+      </view>
+      <view class="report-link" bindtap="loadInsights">刷新报告　›</view>
+    </block>
+    <view class="nav-space"></view>
+  </scroll-view>
+  <figma-nav active="health" />
 </view>

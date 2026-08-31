@@ -94,7 +94,7 @@ Page({
     if (!item || !item.route) return;
     const tabPages = ['/pages/home/index', '/pages/community/index', '/pages/message/index', '/pages/my/index'];
     if (tabPages.includes(item.route)) {
-      wx.switchTab({ url: item.route });
+      wx.reLaunch({ url: item.route });
       return;
     }
     wx.navigateTo({

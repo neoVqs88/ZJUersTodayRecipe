@@ -5,6 +5,13 @@ Page({
     historyWords: [],
     popularWords: [],
     searchValue: '',
+    hasSearched: false,
+    quickWords: ['酸汤', '离我近', '少排队', '清淡', '热乎'],
+    results: [
+      { name: '酸汤肥牛', place: '玉泉二食堂 · 风味档', price: '¥16', match: '92%', image: '/static/figma/rank-sour-beef.webp' },
+      { name: '山野菌菇面', place: '怡膳堂 · 一楼', price: '¥13', match: '88%', image: '/static/figma/rank-mushroom-noodle.webp' },
+      { name: '番茄肥牛饭', place: '玉泉一食堂 · 二楼', price: '¥15', match: '84%', image: '/static/figma/rank-tomato-beef.webp' },
+    ],
     dialog: {
       title: '确认删除当前历史记录',
       showCancelButton: true,
@@ -69,12 +76,8 @@ Page({
     this.setData({
       searchValue,
       historyWords,
+      hasSearched: true,
     });
-    // if (searchValue) {
-    //     wx.navigateTo({
-    //         url: `/pages/goods/result/index?searchValue=${searchValue}`,
-    //     });
-    // }
   },
 
   /**
@@ -156,6 +159,19 @@ Page({
     this.setHistoryWords(searchValue);
   },
 
+  handleQuickTap(e) {
+    this.setHistoryWords(e.currentTarget.dataset.value || '');
+  },
+
+  openDish(e) {
+    const dish = this.data.results[e.currentTarget.dataset.index];
+    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(dish.name)}` });
+  },
+
+  clearSearch() {
+    this.setData({ searchValue: '', hasSearched: false });
+  },
+
   /**
    * 提交搜索框内容
    * 后期需要增加跳转和后端请求接口
@@ -176,6 +192,6 @@ Page({
     this.setData({
       searchValue: '',
     });
-    wx.switchTab({ url: '/pages/home/index' });
+    wx.reLaunch({ url: '/pages/home/index' });
   },
 });
