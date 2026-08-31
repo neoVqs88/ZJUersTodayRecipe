@@ -4,7 +4,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
-const command = db.command;
+const { command } = db;
 const POSTS_COLLECTION = 'posts';
 const POST_LIKES_COLLECTION = 'postLikes';
 const POST_FAVORITES_COLLECTION = 'postFavorites';
@@ -307,33 +307,34 @@ async function migrateLegacyLikes(event) {
   let migratedPosts = 0;
   for (let index = 0; index < result.data.length; index += 1) {
     const post = result.data[index];
-    if (!Array.isArray(post.likers)) continue;
-    const openids = Array.from(new Set((Array.isArray(post.likers) ? post.likers : [])
-      .map((openid) => cleanText(openid, 128))
-      .filter(Boolean)));
-    const userIds = Array.from(new Set(openids.map(getUserId)));
-    // 旧字段只在迁移期间读取；新集合只保存哈希后的内部用户标识。
-    // eslint-disable-next-line no-await-in-loop
-    await Promise.all(userIds.map((userId) => db.collection(POST_LIKES_COLLECTION).doc(getLikeId(post._id, userId)).set({
-      data: {
-        postId: post._id,
-        userId,
-        status: 'active',
-        createdAt: db.serverDate(),
-        updatedAt: db.serverDate(),
-        deletedAt: null,
-      },
-    })));
-    // eslint-disable-next-line no-await-in-loop
-    await db.collection(POSTS_COLLECTION).doc(post._id).update({
-      data: {
-        likes: userIds.length,
-        likers: command.remove(),
-        updatedAt: db.serverDate(),
-      },
-    });
-    migratedLikes += userIds.length;
-    migratedPosts += 1;
+    if (Array.isArray(post.likers)) {
+      const openids = Array.from(new Set(post.likers
+        .map((openid) => cleanText(openid, 128))
+        .filter(Boolean)));
+      const userIds = Array.from(new Set(openids.map(getUserId)));
+      // 旧字段只在迁移期间读取；新集合只保存哈希后的内部用户标识。
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(userIds.map((userId) => db.collection(POST_LIKES_COLLECTION).doc(getLikeId(post._id, userId)).set({
+        data: {
+          postId: post._id,
+          userId,
+          status: 'active',
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate(),
+          deletedAt: null,
+        },
+      })));
+      // eslint-disable-next-line no-await-in-loop
+      await db.collection(POSTS_COLLECTION).doc(post._id).update({
+        data: {
+          likes: userIds.length,
+          likers: command.remove(),
+          updatedAt: db.serverDate(),
+        },
+      });
+      migratedLikes += userIds.length;
+      migratedPosts += 1;
+    }
   }
 
   return {

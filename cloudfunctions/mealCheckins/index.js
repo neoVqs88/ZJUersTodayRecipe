@@ -31,6 +31,12 @@ function cleanCalorie(value) {
   return Math.round(calorie * 10) / 10;
 }
 
+function cleanNutritionValue(value) {
+  const nutritionValue = Number.parseFloat(value);
+  if (!Number.isFinite(nutritionValue) || nutritionValue < 0) return null;
+  return Math.round(nutritionValue * 10) / 10;
+}
+
 function getChinaDate(date = new Date()) {
   return new Date(date.getTime() + 8 * 60 * 60 * 1000);
 }
@@ -153,7 +159,17 @@ async function createRecord(event, context, userId) {
     };
   }
 
-  const calorie = cleanCalorie(dish.calorie);
+  const nutritionSourceData = event.nutrition || dish.nutrition;
+  const nutrition = nutritionSourceData && typeof nutritionSourceData === 'object' ? nutritionSourceData : {};
+  const nutritionCalorie = cleanCalorie(nutrition.caloriesPer100g);
+  const calorie = nutritionCalorie === null ? cleanCalorie(dish.calorie) : nutritionCalorie;
+  const protein = cleanNutritionValue(nutrition.proteinPer100g);
+  const carbohydrate = cleanNutritionValue(nutrition.carbohydratePer100g);
+  const fat = cleanNutritionValue(nutrition.fatPer100g);
+  const nutritionSource = nutrition.source === 'hunyuan' ? 'hunyuan' : null;
+  let nutritionStatus = 'pending';
+  if (nutritionSource) nutritionStatus = 'estimated';
+  else if (calorie !== null) nutritionStatus = 'partial';
   const candidates = Array.isArray(event.candidates)
     ? event.candidates.slice(0, 5).map((item) => ({
         name: cleanText(item.name, 50),
@@ -175,11 +191,15 @@ async function createRecord(event, context, userId) {
       mealTime: db.serverDate(),
       dateKey: getDateKey(now),
       nutritionAnalysis: {
-        status: calorie === null ? 'pending' : 'partial',
+        status: nutritionStatus,
         caloriesPer100g: calorie,
-        protein: null,
-        carbohydrate: null,
-        fat: null,
+        protein,
+        carbohydrate,
+        fat,
+        source: nutritionSource || (calorie === null ? null : 'baidu-dish'),
+        sourceFood: cleanText(nutrition.sourceFood, 120),
+        servingGrams: cleanNutritionValue(nutrition.servingGrams),
+        estimatedCalories: cleanNutritionValue(nutrition.estimatedCalories),
         summary: '',
       },
       status: 'active',

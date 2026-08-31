@@ -1,2 +1,67 @@
 @import '/variable.less';
-.health-page{height:100vh;overflow:hidden;background:@figma-paper;color:@figma-ink;font-family:'Noto Serif SC','Songti SC',serif}.health-scroll{height:100%}.health-head{display:flex;align-items:flex-start;justify-content:space-between;padding:calc(126rpx + env(safe-area-inset-top)) 38rpx 0}.health-head>view:first-child text{display:block}.health-head>view:first-child text:first-child{font-size:52rpx}.health-head>view:first-child text:last-child{margin-top:8rpx;color:@figma-persimmon;font-size:20rpx}.health-head>view:last-child{padding:9rpx 17rpx;border-radius:24rpx;background:#ebebec;font-size:20rpx}.score-card{display:flex;justify-content:space-between;margin:32rpx 38rpx 0;padding:34rpx;border-radius:46rpx;background:@figma-mist}.score-card>view{display:flex;flex-direction:column}.score-card>view>text:first-child{color:@figma-muted;font-size:21rpx}.score-card>view:first-child>view{display:flex;align-items:flex-end;margin-top:14rpx}.score-card>view:first-child>view text:first-child{font-size:68rpx}.score-card>view:first-child>view text:last-child{margin:0 0 10rpx 8rpx;color:@figma-muted;font-size:20rpx}.score-card>view:first-child>text:last-child{margin-top:10rpx;color:@figma-persimmon;font-size:19rpx}.score-card>view:last-child{padding-top:28rpx}.score-card>view:last-child>text:first-child{color:@figma-ink;font-size:24rpx}.score-card>view:last-child>text:nth-child(2){margin-top:8rpx;color:@figma-muted;font-size:17rpx}.score-card>view:last-child>view{width:150rpx;height:8rpx;margin-top:24rpx;border-radius:4rpx;background:@figma-porcelain}.score-card>view:last-child>view text{display:block;width:110rpx;height:8rpx;border-radius:4rpx;background:@figma-persimmon}.chart-title{margin:54rpx 38rpx 20rpx}.chart-title text{display:block}.chart-title text:first-child{font-size:32rpx}.chart-title text:last-child{margin-top:6rpx;color:@figma-muted;font-size:17rpx}.meal-chart{margin:0 32rpx;padding:32rpx 24rpx;border-radius:44rpx;background:@figma-porcelain}.chart-week,.chart-line{display:grid;grid-template-columns:84rpx repeat(7,1fr)}.chart-week text{text-align:center;color:@figma-muted;font-size:18rpx}.chart-line{align-items:center;height:86rpx}.chart-line>view:first-child text{display:block;font-size:18rpx}.chart-line>view:first-child text:last-child{margin-top:4rpx;color:@figma-muted;font-size:13rpx}.chart-line>view:not(:first-child){position:relative;height:70rpx;border-left:1rpx solid #deddd4}.dot{position:absolute;top:20rpx;left:-9rpx;width:18rpx;height:18rpx;border-radius:50%;background:#9ab99b}.dot.orange{background:@figma-persimmon}.stem{position:absolute;top:37rpx;left:-2rpx;width:3rpx;height:25rpx;background:@figma-ink}.chart-caption{display:block;margin-left:84rpx;color:@figma-muted;font-size:15rpx}.health-advice{display:flex;flex-direction:column;margin:40rpx 38rpx 0;padding:34rpx;border-radius:44rpx;background:#dce8da}.health-advice text:first-child{color:@figma-muted;font-size:20rpx}.health-advice text:nth-child(2){margin-top:14rpx;font-size:31rpx}.health-advice text:last-child{margin-top:12rpx;font-size:20rpx;line-height:1.55}.report-link{float:right;margin:24rpx 38rpx 0;padding:16rpx 24rpx;border:1rpx solid #b9c7b6;border-radius:26rpx;color:@figma-persimmon;font-size:22rpx}.nav-space{height:calc(188rpx + env(safe-area-inset-bottom))}
+
+page { background: @figma-paper; }
+.health-page { height: 100vh; overflow: hidden; color: @figma-ink; font-family: 'Noto Serif SC', 'Songti SC', serif; }
+.health-scroll { height: 100%; box-sizing: border-box; padding: 0 38rpx; }
+.health-head { display: flex; align-items: flex-start; justify-content: space-between; padding-top: calc(72rpx + env(safe-area-inset-top)); }
+.health-head text { display: block; }
+.health-head text:first-child { font-size: 52rpx; }
+.health-head text:last-child { margin-top: 8rpx; color: @figma-persimmon; font-size: 20rpx; }
+.health-head > view:last-child { padding: 9rpx 17rpx; border-radius: 24rpx; background: #ebebec; font-size: 20rpx; }
+.score-card { display: flex; justify-content: space-between; margin-top: 32rpx; padding: 34rpx; border-radius: 46rpx; background: @figma-mist; }
+.score-card > view { display: flex; flex-direction: column; }
+.score-card > view > text:first-child { color: @figma-muted; font-size: 21rpx; }
+.score-card > view:first-child > view { display: flex; align-items: flex-end; margin-top: 14rpx; }
+.score-card > view:first-child > view text:first-child { font-size: 68rpx; }
+.score-card > view:first-child > view text:last-child { margin: 0 0 10rpx 8rpx; color: @figma-muted; font-size: 20rpx; }
+.score-card > view:first-child > text:last-child { margin-top: 10rpx; color: @figma-persimmon; font-size: 19rpx; }
+.score-card > view:last-child { padding-top: 28rpx; }
+.score-card > view:last-child > text:first-child { color: @figma-ink; font-size: 24rpx; }
+.score-card > view:last-child > text:nth-child(2) { margin-top: 8rpx; color: @figma-muted; font-size: 17rpx; }
+.score-card > view:last-child > view { width: 150rpx; height: 8rpx; margin-top: 24rpx; border-radius: 4rpx; background: @figma-porcelain; }
+.score-card > view:last-child > view text { display: block; width: 110rpx; height: 8rpx; border-radius: 4rpx; background: @figma-persimmon; }
+.chart-title { margin: 48rpx 0 20rpx; }
+.chart-title text { display: block; }
+.chart-title text:first-child { font-size: 32rpx; }
+.chart-title text:last-child { margin-top: 6rpx; color: @figma-muted; font-size: 17rpx; }
+.meal-chart { padding: 32rpx 24rpx; border-radius: 44rpx; background: @figma-porcelain; }
+.chart-week, .chart-line { display: grid; grid-template-columns: 84rpx repeat(7, 1fr); }
+.chart-week text { color: @figma-muted; font-size: 18rpx; text-align: center; }
+.chart-line { align-items: center; height: 86rpx; }
+.chart-line > view:first-child text { display: block; font-size: 18rpx; }
+.chart-line > view:first-child text:last-child { margin-top: 4rpx; color: @figma-muted; font-size: 13rpx; }
+.chart-line > view:not(:first-child) { position: relative; height: 70rpx; border-left: 1rpx solid #deddd4; }
+.dot { position: absolute; top: 20rpx; left: -9rpx; width: 18rpx; height: 18rpx; border-radius: 50%; background: #9ab99b; }
+.dot.orange { background: @figma-persimmon; }
+.stem { position: absolute; top: 37rpx; left: -2rpx; width: 3rpx; height: 25rpx; background: @figma-ink; }
+.chart-caption { display: block; margin-left: 84rpx; color: @figma-muted; font-size: 15rpx; }
+.health-advice { display: flex; flex-direction: column; margin-top: 40rpx; padding: 34rpx; border-radius: 44rpx; background: #dce8da; }
+.health-advice text:first-child { color: @figma-muted; font-size: 20rpx; }
+.health-advice text:nth-child(2) { margin-top: 14rpx; font-size: 31rpx; }
+.health-advice text:last-child { margin-top: 12rpx; font-size: 20rpx; line-height: 1.55; }
+.dish-grid { display: flex; gap: 18rpx; }
+.dish-card { flex: 1; min-width: 0; padding: 26rpx 22rpx; border-radius: 22rpx; box-shadow: 0 8rpx 24rpx rgba(68, 54, 91, .06); }
+.dish-card--mine { background: #fff6ed; }
+.dish-card--popular { background: #edf8f4; }
+.dish-card__icon, .dish-card__label, .dish-card__name, .dish-card__desc { display: block; }
+.dish-card__icon { font-size: 36rpx; }
+.dish-card__label { margin-top: 16rpx; color: #81788c; font-size: 22rpx; }
+.dish-card__name { margin-top: 10rpx; overflow: hidden; font-size: 29rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.dish-card__desc { margin-top: 12rpx; color: #9a93a9; font-size: 21rpx; line-height: 1.5; }
+.nutrition-title { margin-top: 42rpx; }
+.nutrition-card { padding: 28rpx; border-radius: 22rpx; background: @figma-porcelain; box-shadow: 0 8rpx 24rpx rgba(68, 54, 91, .06); }
+.nutrition-card__headline, .nutrition-card__desc { display: block; }
+.nutrition-card__headline { font-size: 29rpx; font-weight: 700; }
+.nutrition-card__desc { margin-top: 12rpx; color: @figma-muted; font-size: 23rpx; line-height: 1.6; }
+.nutrition-stats { display: flex; flex-wrap: wrap; gap: 26rpx 44rpx; margin-top: 26rpx; }
+.nutrition-stats view { display: flex; min-width: 130rpx; flex-direction: column; gap: 5rpx; color: #9a93a9; font-size: 21rpx; }
+.nutrition-stats strong { color: @figma-persimmon; font-size: 42rpx; }
+.nutrition-progress { margin-top: 24rpx; padding: 18rpx; border-radius: 14rpx; color: @figma-persimmon; background: #fff1e8; font-size: 24rpx; text-align: center; }
+.assistant-entry { display: flex; align-items: center; justify-content: space-between; margin-top: 22rpx; padding: 24rpx 28rpx; border-radius: 22rpx; background: @figma-ink; }
+.assistant-entry text { display: block; }
+.assistant-entry text:first-child { color: @figma-porcelain; font-size: 27rpx; }
+.assistant-entry text:nth-child(2) { margin-top: 7rpx; color: #b8c0b0; font-size: 20rpx; }
+.assistant-entry > text:last-child { color: @figma-persimmon; font: 42rpx/1 sans-serif; }
+.report-link { margin: 30rpx 0; color: @figma-blue; font-size: 24rpx; text-align: center; }
+.insights-loading { padding: 120rpx 0; text-align: center; }
+.nav-space { height: 140rpx; }

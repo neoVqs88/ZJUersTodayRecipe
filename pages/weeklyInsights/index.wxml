@@ -1,10 +1,36 @@
 <view class="health-page {{appearanceClass}}">
   <scroll-view class="health-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="health-head"><view><text>健康分析</text><text>本周 · 来自食历真实记录</text></view><view>按周</view></view>
-    <view class="score-card"><view><text>膳食记录完整度</text><view><text>{{score}}</text><text>/ 100</text></view><text>{{scoreDeltaText}}</text></view><view><text>{{insights && insights.favoriteDish ? insights.favoriteDish.name : '等待记录'}}</text><text>{{insights ? insights.favoriteDesc : '记录后生成偏好'}}</text><view><text></text></view></view></view>
-    <view class="chart-title"><text>{{headline}}</text><text>一个点 = 当天有对应餐次记录</text></view>
-    <view class="meal-chart"><view class="chart-week"><text></text><text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text></view><view class="chart-line" wx:for="{{chartRows}}" wx:key="type"><view><text>{{item.label}}</text><text>{{item.range}}</text></view><view wx:for="{{item.days}}" wx:for-item="day" wx:key="key"><text class="dot {{day.active ? 'orange' : ''}}"></text><text class="stem"></text></view></view><text class="chart-caption">橙色表示当天已记录，灰色表示还没有记录</text></view>
-    <view class="health-advice"><text>一条可执行的小建议</text><text>{{adviceTitle}}</text><text>{{adviceDesc}}</text></view>
-    <view class="report-link" bindtap="loadInsights">完整报告　›</view><view class="nav-space"></view>
-  </scroll-view><figma-nav active="health" />
+    <view wx:if="{{loading}}" class="insights-loading"><t-loading theme="circular" text="正在整理本周数据" /></view>
+    <block wx:elif="{{insights}}">
+      <view class="score-card">
+        <view><text>膳食记录完整度</text><view><text>{{score}}</text><text>/ 100</text></view><text>{{scoreDeltaText}}</text></view>
+        <view><text>{{insights.favoriteDish ? insights.favoriteDish.name : '等待记录'}}</text><text>{{insights.favoriteDesc}}</text><view><text></text></view></view>
+      </view>
+      <view class="chart-title"><text>{{headline}}</text><text>一个点 = 当天有对应餐次记录</text></view>
+      <view class="meal-chart"><view class="chart-week"><text></text><text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text></view><view class="chart-line" wx:for="{{chartRows}}" wx:key="type"><view><text>{{item.label}}</text><text>{{item.range}}</text></view><view wx:for="{{item.days}}" wx:for-item="day" wx:key="key"><text class="dot {{day.active ? 'orange' : ''}}"></text><text class="stem"></text></view></view><text class="chart-caption">橙色表示当天已记录，灰色表示还没有记录</text></view>
+      <view class="health-advice"><text>一条可执行的小建议</text><text>{{adviceTitle}}</text><text>{{adviceDesc}}</text></view>
+      <view class="chart-title"><text>本周最常吃的美食</text><text>记录次数帮助你看见自己的口味</text></view>
+      <view class="dish-grid">
+        <view class="dish-card dish-card--mine"><text class="dish-card__icon">♥</text><text class="dish-card__label">你的本命美食</text><text class="dish-card__name">{{insights.favoriteDish ? insights.favoriteDish.name : '还没有记录'}}</text><text class="dish-card__desc">{{insights.favoriteDesc}}</text></view>
+        <view class="dish-card dish-card--popular"><text class="dish-card__icon">★</text><text class="dish-card__label">平台用户热门</text><text class="dish-card__name">{{insights.popularDish ? insights.popularDish.name : '等待上榜'}}</text><text class="dish-card__desc">{{insights.popularDesc}}</text></view>
+      </view>
+      <view class="chart-title nutrition-title"><text>营养分析</text><text>基于菜品图片的 AI 估算，仅作记录参考</text></view>
+      <view class="nutrition-card">
+        <text class="nutrition-card__headline">{{insights.nutrition.ready ? '本周营养概览已生成' : '再记录几餐，生成你的营养概览'}}</text>
+        <text class="nutrition-card__desc">{{insights.nutrition.message}}</text>
+        <view wx:if="{{insights.nutrition.ready}}" class="nutrition-stats">
+          <view><text>平均热量</text><strong>{{insights.nutrition.averageCalories}}</strong><text>千卡/100克</text></view>
+          <view><text>蛋白质</text><strong>{{insights.nutrition.averageProtein || '—'}}</strong><text>克/100克</text></view>
+          <view><text>碳水</text><strong>{{insights.nutrition.averageCarbohydrate || '—'}}</strong><text>克/100克</text></view>
+          <view><text>脂肪</text><strong>{{insights.nutrition.averageFat || '—'}}</strong><text>克/100克</text></view>
+        </view>
+        <view wx:else class="nutrition-progress">已记录 {{insights.nutrition.mealCount}} / {{insights.nutrition.minimumMeals}} 餐</view>
+      </view>
+      <view class="assistant-entry" bindtap="goAssistant"><view><text>想问问这顿饭？</text><text>让饮食健康助手帮你分析搭配和营养</text></view><text>›</text></view>
+      <view class="report-link" bindtap="loadInsights">刷新报告　›</view>
+    </block>
+    <view class="nav-space"></view>
+  </scroll-view>
+  <figma-nav active="health" />
 </view>

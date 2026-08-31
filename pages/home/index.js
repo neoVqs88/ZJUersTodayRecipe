@@ -1,6 +1,7 @@
 import recognizeDish from '../../utils/recognizeDish';
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { createMealCheckin, fetchMealCheckinStats } from '~/services/mealCheckins';
+import { fetchDishNutrition } from '~/services/nutrition';
 import { recordBrowsingHistory } from '~/services/userSocial';
 import { fetchDishCatalog } from '~/services/catalog';
 import appearanceBehavior from '~/behaviors/appearance';
@@ -220,9 +221,15 @@ Page({
 
     wx.showLoading({ title: '保存打卡中…', mask: true });
     try {
+      let nutrition = null;
+      try {
+        nutrition = await fetchDishNutrition(dish.name, r.fileID);
+      } catch (error) {
+        // 营养服务不可用时仍使用百度识别结果完成打卡。
+      }
       const result = await createMealCheckin({
         fileID: r.fileID,
-        dish,
+        dish: { ...dish, nutrition },
         candidates: r.dishes,
       });
       this.setData({
@@ -234,8 +241,13 @@ Page({
         ...result.stats,
         userId: currentUser.id || '',
       });
-      const calorieText = dish.calorie ? `\n参考热量：${dish.calorie} 千卡/100克` : '';
       const confidence = Math.min(100, Math.max(0, Number(dish.probability) * 100 || 0));
+      const calorieValue = nutrition && nutrition.caloriesPer100g !== null
+        ? nutrition.caloriesPer100g
+        : dish.calorie;
+      const calorieText = calorieValue !== null && calorieValue !== undefined
+        ? `\n参考热量：${calorieValue} 千卡/100克`
+        : '';
       wx.showModal({
         title: '打卡成功',
         content: `今日菜品：${dish.name}\n识别置信度：${confidence.toFixed(1)}%${calorieText}`,

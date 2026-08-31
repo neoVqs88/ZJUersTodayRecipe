@@ -50,6 +50,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/dietAssistant",
+      "name": "diet-assistant",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/my/info-edit",
       "name": "edit",
       "pages": ["index"]

@@ -30,20 +30,41 @@ function formatDateTime(value, dateKey) {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${time}`;
 }
 
+function getValidCalories(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const calories = Number(value);
+  return Number.isFinite(calories) && calories >= 0 ? calories : null;
+}
+
 function formatRecord(record) {
   const nutrition = record.nutritionAnalysis || {};
-  const calories = Number(nutrition.caloriesPer100g);
-  const hasCalories = Number.isFinite(calories) && calories >= 0;
+  const calories = getValidCalories(nutrition.caloriesPer100g);
+  const estimatedCalories = getValidCalories(nutrition.estimatedCalories);
+  const servingGrams = getValidCalories(nutrition.servingGrams);
+  const hasCalories = calories !== null;
+  const macroText = [
+    nutrition.protein === null || nutrition.protein === undefined ? '' : `蛋白质 ${nutrition.protein}克`,
+    nutrition.carbohydrate === null || nutrition.carbohydrate === undefined ? '' : `碳水 ${nutrition.carbohydrate}克`,
+    nutrition.fat === null || nutrition.fat === undefined ? '' : `脂肪 ${nutrition.fat}克`,
+  ].filter(Boolean).join(' · ');
+  let nutritionTitle = '营养分析待完善';
+  if (estimatedCalories !== null) {
+    nutritionTitle = `约 ${estimatedCalories} 千卡 / 份${servingGrams === null ? '' : `（估计 ${servingGrams} 克）`}`;
+  } else if (hasCalories) {
+    nutritionTitle = `约 ${calories} 千卡 / 100克`;
+  }
   return {
     ...record,
     imageUrl: record.imageUrl || record.imageFileId || record.fileID || '',
+    // 日期格式化函数定义在下方，运行时仍会先完成模块初始化。
+    // eslint-disable-next-line no-use-before-define
     recordDateKey: getRecordDateKey(record),
     mealLabel: MEAL_LABELS[record.mealType] || '加餐',
     displayTime: formatDateTime(record.mealTime || record.createdAt, record.dateKey),
     confidenceText: record.confidence ? `${(record.confidence * 100).toFixed(1)}%` : '待确认',
-    nutritionTitle: hasCalories ? `约 ${calories} 千卡 / 100克` : '营养分析待完善',
-    nutritionDesc: nutrition.summary || (hasCalories ? '当前为菜品识别接口提供的参考热量' : '后续可在这里展示热量、蛋白质、碳水与脂肪等信息'),
-    nutritionReady: hasCalories || nutrition.status === 'complete',
+    nutritionTitle,
+    nutritionDesc: nutrition.summary || (macroText || (hasCalories ? '当前为菜品识别接口提供的参考热量' : '等待营养数据')),
+    nutritionReady: hasCalories,
   };
 }
 
