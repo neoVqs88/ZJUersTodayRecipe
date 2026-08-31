@@ -1,0 +1,10 @@
+{
+  "name": "dietAssistant",
+  "version": "1.0.0",
+  "description": "饮食健康咨询助手",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.6.0"
+  }
+}
