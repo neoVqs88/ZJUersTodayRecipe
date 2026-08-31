@@ -3,7 +3,8 @@ const axios = require('axios');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-const HUNYUAN_URL = 'https://api.hunyuan.cloud.tencent.com/v1/chat/completions';
+const TOKENHUB_BASE_URL = (process.env.TOKENHUB_BASE_URL || 'https://tokenhub.tencentmaas.com/v1').replace(/\/+$/, '');
+const TOKENHUB_URL = `${TOKENHUB_BASE_URL}/chat/completions`;
 
 function cleanText(value, maxLength) {
   if (typeof value !== 'string') return '';
@@ -58,15 +59,16 @@ exports.main = async (event = {}) => {
   if (!query) return { success: false, code: 'INVALID_QUERY', message: '缺少菜品名称' };
 
   if (!event.fileID) return { success: false, code: 'INVALID_IMAGE', message: '缺少打卡图片' };
-  const { HUNYUAN_API_KEY: apiKey } = process.env;
+  const apiKey = cleanText(process.env.TOKENHUB_API_KEY || process.env.HUNYUAN_API_KEY, 300)
+    .replace(/^Bearer\s+/i, '').trim();
   if (!apiKey) {
     return { success: true, nutrition: null, code: 'NUTRITION_NOT_CONFIGURED' };
   }
 
   try {
     const file = await cloud.downloadFile({ fileID: event.fileID });
-    const model = process.env.HUNYUAN_MODEL || 'hunyuan-turbos-vision';
-    const response = await axios.post(HUNYUAN_URL, {
+    const model = process.env.TOKENHUB_VISION_MODEL || 'hy-vision-2.0-instruct';
+    const response = await axios.post(TOKENHUB_URL, {
       model,
       messages: [{
         role: 'user',

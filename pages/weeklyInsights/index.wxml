@@ -27,6 +27,7 @@
         </view>
         <view wx:else class="nutrition-progress">已记录 {{insights.nutrition.mealCount}} / {{insights.nutrition.minimumMeals}} 餐</view>
       </view>
+      <view class="assistant-entry" bindtap="goAssistant"><view><text>想问问这顿饭？</text><text>让饮食健康助手帮你分析搭配和营养</text></view><text>›</text></view>
       <view class="report-link" bindtap="loadInsights">刷新报告　›</view>
     </block>
     <view class="nav-space"></view>

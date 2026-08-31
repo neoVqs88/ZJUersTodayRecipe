@@ -35,4 +35,8 @@ Page({
   goRecord() {
     wx.reLaunch({ url: '/pages/home/index' });
   },
+
+  goAssistant() {
+    wx.navigateTo({ url: '/pages/dietAssistant/index' });
+  },
 });

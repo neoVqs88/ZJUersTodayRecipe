@@ -1,0 +1,25 @@
+@import '/variable.less';
+
+page { background: @figma-paper; }
+.assistant-page { display: flex; height: 100vh; box-sizing: border-box; flex-direction: column; color: @figma-ink; background: @figma-paper; }
+.assistant-head { display: flex; align-items: center; padding: calc(54rpx + env(safe-area-inset-top)) 36rpx 26rpx; background: @figma-paper; }
+.back { width: 48rpx; color: @figma-ink; font-family: sans-serif; font-size: 58rpx; line-height: 42rpx; }
+.assistant-head > view:nth-child(2) { flex: 1; }
+.assistant-head text { display: block; }
+.assistant-head text:first-child { font-size: 34rpx; font-weight: 700; }
+.assistant-head text:last-child { margin-top: 8rpx; color: @figma-muted; font-size: 19rpx; }
+.head-mark { width: 54rpx; height: 54rpx; border-radius: 50%; color: #fff; background: @figma-persimmon; font: 700 20rpx/54rpx sans-serif; text-align: center; }
+.message-list { flex: 1; box-sizing: border-box; padding: 18rpx 36rpx 30rpx; }
+.suggestions { margin: 24rpx 0 36rpx; }
+.suggestions > text { color: @figma-muted; font-size: 21rpx; }
+.suggestion { margin-top: 16rpx; padding: 22rpx 24rpx; border: 1rpx solid #e1d9ca; border-radius: 22rpx; color: @figma-blue; background: @figma-porcelain; font-size: 23rpx; }
+.message-row { display: flex; margin: 22rpx 0; }
+.message-row.user { justify-content: flex-end; }
+.message-bubble { max-width: 78%; padding: 22rpx 26rpx; border-radius: 24rpx 24rpx 24rpx 6rpx; color: @figma-ink; background: @figma-porcelain; font-size: 25rpx; line-height: 1.6; white-space: pre-wrap; }
+.message-row.user .message-bubble { border-radius: 24rpx 24rpx 6rpx 24rpx; color: #fff; background: @figma-persimmon; }
+.typing { color: @figma-muted; }
+.disclaimer { padding: 8rpx 36rpx; color: @figma-muted; font-size: 18rpx; text-align: center; }
+.composer { display: flex; align-items: center; gap: 16rpx; padding: 18rpx 30rpx calc(22rpx + env(safe-area-inset-bottom)); background: @figma-porcelain; }
+.composer input { flex: 1; height: 76rpx; box-sizing: border-box; padding: 0 24rpx; border-radius: 38rpx; background: @figma-paper; font-size: 24rpx; }
+.composer button { width: 112rpx; height: 76rpx; margin: 0; padding: 0; border-radius: 38rpx; color: #fff; background: @figma-persimmon; font-size: 23rpx; line-height: 76rpx; }
+.composer button[disabled] { opacity: .45; }
