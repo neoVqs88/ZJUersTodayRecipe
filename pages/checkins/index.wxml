@@ -1,8 +1,9 @@
-<view class="history-page">
-  <scroll-view class="history-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshRecords" show-scrollbar="{{false}}">
+<view class="history-page {{appearanceClass}}">
+  <scroll-view class="history-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshRecords" lower-threshold="120" bindscrolltolower="loadMore" show-scrollbar="{{false}}">
     <view class="history-head"><text>食历</text><text>把日子摆成一桌，看看这个月吃成了什么。</text></view>
-    <view class="history-tabs"><view class="active">▣ 月</view><view>◷ 周</view><view>⌁ 味觉云</view></view>
-    <view class="month-row"><text>{{currentMonth}}</text><text>‹　›</text></view>
+    <view class="history-tabs"><view wx:for="{{viewTabs}}" wx:key="value" class="{{activeView === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectView">{{item.label}}</view></view>
+    <block wx:if="{{activeView === 'month'}}">
+    <view class="month-row"><text bindtap="previousMonth">‹</text><text>{{currentMonth}}</text><text bindtap="nextMonth">›</text></view>
     <view class="week-row"><text wx:for="{{weekLabels}}" wx:key="*this">{{item}}</text></view>
     <view class="calendar">
       <view class="calendar-day" wx:for="{{calendarDays}}" wx:key="index" data-date="{{item.dateKey}}" bindtap="selectDay">
@@ -14,12 +15,24 @@
       <view class="day-records__head"><text>{{selectedDateLabel}}</text><text>{{selectedDayRecords.length}} 餐</text></view>
       <view wx:for="{{selectedDayRecords}}" wx:key="id" class="receipt" data-id="{{item.id}}" bindtap="selectRecord">
         <view class="receipt-bar"></view>
-        <view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text></view>
+        <view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text><view class="receipt-actions"><text catchtap="editRecord" data-id="{{item.id}}">修正名称</text><text catchtap="deleteRecord" data-id="{{item.id}}">删除</text></view></view>
         <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" catchtap="previewImage" data-url="{{item.imageUrl}}" />
       </view>
       <view wx:if="{{!selectedDayRecords.length}}" class="receipt empty"><text>这一天还没有被记住的一餐</text><text>选择有菜品缩略图的日期，可以查看当天全部记录。</text></view>
     </view>
-    <view class="history-summary"><text>本月 {{stats.totalCount}} 餐被记住 · 连续 {{stats.streakDays}} 天</text><view bindtap="goCheckIn">＋ 记一餐</view></view>
+    </block>
+    <view wx:elif="{{activeView === 'week'}}" class="alternate-panel">
+      <view class="alternate-panel__head"><text>这一周的餐桌</text><text>{{weekRecords.length}} 餐</text></view>
+      <view wx:for="{{weekRecords}}" wx:key="id" class="receipt" data-id="{{item.id}}" bindtap="selectRecord"><view class="receipt-bar"></view><view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text></view><image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" catchtap="previewImage" data-url="{{item.imageUrl}}" /></view>
+      <view wx:if="{{!weekRecords.length}}" class="receipt empty"><text>这一周还没有打卡</text><text>记下一餐后，它会出现在这里。</text></view>
+    </view>
+    <view wx:elif="{{activeView === 'taste'}}" class="alternate-panel taste-cloud">
+      <view class="alternate-panel__head"><text>本月味觉云</text><text>{{monthCount}} 餐</text></view>
+      <view wx:if="{{tasteCloud.length}}" class="taste-cloud__body"><text wx:for="{{tasteCloud}}" wx:key="name" class="taste-cloud__weight-{{item.weight}}">{{item.name}} · {{item.count}}</text></view>
+      <view wx:else class="receipt empty"><text>本月还没有味觉关键词</text><text>上传打卡后，常吃的菜会更醒目。</text></view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="history-summary"><text>正在加载更多记录…</text></view>
+    <view class="history-summary"><text>本月 {{monthCount}} 餐被记住 · 连续 {{stats.streakDays}} 天</text><view bindtap="goCheckIn">＋ 记一餐</view></view>
     <view class="nav-space"></view>
   </scroll-view><figma-nav active="history" />
 </view>

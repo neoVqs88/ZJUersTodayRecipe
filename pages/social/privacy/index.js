@@ -1,5 +1,6 @@
 import { isLoggedIn } from '~/services/auth';
 import { fetchPrivacySettings, savePrivacySettings } from '~/services/userSocial';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const VISIBILITY_OPTIONS = [
   { label: '所有人可见', value: 'public' },
@@ -13,6 +14,7 @@ function getVisibilityLabel(value) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     loading: true,
     saving: false,

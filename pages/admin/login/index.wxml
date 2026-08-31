@@ -1,4 +1,4 @@
-<view class="admin-login">
+<view class="admin-login {{appearanceClass}}">
   <t-navbar title="管理入口" left-arrow />
   <view class="admin-login__content">
     <view class="admin-login__badge"><t-icon name="lock-on" size="62rpx" /></view>

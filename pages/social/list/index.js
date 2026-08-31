@@ -1,6 +1,8 @@
 import { fetchFollowUsers } from '~/services/userSocial';
+import appearanceBehavior from '~/behaviors/appearance';
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     title: '关注',
     mode: 'following',

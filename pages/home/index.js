@@ -2,8 +2,11 @@ import recognizeDish from '../../utils/recognizeDish';
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { createMealCheckin, fetchMealCheckinStats } from '~/services/mealCheckins';
 import { recordBrowsingHistory } from '~/services/userSocial';
+import { fetchDishCatalog } from '~/services/catalog';
+import appearanceBehavior from '~/behaviors/appearance';
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     dateLabel: '',
     mealTickets: [
@@ -77,6 +80,36 @@ Page({
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     this.setData({ dateLabel: `${weekdays[date.getDay()]} · ${months[date.getMonth()]} ${date.getDate()}` });
     if (options.checkin === '1') setTimeout(() => this.checkIn(), 350);
+    this.loadCatalog();
+  },
+
+  async loadCatalog() {
+    try {
+      const catalog = await fetchDishCatalog();
+      if (!catalog.length) return;
+      const ranked = [...catalog].sort((a, b) => b.popularity - a.popularity);
+      const mealTickets = ranked.slice(0, 6).map((dish, index) => ({
+        ...dish,
+        campus: dish.canteen || dish.campus,
+        time: index % 2 ? '12:26' : '12:20',
+        note: dish.desc,
+        match: Math.min(100, Math.max(0, Math.round((Number(dish.score) || 0) / 5 * 100))),
+        flavor: dish.flavorText || (dish.flavor || []).join(' · '),
+      }));
+      const newDishes = ranked.slice(0, 6).map((dish) => ({
+        ...dish,
+        location: dish.place,
+        shortLocation: dish.flavorText,
+      }));
+      this.setData({
+        mealTickets,
+        activeTicket: mealTickets[0],
+        ticketIndex: 0,
+        newDishes,
+      });
+    } catch (error) {
+      // 云端目录不可用时继续展示内置玉泉菜品。
+    }
   },
 
   onShow() {
@@ -165,7 +198,7 @@ Page({
       // 用户在选图界面点了取消等情况，静默返回即可
       return;
     }
-    if (!r.success || !r.dishes.length) {
+    if (!r.success || !Array.isArray(r.dishes) || !r.dishes.length) {
       wx.showToast({ title: r.message || '识别失败，请重试', icon: 'none' });
       return;
     }
@@ -181,6 +214,7 @@ Page({
       });
       dish = r.dishes[tapIndex];
     } catch (error) {
+      if (r.fileID) wx.cloud.deleteFile({ fileList: [r.fileID] }).catch(() => {});
       return;
     }
 
@@ -201,9 +235,10 @@ Page({
         userId: currentUser.id || '',
       });
       const calorieText = dish.calorie ? `\n参考热量：${dish.calorie} 千卡/100克` : '';
+      const confidence = Math.min(100, Math.max(0, Number(dish.probability) * 100 || 0));
       wx.showModal({
         title: '打卡成功',
-        content: `今日菜品：${dish.name}\n识别置信度：${(dish.probability * 100).toFixed(1)}%${calorieText}`,
+        content: `今日菜品：${dish.name}\n识别置信度：${confidence.toFixed(1)}%${calorieText}`,
         showCancel: false,
         confirmText: '查看记录',
         success: ({ confirm }) => {

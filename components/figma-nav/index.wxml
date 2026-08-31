@@ -1,4 +1,4 @@
-<view class="figma-nav-shell">
+<view class="figma-nav-shell {{appearanceClass}}">
   <view class="figma-nav">
     <view
       wx:for="{{items}}"
@@ -7,8 +7,10 @@
       data-key="{{item.key}}"
       data-url="{{item.url}}"
       bindtap="changePage"
+      role="button"
+      aria-label="{{item.label}}"
     >
-      <image class="figma-nav__icon" src="{{item.icon}}" mode="aspectFit" />
+      <image class="figma-nav__icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true" />
     </view>
   </view>
 </view>

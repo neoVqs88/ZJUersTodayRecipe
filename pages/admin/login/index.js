@@ -1,7 +1,9 @@
 import { isLoggedIn } from '~/services/auth';
 import { hasAdminSession, loginCommunityAdmin } from '~/services/adminCommunity';
+import appearanceBehavior from '~/behaviors/appearance';
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     key: '',
     loading: false,

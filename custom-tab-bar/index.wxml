@@ -1,8 +1,0 @@
-<view class="tab-shell {{appearanceClass}}">
-  <t-tab-bar value="{{ value }}" theme="tag" split="{{ false }}" bind:change="handleChange">
-    <t-tab-bar-item icon="home" value="home">首页</t-tab-bar-item>
-    <t-tab-bar-item icon="usergroup" value="community">社区</t-tab-bar-item>
-    <t-tab-bar-item icon="notification" value="message" badge-props="{{ { count: unreadNum } }}">消息</t-tab-bar-item>
-    <t-tab-bar-item icon="user" value="my">我的</t-tab-bar-item>
-  </t-tab-bar>
-</view>

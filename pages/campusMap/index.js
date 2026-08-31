@@ -1,14 +1,22 @@
+import { fetchCanteens } from '~/services/catalog';
+import appearanceBehavior from '~/behaviors/appearance';
+
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     routeVisible: false,
     filters: ['食堂', '营业中', '少排队'],
-    eateries: [
-      { name: '玉泉食堂', subtitle: '主食堂 · 步行 4 分钟', people: 36, wait: '不挤', waitDetail: '预计等候 3–5 分钟', left: 48, top: 49 },
-      { name: '一、四食堂', subtitle: '风味档口 · 步行 7 分钟', people: 52, wait: '适中', waitDetail: '预计等候 6–8 分钟', left: 71, top: 32 },
-      { name: '怡膳堂', subtitle: '简餐与面食 · 步行 9 分钟', people: 24, wait: '宽松', waitDetail: '预计等候 2–4 分钟', left: 66, top: 70 },
-    ],
-    selectedIndex: 0,
-    selected: { name: '玉泉食堂', subtitle: '主食堂 · 步行 4 分钟', people: 36, wait: '不挤', waitDetail: '预计等候 3–5 分钟' },
+    activeFilter: '食堂',
+    allEateries: [],
+    eateries: [],
+    selected: {},
+  },
+
+  async onLoad(options = {}) {
+    const eateries = await fetchCanteens();
+    const requested = decodeURIComponent(options.canteen || '');
+    const selected = eateries.find((item) => requested && (requested.includes(item.name) || item.name.includes(requested))) || eateries[0] || {};
+    this.setData({ allEateries: eateries, eateries, selected });
   },
 
   goBack() {
@@ -16,10 +24,23 @@ Page({
   },
 
   selectEatery(event) {
-    const selectedIndex = Number(event.currentTarget.dataset.index);
+    const selected = this.data.eateries.find((item) => item.id === event.currentTarget.dataset.id);
+    if (!selected) return;
     this.setData({
-      selectedIndex,
-      selected: this.data.eateries[selectedIndex],
+      selected,
+      routeVisible: false,
+    });
+  },
+
+  selectFilter(event) {
+    const activeFilter = event.currentTarget.dataset.value;
+    let eateries = this.data.allEateries;
+    if (activeFilter === '营业中') eateries = eateries.filter((item) => item.open !== false);
+    if (activeFilter === '少排队') eateries = eateries.filter((item) => item.waitLevel === 'quiet');
+    this.setData({
+      activeFilter,
+      eateries,
+      selected: eateries.some((item) => item.id === this.data.selected.id) ? this.data.selected : eateries[0] || {},
       routeVisible: false,
     });
   },

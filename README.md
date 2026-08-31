@@ -1,70 +1,62 @@
-# TDesign 通用页面模板
+# zjuer 今天吃什么
 
-基于 TDesign 打造的通用页面模板，包含通用的登陆注册、个人中心、设置中心、信息流等等功能。
+面向浙江大学玉泉校区的微信小程序，提供菜品推荐、食堂与菜品检索、三餐打卡、食历、社区互动、消息通知和饮食洞察。
 
-## 模版功能预览
+## 本地预览
 
-### 首页
+1. 使用微信开发者工具导入项目根目录。
+2. 执行 `npm install`，然后在开发者工具中选择“工具 → 构建 npm”。
+3. 在 `config.js` 中填写当前团队共用的云环境 ID。
+4. 编译并使用真实微信账号登录测试。
 
-<div style="display: flex">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/home-1.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/home-2.png">
-</div>
-
-### 信息发布
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/publish-1.png">
-
-### 搜索页
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/search-1.png">
-
-### 个人中心
-<div style="display: flex">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-1.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-2.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-3.png">
-</div>
-
-
-### 设置中心
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/setting-1.png">
-
-### 消息中心
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/message-1.png">
-
-
-## 开发预览
-### 目录结构（TODO: 生成目录结构树）
-
-
-### 在开发者工具中预览
+## 项目校验
 
 ```bash
-# 安装项目依赖
-npm install
-
+npm test
 ```
 
-打开[微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)，导入整个项目，构建 npm 包，就可以预览示例了。
+该命令会检查页面与分包路由、JSON、WXML 事件处理器、静态资源引用、云函数结构和 JavaScript 语法。
 
-### 基础库版本
+## 云函数
 
-最低基础库版本`^2.6.5`
+本次功能涉及的云函数包括：
 
+- `ensureUser`：微信登录、用户资料和账号注销
+- `communityPosts`：发帖审核、收藏、举报、屏蔽和菜品投票
+- `communityComments`：评论审核与消息通知
+- `adminCommunity`：帖子及举报管理
+- `messageHelper`：消息已读处理
+- `mealCheckins`：三餐打卡查询、编辑和删除
+- `weeklyInsights`：每周饮食统计
 
-## 贡献成员
+修改云函数后，需要在微信开发者工具中逐个执行“上传并部署：云端安装依赖”。其中 `communityPosts` 与 `communityComments` 使用微信内容安全接口，请保留各自 `config.json` 中的 OpenAPI 权限。
 
-<a href="https://github.com/TDesignOteam/tdesign-miniprogram-starter/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=TDesignOteam/tdesign-miniprogram-starter" />
-</a>
+## 云数据库
 
-## 反馈
+核心集合包括 `users`、`posts`、`comments`、`messages`、`mealRecords`、`checkins`，互动功能还需要：
 
-有任何问题，建议通过 [Github issues](https://github.com/TDesignOteam/tdesign-miniprogram-starter/issues) 反馈。
+- `postFavorites`
+- `dishFavorites`
+- `hiddenPosts`
+- `reports`
+- `feedback`
+- `postPollVotes`
 
-## 开源协议
+`dishes` 与 `canteens` 可用于维护真实食堂目录；未配置时客户端会使用仓库内的玉泉校区基础目录作为降级数据。
 
-TDesign 遵循 [MIT 协议](https://github.com/TDesignOteam/tdesign-miniprogram-starter/blob/main/LICENSE)。
+除公开目录外，写操作应尽量由云函数完成。不要把管理密钥、OpenID 或服务端密钥写入客户端代码。
+
+## 目录概览
+
+- `pages/`：小程序页面
+- `components/`：公共组件与六项底部导航
+- `services/`：客户端业务服务
+- `behaviors/`：主题和字体偏好行为
+- `data/`：离线基础目录
+- `cloudfunctions/`：云函数
+- `static/`：设计资源
+- `scripts/`：项目校验脚本
+
+## 提交约定
+
+功能开发使用独立分支，完成微信开发者工具真机验证后再由组员合并到 `main`。提交前至少运行一次 `npm test`。

@@ -2,8 +2,11 @@ import {
   clearAdminSession,
   deleteAdminPost,
   fetchAdminPosts,
+  fetchAdminReports,
   migrateLegacyPostLikes,
+  resolveAdminReport,
 } from '~/services/adminCommunity';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const PAGE_SIZE = 15;
 const CATEGORY_LABELS = {
@@ -37,8 +40,11 @@ function formatPosts(posts = []) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     posts: [],
+    reports: [],
+    activeMode: 'posts',
     total: 0,
     page: 1,
     hasMore: false,
@@ -76,11 +82,71 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadPosts(true);
+    if (this.data.activeMode === 'reports') this.loadReports(true);
+    else this.loadPosts(true);
   },
 
   onReachBottom() {
-    if (this.data.hasMore) this.loadPosts(false);
+    if (!this.data.hasMore) return;
+    if (this.data.activeMode === 'reports') this.loadReports(false);
+    else this.loadPosts(false);
+  },
+
+  switchMode(event) {
+    const activeMode = event.currentTarget.dataset.mode;
+    if (activeMode === this.data.activeMode) return;
+    this.setData({ activeMode, page: 1, hasMore: false });
+    if (activeMode === 'reports') this.loadReports(true);
+    else this.loadPosts(true);
+  },
+
+  async loadReports(reset = false) {
+    if ((this.data.loadingMore && !reset) || this.requesting) return;
+    const page = reset ? 1 : this.data.page;
+    this.requesting = true;
+    this.setData(reset ? { loading: true } : { loadingMore: true });
+    try {
+      const result = await fetchAdminReports(page, PAGE_SIZE, 'pending');
+      const incoming = (result.reports || []).map((report) => ({
+        ...report,
+        displayTime: formatTime(report.createdAt),
+      }));
+      this.setData({
+        reports: reset ? incoming : [...this.data.reports, ...incoming],
+        total: Number(result.total) || 0,
+        page: page + 1,
+        hasMore: Boolean(result.hasMore),
+      });
+    } catch (error) {
+      this.handleServiceError(error, '举报加载失败');
+    } finally {
+      this.requesting = false;
+      this.setData({ loading: false, loadingMore: false });
+      wx.stopPullDownRefresh();
+    }
+  },
+
+  handleReport(event) {
+    const reportId = event.currentTarget.dataset.id;
+    const resolution = event.currentTarget.dataset.resolution;
+    wx.showModal({
+      title: resolution === 'delete' ? '删除被举报帖子？' : '驳回这条举报？',
+      content: resolution === 'delete' ? '帖子及关联评论、点赞和图片会被删除。' : '举报将标记为已驳回，帖子继续保留。',
+      confirmText: '确认处理',
+      success: async ({ confirm }) => {
+        if (!confirm) return;
+        try {
+          await resolveAdminReport(reportId, resolution);
+          this.setData({
+            reports: this.data.reports.filter((report) => report.id !== reportId),
+            total: Math.max(0, this.data.total - 1),
+          });
+          wx.showToast({ title: '处理完成', icon: 'success' });
+        } catch (error) {
+          this.handleServiceError(error, '举报处理失败');
+        }
+      },
+    });
   },
 
   handleServiceError(error, fallback) {

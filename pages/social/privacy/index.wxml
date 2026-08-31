@@ -1,4 +1,4 @@
-<view class="privacy-page">
+<view class="privacy-page {{appearanceClass}}">
   <t-navbar title="隐私设置" left-arrow />
   <view class="privacy-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="读取隐私设置" /></view>
   <scroll-view class="privacy-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>

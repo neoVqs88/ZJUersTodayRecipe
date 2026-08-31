@@ -1,4 +1,3 @@
 export default {
-  isMock: true,
-  baseUrl: '',
+  cloudEnvId: 'cloudbase-d6gm52tal9a059bd4',
 };

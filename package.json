@@ -1,22 +1,19 @@
 {
-  "name": "tdesign-miniprogram-starter",
-  "version": "0.0.2",
+  "name": "zjuer-eat-what",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules scripts/validate-project.js",
+    "validate": "node --experimental-vm-modules scripts/validate-project.js",
     "lint": "npx eslint ./ --no-eslintrc -c ./.eslintrc.js",
     "lint:fix": "npm run lint:fix-eslint && npm run lint:fix-prettier",
     "lint:fix-eslint": "eslint --ext .js,.ts ./ --max-warnings 0 --ignore-path .gitignore --ignore-path .eslintignore --fix",
     "lint:fix-prettier": "prettier ./ --ignore-path .gitignore --ignore-path .eslintignore --ignore-path .prettierignore --write './**/*.{js,ts}' --ignore-unknown"
   },
-  "keywords": [
-    "wechat",
-    "miniprogram",
-    "starter"
-  ],
-  "author": "leejim",
+  "keywords": ["wechat", "miniprogram", "zju", "campus-food"],
+  "author": "zjuer 今天吃什么项目组",
   "license": "MIT",
-  "description": "a start-kit for wechat miniprogram powerby TDesign miniprogram",
+  "description": "浙江大学玉泉校区校园饮食与社区微信小程序",
   "dependencies": {
     "tdesign-miniprogram": "^1.11.2"
   },

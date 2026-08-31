@@ -1,13 +1,13 @@
-<view class="comments-page">
+<view class="comments-page {{appearanceClass}}">
   <view class="comments-head"><text bindtap="goBack">‹</text><view><text>一条饭帖</text><text>COMMUNITY NOTE</text></view><text>•••</text></view>
-  <scroll-view class="comments-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshComments" show-scrollbar="{{false}}">
+  <scroll-view class="comments-scroll" scroll-y enhanced refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="refreshComments" lower-threshold="120" bindscrolltolower="loadMoreComments" show-scrollbar="{{false}}">
     <view class="author-card" wx:if="{{post}}"><image src="{{post.avatar}}" mode="aspectFill" data-source="post" data-user-id="{{post.authorId}}" bindtap="openUserProfile"/><view><text>{{post.author}}</text><text>今天 · 校园饭桌边</text></view><view>关注</view></view>
     <view class="post-detail" wx:if="{{post}}"><text class="post-copy">{{post.content}}</text><view class="post-images" wx:if="{{postImages.length}}"><image wx:for="{{postImages}}" wx:key="*this" src="{{item}}" data-src="{{item}}" mode="widthFix" bindtap="previewPostImage"/></view></view>
     <view class="companion-join" wx:if="{{companion}}"><view><text>{{companion.minParticipants}}–{{companion.maxParticipants}} 人</text><text>预期约饭人数</text></view><view><text>{{companion.participantCount}}</text><text>已报名</text></view><button disabled="{{companion.isAuthor || companion.joined || companion.full}}" bindtap="joinCompanion">{{companion.buttonText}}</button></view>
-    <view class="vote-strip"><view><text>像桂花</text><text>48</text></view><view><text>站甜品</text><text>31</text></view><view><text>站菜</text><text>17</text></view></view>
+    <view class="vote-strip" wx:if="{{poll}}"><view wx:for="{{poll.options}}" wx:key="*this" class="{{poll.selectedIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="voteInPoll"><text>{{item}}</text><text>{{poll.counts[index] || 0}}</text></view></view>
     <view class="comment-title"><text>评论 · {{total}}</text><text>按“有用”排序</text></view>
     <view class="comment-item" wx:for="{{comments}}" wx:key="id" data-id="{{item.id}}" bindlongpress="handleCommentLongPress"><image src="{{item.authorImage}}" mode="aspectFill" data-user-id="{{item.userId}}" bindtap="openUserProfile"/><view><text>{{item.authorName}}</text><text><text wx:if="{{item.replyToName}}">回复 {{item.replyToName}}：</text>{{item.content}}</text><text data-id="{{item.id}}" data-name="{{item.authorName}}" bindtap="startReply">有用 · 回复</text></view></view>
-    <view wx:if="{{!loading && !comments.length}}" class="empty-comments">还没有评论，来写下第一句有味道的话。</view><view class="composer-space"></view>
+    <view wx:if="{{!loading && !comments.length}}" class="empty-comments">还没有评论，来写下第一句有味道的话。</view><view wx:if="{{loadingMore}}" class="empty-comments">正在加载更多评论…</view><view class="composer-space"></view>
   </scroll-view>
   <view class="comment-composer"><view wx:if="{{replyTarget}}" class="reply-tip">回复 {{replyTarget.name}} <text bindtap="clearReply">取消</text></view><view><input value="{{inputValue}}" focus="{{inputFocus}}" maxlength="300" confirm-type="send" placeholder="写一句有味道的评论…" bindinput="onInput" bindconfirm="submitComment"/><button bindtap="submitComment">{{submitting ? '发送中' : '发送 ›'}}</button></view></view>
 </view>

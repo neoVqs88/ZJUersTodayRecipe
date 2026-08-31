@@ -1,5 +1,6 @@
 import { isLoggedIn } from '~/services/auth';
 import { clearBrowsingHistory, fetchBrowsingHistory, removeBrowsingHistory } from '~/services/userSocial';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const TYPE_META = {
   profile: { label: '用户主页', icon: 'user-circle' },
@@ -36,6 +37,7 @@ function formatHistory(history = []) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     loading: true,
     clearing: false,

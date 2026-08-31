@@ -3,101 +3,144 @@
 // 卡片 = 把该分类下的消息事件聚合而成：最新一条做摘要 + 未读条数
 
 import formatTime from '../../utils/formatTime';
+import appearanceBehavior from '~/behaviors/appearance';
 
 // 分类的展示配置：标题、图标、配色、归属哪个标签页
 const CATEGORIES = {
   like_comment: { title: '点赞与评论', icon: 'thumb-up', theme: 'green', tab: 'interaction' },
   follow: { title: '新的关注', icon: 'user-add', theme: 'blue', tab: 'interaction' },
-  invite: { title: '饭搭子邀约', icon: 'usergroup', theme: 'orange', tab: 'interaction', tag: '新邀约', tagTheme: 'orange' },
+  invite: { title: '饭搭子邀约', icon: 'usergroup', theme: 'orange', tab: 'dining', tag: '新邀约', tagTheme: 'orange' },
   system: { title: '系统通知', icon: 'notification', theme: 'blue', tab: 'system' },
   checkin: { title: '打卡提醒', icon: 'calendar', theme: 'green', tab: 'system' },
   activity: { title: '活动通知', icon: 'sound', theme: 'purple', tab: 'system', tag: '官方', tagTheme: 'blue' },
 };
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
-    activeTab: 'interaction',
+    activeTab: 'all',
+    messages: [],
     cards: [], // 全部分类卡片
     displayCards: [], // 当前标签页要展示的卡片
     loading: true,
+    loadingMore: false,
+    page: 0,
+    pageSize: 20,
+    hasMore: true,
+    unreadTotal: 0,
   },
 
   goBack() { wx.navigateBack(); },
 
-  markAllRead() {
-    wx.showToast({ title: '已全部标为已读', icon: 'none' });
+  async markAllRead() {
+    if (!this.data.unreadTotal) return;
+    wx.showLoading({ title: '处理中…', mask: true });
+    try {
+      const response = await wx.cloud.callFunction({ name: 'messageHelper', data: { action: 'markAllRead' } });
+      const result = response.result || {};
+      if (!result.success) throw new Error(result.message || '操作失败');
+      const messages = this.data.messages.map((message) => ({ ...message, read: true }));
+      const cards = this.data.cards.map((card) => ({ ...card, unreadCount: 0 }));
+      this.setData({
+        messages,
+        cards,
+        displayCards: this.filterCards(cards, this.data.activeTab),
+        unreadTotal: 0,
+      });
+      getApp().setUnreadNum(0);
+      wx.showToast({ title: '已全部标为已读', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '操作失败，请重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   // 每次进入页面都拉最新数据（从详情页返回时也会触发，未读数自动刷新）
   onShow() {
-    this.fetchMessages();
+    this.fetchMessages(true);
   },
 
-  async fetchMessages() {
+  async fetchMessages(reset = false) {
+    if (this.data.loadingMore || (!reset && !this.data.hasMore)) return;
+    const page = reset ? 0 : this.data.page;
+    this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('messages').orderBy('createdAt', 'desc').get();
-      const messages = res.data.map((m) => ({ ...m, displayTime: formatTime(m.createdAt) }));
-      const cards = this.buildCards(messages);
+      const [res, overviewResponse] = await Promise.all([
+        db.collection('messages')
+          .orderBy('createdAt', 'desc')
+          .skip(page * this.data.pageSize)
+          .limit(this.data.pageSize)
+          .get(),
+        reset
+          ? wx.cloud.callFunction({ name: 'messageHelper', data: { action: 'overview' } })
+          : Promise.resolve(null),
+      ]);
+      const nextMessages = res.data.map((m) => ({ ...m, displayTime: formatTime(m.createdAt) }));
+      const messages = reset ? nextMessages : [...this.data.messages, ...nextMessages];
+      const overviewResult = overviewResponse && overviewResponse.result;
+      const cards = reset && overviewResult && overviewResult.success
+        ? this.buildOverviewCards(overviewResult.overview)
+        : this.data.cards;
+      const unreadTotal = reset && overviewResult && overviewResult.success
+        ? Math.max(0, Number(overviewResult.unreadCount) || 0)
+        : this.data.unreadTotal;
       this.setData({
+        messages,
         cards,
-        displayCards: cards.filter((c) => c.tab === this.data.activeTab),
+        displayCards: this.filterCards(cards, this.data.activeTab),
         loading: false,
+        loadingMore: false,
+        page: page + 1,
+        hasMore: nextMessages.length === this.data.pageSize,
+        unreadTotal,
       });
-      // 联动底部导航的未读角标（app.js 里的现成方法，内部会广播给 tabBar）
-      getApp().setUnreadNum(messages.filter((m) => !m.read).length);
+      getApp().setUnreadNum(unreadTotal);
     } catch (err) {
       console.error('拉取消息失败', err);
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadingMore: false });
       wx.showToast({ title: '消息加载失败', icon: 'none' });
     }
   },
 
-  // 把消息事件按分类聚合成卡片：最新一条做摘要，统计未读条数
-  buildCards(messages) {
-    return Object.entries(CATEGORIES)
-      .map(([category, meta]) => {
-        const list = messages.filter((m) => m.category === category);
-        if (list.length === 0) return null; // 该分类没消息就不显示卡片
-        const latest = list[0]; // 已按时间倒序，第一条就是最新
-        return {
-          category,
-          ...meta,
-          summary: `${latest.senderName} ${latest.action}`,
-          detail: latest.content || latest.targetDesc,
-          displayTime: latest.displayTime,
-          unreadCount: list.filter((m) => !m.read).length,
-        };
-      })
-      .filter(Boolean);
+  loadMore() {
+    this.fetchMessages(false);
   },
 
   switchMessageTab(event) {
     const { tab } = event.currentTarget.dataset;
     this.setData({
       activeTab: tab,
-      displayCards: this.data.cards.filter((c) => c.tab === tab),
+      displayCards: this.filterCards(this.data.cards, tab),
     });
+  },
+
+  buildOverviewCards(overview = []) {
+    const overviewMap = Object.fromEntries(overview.map((item) => [item.category, item]));
+    return Object.entries(CATEGORIES).map(([category, meta]) => {
+      const item = overviewMap[category];
+      if (!item || !item.latest) return null;
+      const latest = item.latest;
+      return {
+        category,
+        ...meta,
+        summary: `${latest.senderName || '系统'} ${latest.action || ''}`.trim(),
+        detail: latest.content || latest.targetDesc,
+        displayTime: formatTime(latest.createdAt),
+        unreadCount: Math.max(0, Number(item.unreadCount) || 0),
+      };
+    }).filter(Boolean);
+  },
+
+  filterCards(cards, tab) {
+    return tab === 'all' ? cards : cards.filter((card) => card.tab === tab);
   },
 
   // 点击分类卡片 → 进入该分类的完整消息列表
   openCategory(event) {
     const { category, title } = event.currentTarget.dataset;
     wx.navigateTo({ url: `/pages/message/detail/index?category=${category}&title=${title}` });
-  },
-
-  // 开发调试：给自己生成一批示例消息（上线前删除本函数和对应按钮）
-  async seedMessages() {
-    wx.showLoading({ title: '生成中…', mask: true });
-    try {
-      await wx.cloud.callFunction({ name: 'messageHelper', data: { action: 'seed' } });
-      await this.fetchMessages();
-      wx.showToast({ title: '已生成示例消息', icon: 'none' });
-    } catch (err) {
-      wx.showToast({ title: `生成失败：${err.message}`, icon: 'none' });
-    } finally {
-      wx.hideLoading();
-    }
   },
 
   goCompanion() {

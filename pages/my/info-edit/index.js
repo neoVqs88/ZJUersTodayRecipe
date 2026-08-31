@@ -1,5 +1,6 @@
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { fetchUserProfile, updateMyProfile } from '~/services/userProfile';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const DEFAULT_AVATAR = '/static/miniprogram-icon-zju-bowl-144.png';
 const CAMPUS_OPTIONS = ['玉泉校区', '紫金港校区', '西溪校区', '华家池校区', '之江校区', '舟山校区', '海宁校区', '其他'];
@@ -23,6 +24,7 @@ function normalizeProfile(profile = {}) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     loading: true,
     saving: false,

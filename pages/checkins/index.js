@@ -1,5 +1,6 @@
 import { isLoggedIn } from '~/services/auth';
-import { fetchMealCheckins } from '~/services/mealCheckins';
+import { deleteMealCheckin, fetchMealCheckins, updateMealCheckin } from '~/services/mealCheckins';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const MEAL_LABELS = {
   breakfast: '早餐',
@@ -68,27 +69,40 @@ function getSelectedDateLabel(dateKey) {
   return `${prefix} · ${weekdays[date.getDay()]}`;
 }
 
+function stableIndex(value, length) {
+  if (!length) return 0;
+  const hash = String(value).split('').reduce((total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0, 7);
+  return hash % length;
+}
+
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     loading: true,
     refreshing: false,
-    activeFilter: 'all',
-    weekLabels: ['一', '二', '三', '四', '五', '六', '日'],
-    filters: [
-      { label: '全部', value: 'all' },
-      { label: '早餐', value: 'breakfast' },
-      { label: '午餐', value: 'lunch' },
-      { label: '晚餐', value: 'dinner' },
-      { label: '加餐', value: 'snack' },
+    activeView: 'month',
+    viewTabs: [
+      { label: '▣ 月', value: 'month' },
+      { label: '◷ 周', value: 'week' },
+      { label: '⌁ 味觉云', value: 'taste' },
     ],
+    weekLabels: ['一', '二', '三', '四', '五', '六', '日'],
     records: [],
-    displayRecords: [],
+    weekRecords: [],
+    tasteCloud: [],
     calendarDays: [],
     selectedRecord: null,
     selectedDateKey: '',
     selectedDateLabel: '',
     selectedDayRecords: [],
     currentMonth: '',
+    viewYear: new Date().getFullYear(),
+    viewMonth: new Date().getMonth(),
+    monthCount: 0,
+    page: 1,
+    pageSize: 50,
+    hasMore: true,
+    loadingMore: false,
     stats: {
       totalCount: 0,
       weeklyCount: 0,
@@ -102,7 +116,7 @@ Page({
       const selectedDateKey = getLocalDateKey();
       this.setData({
         loading: false,
-        currentMonth: this.getMonthLabel(),
+        currentMonth: this.getMonthLabel(this.data.viewYear, this.data.viewMonth),
         selectedDateKey,
         selectedDateLabel: getSelectedDateLabel(selectedDateKey),
         calendarDays: this.buildCalendar([], selectedDateKey),
@@ -111,50 +125,51 @@ Page({
   },
 
   onShow() {
-    if (isLoggedIn()) this.loadRecords();
+    if (isLoggedIn()) this.loadRecords(true);
   },
 
-  filterRecords(records, filter) {
-    return filter === 'all' ? records : records.filter((record) => record.mealType === filter);
-  },
-
-  async loadRecords() {
+  async loadRecords(reset = false) {
+    if (this.data.loadingMore || (!reset && !this.data.hasMore)) return;
+    const page = reset ? 1 : this.data.page;
+    const month = `${this.data.viewYear}-${String(this.data.viewMonth + 1).padStart(2, '0')}`;
+    this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
-      const result = await fetchMealCheckins(100);
-      const records = (result.records || []).map(formatRecord);
+      const result = await fetchMealCheckins({ page, pageSize: this.data.pageSize, month });
+      const nextRecords = (result.records || []).map(formatRecord);
+      const records = reset ? nextRecords : [...this.data.records, ...nextRecords];
       const todayKey = getLocalDateKey();
-      const monthPrefix = todayKey.slice(0, 7);
-      const selectedDateKey = records.some((record) => record.recordDateKey === todayKey)
+      const selectedDateKey = month === todayKey.slice(0, 7) && records.some((record) => record.recordDateKey === todayKey)
         ? todayKey
-        : (records.find((record) => record.recordDateKey.startsWith(monthPrefix)) || {}).recordDateKey || todayKey;
+        : (records.find((record) => record.recordDateKey.startsWith(month)) || {}).recordDateKey || `${month}-01`;
       const selectedDayRecords = records.filter((record) => record.recordDateKey === selectedDateKey);
       this.setData({
         records,
-        displayRecords: this.filterRecords(records, this.data.activeFilter),
-        calendarDays: this.buildCalendar(records, selectedDateKey),
+        weekRecords: this.buildWeekRecords(records, selectedDateKey),
+        tasteCloud: this.buildTasteCloud(records),
+        calendarDays: this.buildCalendar(records, selectedDateKey, this.data.viewYear, this.data.viewMonth),
         selectedDateKey,
         selectedDateLabel: getSelectedDateLabel(selectedDateKey),
         selectedDayRecords,
         selectedRecord: selectedDayRecords[0] || null,
-        currentMonth: this.getMonthLabel(),
+        currentMonth: this.getMonthLabel(this.data.viewYear, this.data.viewMonth),
+        monthCount: Number(result.total) || records.length,
+        page: page + 1,
+        hasMore: Boolean(result.hasMore),
         stats: result.stats || this.data.stats,
       });
     } catch (error) {
       wx.showToast({ title: error.message || '打卡记录加载失败', icon: 'none' });
     } finally {
-      this.setData({ loading: false, refreshing: false });
+      this.setData({ loading: false, refreshing: false, loadingMore: false });
     }
   },
 
-  getMonthLabel() {
-    const date = new Date();
-    return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+  getMonthLabel(year = this.data.viewYear, month = this.data.viewMonth) {
+    return `${year} 年 ${month + 1} 月`;
   },
 
-  buildCalendar(records, selectedDateKey = getLocalDateKey()) {
+  buildCalendar(records, selectedDateKey = getLocalDateKey(), year = this.data.viewYear, month = this.data.viewMonth) {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
     const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
     const count = new Date(year, month + 1, 0).getDate();
     const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
@@ -170,20 +185,48 @@ Page({
       const dayRecords = recordsByDate[dateKey] || [];
       const recordsWithImage = dayRecords.filter((record) => record.imageUrl);
       const representative = recordsWithImage.length
-        ? recordsWithImage[Math.floor(Math.random() * recordsWithImage.length)]
+        ? recordsWithImage[stableIndex(dateKey, recordsWithImage.length)]
         : null;
       days.push({
         day,
         dateKey,
         hasMeal: dayRecords.length > 0,
-        today: day === now.getDate(),
+        today: day === now.getDate() && month === now.getMonth() && year === now.getFullYear(),
         selected: dateKey === selectedDateKey,
         representativeImage: representative ? representative.imageUrl : '',
         representativeName: representative ? representative.dishName : '',
-        thumbPosition: THUMB_POSITIONS[Math.floor(Math.random() * THUMB_POSITIONS.length)],
+        thumbPosition: THUMB_POSITIONS[stableIndex(`${dateKey}:position`, THUMB_POSITIONS.length)],
       });
     }
     return days;
+  },
+
+  buildWeekRecords(records, anchorDateKey) {
+    const [year, month, day] = String(anchorDateKey || getLocalDateKey()).split('-').map(Number);
+    const anchor = new Date(year, month - 1, day);
+    const weekday = anchor.getDay() || 7;
+    const monday = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - weekday + 1);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    const start = getLocalDateKey(monday);
+    const end = getLocalDateKey(sunday);
+    return records.filter((record) => record.recordDateKey >= start && record.recordDateKey <= end);
+  },
+
+  buildTasteCloud(records) {
+    const counts = records.reduce((result, record) => {
+      const name = String(record.dishName || '').trim();
+      if (name) result[name] = (result[name] || 0) + 1;
+      return result;
+    }, {});
+    const max = Math.max(1, ...Object.values(counts));
+    return Object.entries(counts)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 18)
+      .map(([name, count]) => ({ name, count, weight: 1 + Math.round((count / max) * 2) }));
+  },
+
+  selectView(event) {
+    this.setData({ activeView: event.currentTarget.dataset.value });
   },
 
   selectDay(event) {
@@ -194,6 +237,7 @@ Page({
       selectedDateKey: date,
       selectedDateLabel: getSelectedDateLabel(date),
       selectedDayRecords,
+      weekRecords: this.buildWeekRecords(this.data.records, date),
       selectedRecord: selectedDayRecords[0] || null,
       calendarDays: this.data.calendarDays.map((item) => ({
         ...item,
@@ -209,16 +253,28 @@ Page({
 
   refreshRecords() {
     this.setData({ refreshing: true });
-    this.loadRecords();
+    this.loadRecords(true);
   },
 
-  selectFilter(event) {
-    const { value } = event.currentTarget.dataset;
-    this.setData({
-      activeFilter: value,
-      displayRecords: this.filterRecords(this.data.records, value),
-    });
+  loadMore() {
+    this.loadRecords(false);
   },
+
+  changeMonth(step) {
+    const date = new Date(this.data.viewYear, this.data.viewMonth + step, 1);
+    this.setData({
+      viewYear: date.getFullYear(),
+      viewMonth: date.getMonth(),
+      currentMonth: this.getMonthLabel(date.getFullYear(), date.getMonth()),
+      records: [],
+      weekRecords: [],
+      tasteCloud: [],
+    });
+    this.loadRecords(true);
+  },
+
+  previousMonth() { this.changeMonth(-1); },
+  nextMonth() { this.changeMonth(1); },
 
   previewImage(event) {
     const { url } = event.currentTarget.dataset;
@@ -240,5 +296,47 @@ Page({
 
   goCheckIn() {
     wx.reLaunch({ url: '/pages/home/index' });
+  },
+
+  editRecord(event) {
+    const { id } = event.currentTarget.dataset;
+    const record = this.data.records.find((item) => String(item.id) === String(id));
+    if (!record) return;
+    wx.showModal({
+      title: '修正菜品名称',
+      editable: true,
+      placeholderText: record.dishName,
+      content: record.dishName,
+      success: async ({ confirm, content }) => {
+        if (!confirm || !String(content || '').trim()) return;
+        try {
+          await updateMealCheckin(record.id, String(content).trim());
+          wx.showToast({ title: '已更新', icon: 'success' });
+          this.loadRecords(true);
+        } catch (error) {
+          wx.showToast({ title: error.message || '修改失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
+  deleteRecord(event) {
+    const { id } = event.currentTarget.dataset;
+    wx.showModal({
+      title: '删除这条打卡？',
+      content: '删除后图片和识别记录也会从云端移除。',
+      confirmText: '删除',
+      confirmColor: '#df6548',
+      success: async ({ confirm }) => {
+        if (!confirm) return;
+        try {
+          await deleteMealCheckin(id);
+          wx.showToast({ title: '已删除', icon: 'success' });
+          this.loadRecords(true);
+        } catch (error) {
+          wx.showToast({ title: error.message || '删除失败', icon: 'none' });
+        }
+      },
+    });
   },
 });

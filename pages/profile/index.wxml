@@ -1,4 +1,4 @@
-<view class="profile-page">
+<view class="profile-page {{appearanceClass}}">
   <t-navbar title="个人主页" left-arrow />
 
   <view class="profile-loading" wx:if="{{loading}}">

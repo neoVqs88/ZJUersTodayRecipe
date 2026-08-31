@@ -1,9 +1,12 @@
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import { publishPost } from '~/services/communityPosts';
+import appearanceBehavior from '~/behaviors/appearance';
 
 const POST_TYPES = [
   { label: '美食分享', value: 'food', icon: '🍲', emoji: '🍚', tone: 'orange' },
   { label: '探店打卡', value: 'explore', icon: '📍', emoji: '🍜', tone: 'green' },
   { label: '约饭拼桌', value: 'companion', icon: '🥂', emoji: '👥', tone: 'blue' },
+  { label: '新菜公投', value: 'poll', icon: '🗳️', emoji: '🥢', tone: 'orange' },
 ];
 
 const TOPIC_TAGS = [
@@ -31,6 +34,7 @@ function getFileExtension(file = {}) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     originFiles: [],
     gridConfig: { column: 4, width: 160, height: 160 },
@@ -219,41 +223,17 @@ Page({
       uploadedImages = await this.uploadImages(user.id);
       const location = this.data.shareLocation ? this.data.location : null;
       const topicTags = this.getSelectedTopicLabels();
-      const db = wx.cloud.database();
-      await db.collection('posts').add({
-        data: {
-          userId: user.id,
-          authorId: user.id,
-          authorName: user.name || 'zjuer_同学',
-          avatar: user.image || '/static/miniprogram-icon-zju-bowl-144.png',
-          campus: user.campus || '玉泉校区',
-          level: 1,
-          category: type.value,
-          content,
-          tags: [type.label, ...topicTags],
-          images: uploadedImages,
-          image: uploadedImages[0] || '',
-          shareLocation: Boolean(location),
-          location: location ? location.name : '',
-          locationAddress: location ? location.address : '',
-          latitude: location ? location.latitude : null,
-          longitude: location ? location.longitude : null,
-          dish: type.label,
-          visualDesc: location ? location.name : '校园美食新动态',
-          emoji: type.emoji,
-          tone: type.tone,
-          likes: 0,
-          commentsCount: 0,
-          collections: 0,
-          status: 'published',
-          post_status: 'published',
-          minParticipants: type.value === 'companion' ? this.data.companionMin : null,
-          maxParticipants: type.value === 'companion' ? this.data.companionMax : null,
-          participantCount: type.value === 'companion' ? 1 : 0,
-          participantIds: type.value === 'companion' ? [user.id] : [],
-          createdAt: db.serverDate(),
-          updatedAt: db.serverDate(),
-        },
+      await publishPost({
+        category: type.value,
+        content,
+        tags: [type.label, ...topicTags],
+        images: uploadedImages,
+        location,
+        dish: type.label,
+        emoji: type.emoji,
+        tone: type.tone,
+        minParticipants: this.data.companionMin,
+        maxParticipants: this.data.companionMax,
       });
       wx.removeStorageSync(DRAFT_KEY);
       wx.hideLoading();
@@ -261,10 +241,8 @@ Page({
     } catch (error) {
       wx.hideLoading();
       if (uploadedImages.length) wx.cloud.deleteFile({ fileList: uploadedImages }).catch(() => {});
-      const denied = error.errCode === -502003 || error.errCode === -502000
-        || /permission denied/i.test(error.errMsg || error.message || '');
       wx.showToast({
-        title: denied ? '请检查 posts 集合写入权限' : error.errMsg || error.message || '发布失败，请重试',
+        title: error.errMsg || error.message || '发布失败，请重试',
         icon: 'none',
         duration: 2600,
       });

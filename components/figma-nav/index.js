@@ -1,18 +1,36 @@
+import { getAppearanceClass, getPreferences } from '~/services/preferences';
+
 const ITEMS = [
-  { key: 'today', icon: '/static/figma/nav-home.svg', url: '/pages/home/index' },
-  { key: 'canteen', icon: '/static/figma/nav-discover.svg', url: '/pages/canteen/index' },
-  { key: 'history', icon: '/static/figma/nav-calendar.svg', url: '/pages/checkins/index' },
-  { key: 'community', icon: '/static/figma/nav-community.svg', url: '/pages/community/index' },
-  { key: 'health', icon: '/static/figma/nav-health.svg', url: '/pages/weeklyInsights/index' },
-  { key: 'my', icon: '/static/figma/nav-profile.svg', url: '/pages/my/index' },
+  { key: 'today', label: '今日推荐', icon: '/static/figma/nav-home.svg', url: '/pages/home/index' },
+  { key: 'canteen', label: '食堂与菜品', icon: '/static/figma/nav-discover.svg', url: '/pages/canteen/index' },
+  { key: 'history', label: '食历', icon: '/static/figma/nav-calendar.svg', url: '/pages/checkins/index' },
+  { key: 'community', label: '饭桌边', icon: '/static/figma/nav-community.svg', url: '/pages/community/index' },
+  { key: 'health', label: '饮食洞察', icon: '/static/figma/nav-health.svg', url: '/pages/weeklyInsights/index' },
+  { key: 'my', label: '我的', icon: '/static/figma/nav-profile.svg', url: '/pages/my/index' },
 ];
 
 Component({
   properties: {
     active: { type: String, value: 'today' },
   },
-  data: { items: ITEMS },
+  data: { items: ITEMS, appearanceClass: 'theme-light font-standard' },
+  lifetimes: {
+    attached() {
+      this.applyAppearance();
+      this.appearanceHandler = (preferences) => this.applyAppearance(preferences);
+      getApp().eventBus.on('preferences-change', this.appearanceHandler);
+    },
+    detached() {
+      if (this.appearanceHandler) getApp().eventBus.off('preferences-change', this.appearanceHandler);
+    },
+  },
+  pageLifetimes: {
+    show() { this.applyAppearance(); },
+  },
   methods: {
+    applyAppearance(preferences = getPreferences()) {
+      this.setData({ appearanceClass: getAppearanceClass(preferences) });
+    },
     changePage(event) {
       const { key, url } = event.currentTarget.dataset;
       if (key === this.data.active) return;

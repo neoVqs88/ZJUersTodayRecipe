@@ -1,4 +1,5 @@
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
+import appearanceBehavior from '~/behaviors/appearance';
 import {
   fetchSocialDashboard,
   followUser,
@@ -59,6 +60,7 @@ function formatDynamics(dynamics = []) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     loading: true,
     loadFailed: false,

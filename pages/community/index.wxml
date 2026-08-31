@@ -1,17 +1,17 @@
-<view class="community-page">
-  <scroll-view class="community-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+<view class="community-page {{appearanceClass}}">
+  <scroll-view class="community-scroll" scroll-y enhanced show-scrollbar="{{false}}" lower-threshold="120" bindscrolltolower="loadMore">
     <view class="community-head"><view><text>饭桌边</text><text>把一顿饭，坐成一张有回声的桌。</text></view><view class="message-entry" bindtap="goMessages"><image src="/static/figma/community-message.svg" mode="aspectFit" /><view wx:if="{{unreadNum > 0}}" class="message-entry__badge"></view></view><view class="release-btn" bindtap="goRelease">＋ 发饭帖</view></view>
     <view class="community-tabs"><view wx:for="{{communityTabs}}" wx:key="value" class="{{activeCommunityTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectCommunityTab">{{item.label}}</view></view>
-    <view class="trend-strip"><text class="bar"></text><text>饭桌气象 · 热汤 ↑　独食 ↓　慢一点</text></view>
+    <view class="trend-strip"><text class="bar"></text><text>饭桌气象 · 分享、约饭与新菜公投</text></view>
     <view class="post-card" wx:for="{{displayPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="openComments">
-      <view class="post-tag"># {{item.tags && item.tags[0] ? item.tags[0] : item.category === 'companion' ? '约饭拼桌' : '雨天吃什么'}}</view>
+      <view class="post-tag"># {{item.tags && item.tags[0] ? item.tags[0] : item.categoryLabel}}</view>
       <text class="post-title">{{item.dish || item.title || '今天这一餐，被认真记住了'}}</text>
-      <text class="post-author">{{item.authorName || '匿名同学'}} · {{item.locationName || '玉泉'}} · {{item.displayTime}}</text>
+      <text class="post-author" catchtap="openAuthorProfile" data-id="{{item._id}}">{{item.authorName || '匿名同学'}} · {{item.locationName || '玉泉'}} · {{item.displayTime}}</text><text class="post-menu" catchtap="showPostMenu" data-id="{{item._id}}">···</text>
       <view class="post-body" wx:if="{{item.image}}"><view><text>味觉票据</text><text>{{item.content}}</text><text>{{item.locationName || '校园食堂'}}</text></view><image src="{{item.image}}" mode="aspectFill" /></view>
       <text wx:else class="post-content">{{item.content}}</text>
-      <view class="post-actions"><view catchtap="toggleLike" data-id="{{item._id}}">{{item.liked ? '♥' : '♨'}} 喜欢 {{item.likes || 0}}</view><view>♙ 回应 {{item.commentsCount || 0}}</view><view catchtap="toggleCollect">⊙ 收好</view></view>
+      <view class="post-actions"><view catchtap="toggleLike" data-id="{{item._id}}">{{item.liked ? '♥' : '♨'}} 喜欢 {{item.likes || 0}}</view><view>♙ 回应 {{item.commentsCount || 0}}</view><view catchtap="toggleCollect" data-id="{{item._id}}">{{item.collected ? '●' : '⊙'}} 收好 {{item.collections || 0}}</view></view>
     </view>
     <view wx:if="{{!loading && !displayPosts.length}}" class="empty-feed">今天还没有新饭帖，来做第一个分享的人。</view>
-    <view class="feed-more">继续往下，是今天新鲜的饭帖　›</view><view class="nav-space"></view>
+    <view wx:if="{{loadingMore}}" class="feed-more">正在加载更多饭帖…</view><view wx:elif="{{hasMore}}" class="feed-more">继续往下，是今天新鲜的饭帖　›</view><view wx:else class="feed-more">今天的饭帖已经看完啦</view><view class="nav-space"></view>
   </scroll-view><figma-nav active="community" />
 </view>

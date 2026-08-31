@@ -1,10 +1,16 @@
 // 社区页：动态来自云数据库 posts 集合
-// 集合权限：所有用户可读（大家都能刷社区），仅创建者可写（只能改自己的动态）
-// 点赞走云函数 likePost（因为要修改别人的动态、还要给作者写消息）
+// 集合权限：所有用户可读、客户端不可写；发布和互动由云函数校验身份后完成。
 
 import { fetchCommentCounts } from '~/services/comments';
 import { isLoggedIn } from '~/services/auth';
 import { recordBrowsingHistory } from '~/services/userSocial';
+import {
+  fetchCommunityStates,
+  hidePost,
+  reportPost,
+  togglePostFavorite,
+} from '~/services/communityPosts';
+import appearanceBehavior from '~/behaviors/appearance';
 import formatTime from '../../utils/formatTime';
 
 const CATEGORIES = [
@@ -13,14 +19,20 @@ const CATEGORIES = [
   { label: '约饭拼桌', value: 'companion', icon: '🥂' },
   { label: '探店打卡', value: 'explore', icon: '▤' },
 ];
+const CATEGORY_LABELS = { food: '美食分享', companion: '约饭拼桌', explore: '探店打卡', poll: '新菜公投' };
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     categories: CATEGORIES,
     activeCategory: 'all',
     posts: [],
     displayPosts: [],
     loading: true,
+    loadingMore: false,
+    page: 0,
+    pageSize: 20,
+    hasMore: true,
     activeCommunityTab: 'posts',
     unreadNum: 0,
     communityTabs: [
@@ -33,10 +45,12 @@ Page({
   // 每次进入页面都拉最新数据（从发布页返回、别人点了赞，都能反映出来）
   onShow() {
     this.loadUnreadNum();
-    this.fetchPosts();
+    this.fetchPosts(true);
   },
 
   onLoad(options) {
+    this.unreadHandler = (unreadNum) => this.setData({ unreadNum: Math.max(0, Number(unreadNum) || 0) });
+    getApp().eventBus.on('unread-num-change', this.unreadHandler);
     if (!options.oper) return;
     wx.showToast({
       title: options.oper === 'release' ? '发布成功' : '保存成功',
@@ -44,15 +58,28 @@ Page({
     });
   },
 
-  async fetchPosts() {
+  onUnload() {
+    if (this.unreadHandler) getApp().eventBus.off('unread-num-change', this.unreadHandler);
+  },
+
+  async fetchPosts(reset = false) {
+    if (this.data.loadingMore || (!reset && !this.data.hasMore)) return;
+    const page = reset ? 0 : this.data.page;
+    this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('posts').orderBy('createdAt', 'desc').get();
+      const command = db.command;
+      const res = await db.collection('posts')
+        .where({ status: command.in(['published', 'active']) })
+        .orderBy('createdAt', 'desc')
+        .skip(page * this.data.pageSize)
+        .limit(this.data.pageSize)
+        .get();
       const visibleData = res.data.filter((post) => {
         const status = post.post_status || post.status || 'published';
         return status === 'published' || status === 'active';
       });
-      const posts = visibleData.map((p) => {
+      const nextPosts = visibleData.map((p) => {
         const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
         let locationName = p.locationName || '';
         if (typeof p.location === 'string') locationName = p.location;
@@ -63,21 +90,33 @@ Page({
           image: p.image || images[0] || '',
           locationName,
           displayTime: formatTime(p.createdAt),
+          categoryLabel: CATEGORY_LABELS[p.category] || '校园美食',
           liked: false,
+          collected: false,
+          hidden: false,
         };
       });
+      const posts = reset ? nextPosts : [...this.data.posts, ...nextPosts];
       this.setData({
         posts,
         displayPosts: this.filterPosts(posts, this.data.activeCategory),
         loading: false,
+        loadingMore: false,
+        page: page + 1,
+        hasMore: res.data.length === this.data.pageSize,
       });
       this.syncLikeStates();
-      this.syncCommentCounts();
+      this.syncCommentCounts(nextPosts.map((post) => post._id));
+      this.syncCommunityStates();
     } catch (err) {
       console.error('拉取动态失败', err);
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadingMore: false });
       wx.showToast({ title: '动态加载失败', icon: 'none' });
     }
+  },
+
+  loadMore() {
+    this.fetchPosts(false);
   },
 
   async loadUnreadNum() {
@@ -86,8 +125,8 @@ Page({
       return;
     }
     try {
-      const result = await wx.cloud.database().collection('messages').where({ read: false }).count();
-      this.setData({ unreadNum: Math.max(0, Number(result.total) || 0) });
+      const unreadNum = await getApp().getUnreadNum();
+      this.setData({ unreadNum: Math.max(0, Number(unreadNum) || 0) });
     } catch (error) {
       // 消息集合尚未创建或暂时不可访问时，不显示错误的红点。
       this.setData({ unreadNum: 0 });
@@ -96,15 +135,28 @@ Page({
 
   selectCommunityTab(event) {
     const value = event.currentTarget.dataset.value;
-    if (value === 'poll') {
-      wx.showToast({ title: '新菜公投正在筹备', icon: 'none' });
-      return;
-    }
+    const category = value === 'posts' ? 'all' : value;
     this.setData({
       activeCommunityTab: value,
-      activeCategory: value === 'companion' ? 'companion' : 'all',
-      displayPosts: this.filterPosts(this.data.posts, value === 'companion' ? 'companion' : 'all'),
+      activeCategory: category,
+      displayPosts: this.filterPosts(this.data.posts, category),
     });
+  },
+
+  async syncCommunityStates() {
+    if (!isLoggedIn() || !this.data.posts.length) return;
+    try {
+      const result = await fetchCommunityStates(this.data.posts.map((post) => post._id));
+      const states = result.states || {};
+      const posts = this.data.posts.map((post) => ({
+        ...post,
+        collected: Boolean(states[String(post._id)] && states[String(post._id)].collected),
+        hidden: Boolean(states[String(post._id)] && states[String(post._id)].hidden),
+      }));
+      this.setData({ posts, displayPosts: this.filterPosts(posts, this.data.activeCategory) });
+    } catch (error) {
+      // 登录态同步失败不影响帖子浏览。
+    }
   },
 
   async syncLikeStates() {
@@ -134,9 +186,9 @@ Page({
   },
 
   // 补充每条动态的真实评论数（来自队友的评论云函数）
-  async syncCommentCounts() {
+  async syncCommentCounts(postIds = []) {
     try {
-      const postIds = this.data.posts.map((p) => p._id);
+      if (!postIds.length) return;
       const { counts } = await fetchCommentCounts(postIds);
       const posts = this.data.posts.map((p) => ({
         ...p,
@@ -160,7 +212,8 @@ Page({
   },
 
   filterPosts(posts, category) {
-    return category === 'all' ? posts : posts.filter((post) => post.category === category);
+    const visible = posts.filter((post) => !post.hidden);
+    return category === 'all' ? visible : visible.filter((post) => post.category === category);
   },
 
   updatePost(postId, updater) {
@@ -194,8 +247,23 @@ Page({
     }
   },
 
-  toggleCollect() {
-    wx.showToast({ title: '收藏功能即将接入', icon: 'none' });
+  async toggleCollect(event) {
+    const { id } = event.currentTarget.dataset;
+    if (!isLoggedIn()) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    try {
+      const result = await togglePostFavorite(id);
+      this.updatePost(id, (post) => ({
+        ...post,
+        collected: result.collected,
+        collections: result.collections,
+      }));
+      wx.showToast({ title: result.collected ? '已收好' : '已取消收藏', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '收藏失败，请重试', icon: 'none' });
+    }
   },
 
   openComments(event) {
@@ -250,13 +318,36 @@ Page({
     });
   },
 
-  showPostMenu() {
+  showPostMenu(event) {
+    const { id } = event.currentTarget.dataset;
+    if (!isLoggedIn()) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     wx.showActionSheet({
       itemList: ['不感兴趣', '举报内容'],
-      success: ({ tapIndex }) => {
-        wx.showToast({
-          title: tapIndex === 0 ? '将减少此类推荐' : '已进入举报流程',
-          icon: 'none',
+      success: async ({ tapIndex }) => {
+        if (tapIndex === 0) {
+          try {
+            await hidePost(id);
+            this.updatePost(id, (post) => ({ ...post, hidden: true }));
+            wx.showToast({ title: '已减少此类内容', icon: 'success' });
+          } catch (error) {
+            wx.showToast({ title: error.message || '操作失败', icon: 'none' });
+          }
+          return;
+        }
+        wx.showActionSheet({
+          itemList: ['广告营销', '辱骂攻击', '隐私泄露', '虚假信息', '不适内容', '其他'],
+          success: async ({ tapIndex: reasonIndex }) => {
+            const reasons = ['广告营销', '辱骂攻击', '隐私泄露', '虚假信息', '不适内容', '其他'];
+            try {
+              await reportPost(id, reasons[reasonIndex]);
+              wx.showToast({ title: '举报已提交', icon: 'success' });
+            } catch (error) {
+              wx.showToast({ title: error.message || '举报失败', icon: 'none' });
+            }
+          },
         });
       },
     });

@@ -1,5 +1,5 @@
 <t-navbar left-arrow title="账号登录" />
-<view class="page login">
+<view class="page login {{appearanceClass}}">
   <view class="login__brand">
     <view class="login__logo">zjuer</view>
     <view class="login__title">今天吃什么</view>

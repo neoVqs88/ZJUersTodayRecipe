@@ -53,6 +53,14 @@ export function deleteAdminPost(postId, reason) {
   return callAdmin('deletePost', { postId, reason });
 }
 
+export function fetchAdminReports(page = 1, pageSize = 20, status = 'pending') {
+  return callAdmin('listReports', { page, pageSize, status });
+}
+
+export function resolveAdminReport(reportId, resolution) {
+  return callAdmin('resolveReport', { reportId, resolution });
+}
+
 export function migrateLegacyPostLikes(page = 1) {
   return callAdmin('migrateLegacyLikes', { page });
 }

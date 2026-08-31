@@ -1,20 +1,20 @@
-<view class="campus-map-page">
+<view class="campus-map-page {{appearanceClass}}">
   <view class="map-head">
     <view class="back" bindtap="goBack">‹</view>
-    <view><text class="map-title">玉泉开饭地图</text><text class="map-desc">静态 3D 校园图 · 点击地点查看信息</text></view>
+    <view><text class="map-title">玉泉开饭地图</text><text class="map-desc">校内导览图 · 点击地点查看食堂信息</text></view>
   </view>
 
-  <view class="filter-row"><view wx:for="{{filters}}" wx:key="*this">{{index === 0 ? '⌖' : index === 1 ? '◷' : '♧'}} {{item}}</view></view>
+  <view class="filter-row"><view wx:for="{{filters}}" wx:key="*this" class="{{activeFilter === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectFilter">{{index === 0 ? '⌖' : index === 1 ? '◷' : '♧'}} {{item}}</view></view>
 
   <view class="map-stage">
     <image class="campus-map" src="/static/figma/yq-campus-map.webp" mode="aspectFill" />
     <view class="route-guide {{routeVisible ? 'route-guide--visible' : ''}}"></view>
     <view
       wx:for="{{eateries}}"
-      wx:key="name"
-      class="map-pin {{selectedIndex === index ? 'map-pin--active' : ''}}"
+      wx:key="id"
+      class="map-pin {{selected.id === item.id ? 'map-pin--active' : ''}}"
       style="left:{{item.left}}%;top:{{item.top}}%;"
-      data-index="{{index}}"
+      data-id="{{item.id}}"
       bindtap="selectEatery"
     >
       <view class="pin-dot">⌾</view><text>{{item.name}}</text>
@@ -23,7 +23,7 @@
 
   <view class="eatery-card">
     <view class="grabber"></view>
-    <view class="eatery-heading"><text>{{selected.name}}</text><text>◷ 营业中</text></view>
+    <view class="eatery-heading"><text>{{selected.name}}</text><text>◷ {{selected.open === false ? '已打烊' : '营业中'}}</text></view>
     <text class="eatery-subtitle">{{selected.subtitle}}</text>
     <view class="eatery-stats">
       <view><text class="people">{{selected.people}}</text><text>人</text><text>此刻人数</text></view>

@@ -37,7 +37,7 @@
     {
       "root": "pages/social",
       "name": "social",
-      "pages": ["list/index", "privacy/index", "history/index"]
+      "pages": ["list/index", "privacy/index", "history/index", "favorites/index", "feedback/index"]
     },
     {
       "root": "pages/checkins",
@@ -55,19 +55,9 @@
       "pages": ["index"]
     },
     {
-      "root": "pages/chat",
-      "name": "chat",
-      "pages": ["index"]
-    },
-    {
       "root": "pages/login",
       "name": "login",
       "pages": ["login"]
-    },
-    {
-      "root": "pages/dataCenter",
-      "name": "dataCenter",
-      "pages": ["index"]
     },
     {
       "root": "pages/setting",

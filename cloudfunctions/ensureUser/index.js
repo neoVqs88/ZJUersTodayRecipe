@@ -8,7 +8,20 @@ const { command } = db;
 const USERS_COLLECTION = 'users';
 const FOLLOWS_COLLECTION = 'follows';
 const POST_LIKES_COLLECTION = 'postLikes';
-const OWNED_COLLECTIONS = ['mealRecords', 'checkins', 'posts', 'comments', 'browsingHistory', 'messages'];
+const OWNED_COLLECTIONS = [
+  'mealRecords',
+  'checkins',
+  'posts',
+  'comments',
+  'browsingHistory',
+  'messages',
+  'postFavorites',
+  'dishFavorites',
+  'hiddenPosts',
+  'reports',
+  'feedback',
+  'postPollVotes',
+];
 const ACCOUNT_DELETE_CONFIRMATION = 'DELETE_ACCOUNT';
 const DEFAULT_PRIVACY = {
   profileVisibility: 'public',
@@ -150,6 +163,22 @@ async function deleteMealImages(userId) {
   }
 }
 
+async function deletePostImages(userId) {
+  try {
+    const result = await db.collection('posts').where({ userId }).limit(1000).get();
+    const fileList = Array.from(new Set(result.data.flatMap((post) => [
+      ...(Array.isArray(post.images) ? post.images : []),
+      post.image,
+    ]).filter((fileID) => /^cloud:\/\//.test(fileID))));
+    for (let index = 0; index < fileList.length; index += 50) {
+      // eslint-disable-next-line no-await-in-loop
+      await cloud.deleteFile({ fileList: fileList.slice(index, index + 50) });
+    }
+  } catch (error) {
+    if (!isMissingCollection(error)) throw error;
+  }
+}
+
 async function deleteUserLikes(userId) {
   try {
     for (let batch = 0; batch < 100; batch += 1) {
@@ -225,6 +254,7 @@ async function deleteAccount(event, context, userId) {
   await userRef.update({ data: { status: 'deleting', updatedAt: db.serverDate() } });
   try {
     await deleteMealImages(userId);
+    await deletePostImages(userId);
     await deleteUserLikes(userId);
     await Promise.all(OWNED_COLLECTIONS.map((collectionName) => removeWhere(collectionName, {
       _openid: context.OPENID,
@@ -237,6 +267,12 @@ async function deleteAccount(event, context, userId) {
       removeWhere('posts', { user_id: userId }),
       removeWhere('comments', { userId }),
       removeWhere('browsingHistory', { userId }),
+      removeWhere('postFavorites', { userId }),
+      removeWhere('dishFavorites', { userId }),
+      removeWhere('hiddenPosts', { userId }),
+      removeWhere('reports', { userId }),
+      removeWhere('feedback', { userId }),
+      removeWhere('postPollVotes', { userId }),
       removeWhere('messages', { actorUserId: userId }),
       removeWhere(FOLLOWS_COLLECTION, { followerId: userId }),
       removeWhere(FOLLOWS_COLLECTION, { followingId: userId }),

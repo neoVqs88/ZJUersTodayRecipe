@@ -1,4 +1,4 @@
-<view class="admin-posts">
+<view class="admin-posts {{appearanceClass}}">
   <t-navbar title="帖子管理" left-arrow />
 
   <view class="admin-posts__summary">
@@ -11,6 +11,16 @@
       <text>退出管理</text>
     </view>
   </view>
+
+  <view class="admin-posts__tabs"><view class="{{activeMode === 'posts' ? 'active' : ''}}" data-mode="posts" bindtap="switchMode">帖子管理</view><view class="{{activeMode === 'reports' ? 'active' : ''}}" data-mode="reports" bindtap="switchMode">待处理举报</view></view>
+
+  <block wx:if="{{activeMode === 'reports'}}">
+    <view wx:if="{{loading}}" class="admin-posts__state"><t-loading theme="circular" size="42rpx" /><text>正在加载举报</text></view>
+    <view wx:elif="{{!reports.length}}" class="admin-posts__state admin-posts__state--empty"><view class="admin-posts__empty-icon"><t-icon name="check-circle" size="62rpx" /></view><text class="admin-posts__empty-title">没有待处理举报</text><text class="admin-posts__empty-desc">社区内容目前状态良好</text></view>
+    <view wx:else class="admin-posts__list"><view class="admin-card report-card" wx:for="{{reports}}" wx:key="id"><view class="admin-card__body"><view class="admin-card__content">{{item.targetType === 'comment' ? '评论举报' : '帖子举报'}}：{{item.reason}}</view><view class="admin-card__location">{{item.displayTime}}</view><view class="admin-card__content">{{item.targetContent || '被举报内容已不存在'}}</view></view><view class="admin-card__actions"><t-button variant="outline" size="small" data-id="{{item.id}}" data-resolution="dismiss" bindtap="handleReport">驳回举报</t-button><t-button theme="danger" size="small" data-id="{{item.id}}" data-resolution="delete" bindtap="handleReport">删除内容</t-button></view></view><view class="admin-posts__more" wx:if="{{loadingMore}}"><t-loading theme="circular" size="30rpx" /><text>加载更多</text></view><view class="admin-posts__more" wx:elif="{{!hasMore}}">已经到底了</view></view>
+  </block>
+
+  <block wx:else>
 
   <view class="admin-posts__migration" bindtap="migrateLikes">
     <view class="admin-posts__migration-icon"><t-icon name="swap" size="30rpx" /></view>
@@ -83,4 +93,5 @@
     </view>
     <view class="admin-posts__more" wx:elif="{{!hasMore}}">已经到底了</view>
   </view>
+  </block>
 </view>

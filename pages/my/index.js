@@ -5,7 +5,7 @@ import { fetchWeeklyInsights } from '~/services/weeklyInsights';
 
 const MENU_GROUPS = [
   [
-    { name: '我的收藏', caption: '收好的味道', icon: 'star', type: 'favorites' },
+    { name: '我的收藏', caption: '收好的味道', icon: 'star', type: 'favorites', url: '/pages/social/favorites/index' },
     { name: '关注与饭友', caption: '一起吃饭的人', icon: 'usergroup', type: 'following', url: '/pages/social/list/index?type=following' },
     { name: '消息', caption: '互动与邀约', icon: 'notification', type: 'message', url: '/pages/message/index' },
     { name: '浏览足迹', caption: '最近看过', icon: 'time', type: 'history', url: '/pages/social/history/index' },
@@ -14,7 +14,7 @@ const MENU_GROUPS = [
     { name: '管理入口', caption: '内容治理', icon: 'secured', type: 'admin', url: '/pages/admin/login/index' },
     { name: '隐私与通知', caption: '可见范围', icon: 'lock-on', type: 'privacy', url: '/pages/social/privacy/index' },
     { name: '账号设置', caption: '外观与账号', icon: 'setting', type: 'settings', url: '/pages/setting/index' },
-    { name: '意见反馈', caption: '告诉我们', icon: 'chat', type: 'feedback' },
+    { name: '意见反馈', caption: '告诉我们', icon: 'chat', type: 'feedback', url: '/pages/social/feedback/index' },
   ],
 ];
 
@@ -39,8 +39,12 @@ Page({
     weeklyGoal: 7,
     weeklyInsights: null,
     tasteBars: [
-      { label: '清淡', value: 88 }, { label: '微辣', value: 64 }, { label: '甜口', value: 42 },
+      { label: '早餐', value: 0, percent: '0%' },
+      { label: '午餐', value: 0, percent: '0%' },
+      { label: '晚餐', value: 0, percent: '0%' },
     ],
+    tasteCaption: '记录一餐后生成本周用餐节奏',
+    socialCount: 0,
     menuGroups: MENU_GROUPS,
   },
 
@@ -65,6 +69,7 @@ Page({
       weekDays: this.buildWeekDays(cachedUser.weeklyCheckIns),
       streakDays: loggedIn ? cachedUser.streakDays || 0 : 0,
       weeklyCheckInCount: loggedIn ? this.countCheckedDays(cachedUser.weeklyCheckIns) : 0,
+      socialCount: loggedIn ? (Number(cachedUser.favoriteCount) || 0) + (Number(cachedUser.followingCount) || 0) : 0,
     });
     if (!loggedIn) return;
 
@@ -75,6 +80,7 @@ Page({
         stats: this.buildStats(personalInfo, true),
         weekDays: this.buildWeekDays(personalInfo.weeklyCheckIns),
         streakDays: personalInfo.streakDays || 0,
+        socialCount: (Number(personalInfo.favoriteCount) || 0) + (Number(personalInfo.followingCount) || 0),
       });
     } catch (error) {
       // 接口失败时继续展示登录接口缓存的基础用户信息。
@@ -94,7 +100,7 @@ Page({
     return [
       { label: '我的打卡', value: loggedIn ? user.checkInCount || 0 : 0, unit: '次', icon: 'calendar', color: 'green', type: 'checkins' },
       { label: '我的帖子', value: loggedIn ? user.postCount || 0 : 0, unit: '篇', icon: 'root-list', color: 'blue', type: 'posts' },
-      { label: '我的收藏', value: loggedIn ? user.favoriteCount || 0 : 0, unit: '个', icon: 'star', color: 'orange' },
+      { label: '我的收藏', value: loggedIn ? user.favoriteCount || 0 : 0, unit: '个', icon: 'star', color: 'orange', type: 'favorites' },
     ];
   },
 
@@ -136,10 +142,28 @@ Page({
   async loadWeeklyInsights() {
     try {
       const weeklyInsights = await fetchWeeklyInsights();
-      this.setData({ weeklyInsights });
+      const rhythm = this.buildMealRhythm(weeklyInsights.dailyMeals || []);
+      this.setData({ weeklyInsights, tasteBars: rhythm.bars, tasteCaption: rhythm.caption });
     } catch (error) {
       // 没有打卡记录或云函数未部署时，不影响个人中心其他内容。
     }
+  },
+
+  buildMealRhythm(days) {
+    const types = [
+      { type: 'breakfast', label: '早餐' },
+      { type: 'lunch', label: '午餐' },
+      { type: 'dinner', label: '晚餐' },
+    ];
+    const counts = types.map(({ type }) => days.filter((day) => day.meals && day.meals[type] !== undefined).length);
+    const total = counts.reduce((sum, count) => sum + count, 0);
+    return {
+      bars: types.map((item, index) => {
+        const percent = total ? Math.round((counts[index] / total) * 100) : 0;
+        return { ...item, value: percent, percent: `${percent}%` };
+      }),
+      caption: total ? `本周已记录 ${total} 个正餐时段` : '记录一餐后生成本周用餐节奏',
+    };
   },
 
   openWeeklyInsights() {
@@ -179,7 +203,11 @@ Page({
       this.openMyProfile();
       return;
     }
-    wx.showToast({ title: `${label}页面待完善`, icon: 'none' });
+    if (type === 'favorites') {
+      wx.navigateTo({ url: '/pages/social/favorites/index' });
+      return;
+    }
+    wx.showToast({ title: `${label}暂时没有内容`, icon: 'none' });
   },
 
   openCheckinHistory() {
@@ -202,6 +230,6 @@ Page({
       wx.navigateTo({ url: item.url });
       return;
     }
-    wx.showToast({ title: `${item.name}功能待完善`, icon: 'none' });
+    wx.showToast({ title: `${item.name}暂时没有内容`, icon: 'none' });
   },
 });

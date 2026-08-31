@@ -7,6 +7,9 @@ const db = cloud.database();
 const command = db.command;
 const POSTS_COLLECTION = 'posts';
 const POST_LIKES_COLLECTION = 'postLikes';
+const POST_FAVORITES_COLLECTION = 'postFavorites';
+const HIDDEN_POSTS_COLLECTION = 'hiddenPosts';
+const POLL_VOTES_COLLECTION = 'postPollVotes';
 const COMMENTS_COLLECTION = 'comments';
 const MESSAGES_COLLECTION = 'messages';
 const HISTORY_COLLECTION = 'browsingHistory';
@@ -14,6 +17,7 @@ const USERS_COLLECTION = 'users';
 const CONFIG_COLLECTION = 'systemConfig';
 const SECURITY_COLLECTION = 'adminSecurity';
 const LOGS_COLLECTION = 'moderationLogs';
+const REPORTS_COLLECTION = 'reports';
 const CONFIG_DOCUMENT = 'communityAdmin';
 const MAX_FAILED_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
@@ -123,7 +127,10 @@ async function readConfig() {
     throw error;
   }
   const sessionHours = Math.min(Math.max(Number(config.sessionHours) || 4, 1), 24);
-  return { accessKeyHash, sessionHours };
+  const adminUserIds = Array.isArray(config.adminUserIds)
+    ? config.adminUserIds.map((item) => cleanId(item, 32)).filter(Boolean)
+    : [];
+  return { accessKeyHash, sessionHours, adminUserIds };
 }
 
 async function getActiveUser(userId) {
@@ -173,6 +180,9 @@ async function recordLoginResult(userId, openid, previous, success) {
 async function login(event, context, userId) {
   await getActiveUser(userId);
   const config = await readConfig();
+  if (config.adminUserIds.length && !config.adminUserIds.includes(userId)) {
+    return { success: false, code: 'ADMIN_NOT_ALLOWED', message: '当前账号不在管理员白名单中' };
+  }
   const previous = await checkRateLimit(userId);
   const key = cleanText(event.key, 128);
   const valid = Boolean(key) && constantTimeEqual(sha256(key), config.accessKeyHash);
@@ -217,6 +227,71 @@ async function listPosts(event) {
     total: countResult.total,
     hasMore: page * pageSize < countResult.total,
   };
+}
+
+async function listReports(event) {
+  const page = Math.max(Number(event.page) || 1, 1);
+  const pageSize = Math.min(Math.max(Number(event.pageSize) || 20, 1), 50);
+  const status = cleanText(event.status, 20) || 'pending';
+  const condition = status === 'all' ? {} : { status };
+  const [result, countResult] = await Promise.all([
+    db.collection(REPORTS_COLLECTION).where(condition).orderBy('createdAt', 'desc')
+      .skip((page - 1) * pageSize).limit(pageSize).get(),
+    db.collection(REPORTS_COLLECTION).where(condition).count(),
+  ]);
+  const postIds = Array.from(new Set(result.data.map((item) => item.postId).filter(Boolean)));
+  const postResult = postIds.length
+    ? await db.collection(POSTS_COLLECTION).where({ _id: command.in(postIds) }).get()
+    : { data: [] };
+  const posts = Object.fromEntries(postResult.data.map((post) => [post._id, toAdminPost(post)]));
+  const commentIds = Array.from(new Set(result.data.map((item) => item.commentId).filter(Boolean)));
+  const commentResult = commentIds.length
+    ? await db.collection(COMMENTS_COLLECTION).where({ _id: command.in(commentIds) }).get()
+    : { data: [] };
+  const comments = Object.fromEntries(commentResult.data.map((comment) => [comment._id, comment]));
+  return {
+    success: true,
+    reports: result.data.map((report) => ({
+      id: report._id,
+      postId: report.postId,
+      reason: cleanText(report.reason, 40),
+      details: cleanText(report.details, 200),
+      status: report.status || 'pending',
+      targetType: report.targetType || (report.commentId ? 'comment' : 'post'),
+      createdAt: report.createdAt || null,
+      post: posts[report.postId] || null,
+      targetContent: report.commentId
+        ? cleanText(comments[report.commentId] && comments[report.commentId].content, 300)
+        : cleanText(posts[report.postId] && posts[report.postId].content, 300),
+    })),
+    total: countResult.total,
+    hasMore: page * pageSize < countResult.total,
+  };
+}
+
+async function resolveReport(event, moderatorId, moderator) {
+  const reportId = cleanId(event.reportId);
+  const resolution = event.resolution === 'delete' ? 'delete' : 'dismiss';
+  const report = await readDocument(REPORTS_COLLECTION, reportId);
+  if (!report) return { success: true, resolved: true };
+  if (resolution === 'delete' && report.targetType === 'comment' && report.commentId) {
+    await db.collection(COMMENTS_COLLECTION).doc(report.commentId).update({
+      data: { status: 'deleted', content: '', deletedAt: db.serverDate(), updatedAt: db.serverDate() },
+    });
+  } else if (resolution === 'delete' && report.postId) {
+    await deletePost({ postId: report.postId, reason: `举报处理：${cleanText(report.reason, 40)}` }, moderatorId, moderator);
+  }
+  await db.collection(REPORTS_COLLECTION).doc(reportId).update({
+    data: {
+      status: resolution === 'delete' ? 'actioned' : 'dismissed',
+      resolution,
+      moderatorId,
+      moderatorName: moderator.name || moderator.nickName || '管理员',
+      resolvedAt: db.serverDate(),
+      updatedAt: db.serverDate(),
+    },
+  });
+  return { success: true, resolved: true, resolution };
 }
 
 async function migrateLegacyLikes(event) {
@@ -294,6 +369,9 @@ async function deletePost(event, moderatorId, moderator) {
     await Promise.all([
       removeWhereIfPresent(COMMENTS_COLLECTION, { postId }),
       removeWhereIfPresent(POST_LIKES_COLLECTION, { postId }),
+      removeWhereIfPresent(POST_FAVORITES_COLLECTION, { postId }),
+      removeWhereIfPresent(HIDDEN_POSTS_COLLECTION, { postId }),
+      removeWhereIfPresent(POLL_VOTES_COLLECTION, { postId }),
       removeWhereIfPresent(MESSAGES_COLLECTION, { postId }),
       removeWhereIfPresent(HISTORY_COLLECTION, { targetId: postId }),
     ]);
@@ -341,10 +419,15 @@ exports.main = async (event = {}) => {
 
     const config = await readConfig();
     const moderator = await getActiveUser(userId);
+    if (config.adminUserIds.length && !config.adminUserIds.includes(userId)) {
+      return { success: false, code: 'ADMIN_NOT_ALLOWED', message: '当前账号不在管理员白名单中' };
+    }
     if (!verifyToken(event.token, userId, config.accessKeyHash)) {
       return { success: false, code: 'ADMIN_SESSION_INVALID', message: '管理会话已失效，请重新输入密钥' };
     }
     if (event.action === 'listPosts') return await listPosts(event);
+    if (event.action === 'listReports') return await listReports(event);
+    if (event.action === 'resolveReport') return await resolveReport(event, userId, moderator);
     if (event.action === 'migrateLegacyLikes') return await migrateLegacyLikes(event);
     if (event.action === 'deletePost') return await deletePost(event, userId, moderator);
     return { success: false, code: 'UNSUPPORTED_ACTION', message: '不支持的管理操作' };

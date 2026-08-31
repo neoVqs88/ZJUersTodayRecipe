@@ -6,6 +6,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const COMMENTS_COLLECTION = 'comments';
 const USERS_COLLECTION = 'users';
+const POSTS_COLLECTION = 'posts';
+const MESSAGES_COLLECTION = 'messages';
 const MAX_CONTENT_LENGTH = 300;
 
 function getUserId(openid) {
@@ -88,6 +90,16 @@ async function createComment(event, context, currentUserId) {
     return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录后再发表评论' };
   }
 
+  const securityResult = await cloud.openapi.security.msgSecCheck({
+    openid: context.OPENID,
+    scene: 2,
+    version: 2,
+    content,
+  });
+  if (securityResult && securityResult.result && securityResult.result.suggest === 'risky') {
+    return { success: false, code: 'CONTENT_RISKY', message: '评论可能包含不适宜信息，请修改后重试' };
+  }
+
   let parentId = cleanId(event.parentId);
   let replyToName = '';
   let replyToUserId = '';
@@ -124,6 +136,40 @@ async function createComment(event, context, currentUserId) {
   });
   const createdResult = await db.collection(COMMENTS_COLLECTION).doc(addResult._id).get();
   const total = await getPublishedCount(postId);
+
+  try {
+    let targetOpenid = '';
+    let targetUserId = '';
+    if (parentId) {
+      const parent = (await db.collection(COMMENTS_COLLECTION).doc(parentId).get()).data;
+      targetOpenid = parent._openid || '';
+      targetUserId = parent.userId || '';
+    } else {
+      const post = (await db.collection(POSTS_COLLECTION).doc(postId).get()).data;
+      targetOpenid = post._openid || '';
+      targetUserId = post.authorId || post.userId || '';
+    }
+    if (targetOpenid && targetUserId !== currentUserId) {
+      await db.collection(MESSAGES_COLLECTION).add({
+        data: {
+          _openid: targetOpenid,
+          category: 'like_comment',
+          senderName: user.name || '一位同学',
+          senderAvatar: user.image || '/static/miniprogram-icon-zju-bowl-144.png',
+          actorUserId: currentUserId,
+          postId,
+          action: parentId ? '回复了你的评论' : '评论了你的动态',
+          content: content.slice(0, 80),
+          targetDesc: content.slice(0, 80),
+          read: false,
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate(),
+        },
+      });
+    }
+  } catch (error) {
+    console.warn('评论成功，但消息通知写入失败', error);
+  }
 
   return {
     success: true,

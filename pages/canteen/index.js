@@ -1,15 +1,35 @@
+import { fetchDishCatalog } from '~/services/catalog';
+import appearanceBehavior from '~/behaviors/appearance';
+
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     activeFilter: '全部',
-    filters: ['全部', '玉泉', '紫金港', '清淡', '高蛋白'],
-    dishes: [
-      { name: '番茄肥牛饭', place: '玉泉一食堂 · 二楼', price: '¥15', score: '4.9', image: '/static/figma/canteen-tomato-beef.webp', tag: '本周第一' },
-      { name: '山野菌菇面', place: '怡膳堂 · 一楼', price: '¥13', score: '4.8', image: '/static/figma/canteen-mushroom-noodle.webp', tag: '清淡鲜香' },
-      { name: '石锅拌饭', place: '玉泉二食堂 · 风味档', price: '¥16', score: '4.7', image: '/static/figma/canteen-stone-pot.webp', tag: '热度上升' },
-    ],
+    filters: ['全部', '玉泉', '清淡', '高蛋白', '少排队'],
+    allDishes: [],
+    dishes: [],
+    ranked: false,
   },
+
+  onLoad() {
+    this.loadCatalog();
+  },
+
+  async loadCatalog() {
+    const dishes = await fetchDishCatalog();
+    this.setData({ allDishes: dishes, dishes });
+  },
+
   selectFilter(event) {
-    this.setData({ activeFilter: event.currentTarget.dataset.value });
+    const activeFilter = event.currentTarget.dataset.value;
+    const dishes = this.filterDishes(this.data.allDishes, activeFilter);
+    this.setData({ activeFilter, dishes });
+  },
+  filterDishes(dishes, filter) {
+    if (filter === '全部') return dishes;
+    if (filter === '玉泉') return dishes.filter((dish) => dish.campus === '玉泉');
+    if (filter === '少排队') return dishes.filter((dish) => dish.waitMinutes > 0 && dish.waitMinutes <= 8);
+    return dishes.filter((dish) => [...(dish.flavor || []), ...(dish.tags || [])].includes(filter));
   },
   goSearch() {
     wx.navigateTo({ url: '/pages/search/index' });
@@ -22,6 +42,11 @@ Page({
     wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(dish.name)}` });
   },
   openRanking() {
-    wx.showToast({ title: '完整榜单即将上线', icon: 'none' });
+    const ranked = !this.data.ranked;
+    const dishes = ranked
+      ? [...this.filterDishes(this.data.allDishes, this.data.activeFilter)].sort((a, b) => b.score - a.score)
+      : this.filterDishes(this.data.allDishes, this.data.activeFilter);
+    this.setData({ ranked, dishes });
+    wx.showToast({ title: ranked ? '已按评分排序' : '已恢复推荐顺序', icon: 'none' });
   },
 });

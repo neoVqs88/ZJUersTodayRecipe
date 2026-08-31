@@ -1,8 +1,10 @@
 import Toast from 'tdesign-miniprogram/toast/index';
 import { loginWithWechat } from '~/services/auth';
 import { getLegalConsent } from '~/config/legal';
+import appearanceBehavior from '~/behaviors/appearance';
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     agreed: false,
     loadingType: '',

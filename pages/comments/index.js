@@ -1,6 +1,8 @@
 import { createComment, fetchComments, removeComment } from '~/services/comments';
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { joinCompanionPost } from '~/services/companion';
+import appearanceBehavior from '~/behaviors/appearance';
+import { fetchPollState, reportComment, voteInPoll as submitPollVote } from '~/services/communityPosts';
 
 function parseDate(value) {
   if (!value) return null;
@@ -41,6 +43,7 @@ function normalizePost(post = {}) {
 }
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     post: null,
     postImages: [],
@@ -56,6 +59,11 @@ Page({
     joiningCompanion: false,
     loggedIn: false,
     currentUserImage: '/static/miniprogram-icon-zju-bowl-144.png',
+    page: 1,
+    pageSize: 30,
+    hasMore: true,
+    loadingMore: false,
+    poll: null,
   },
 
   goBack() { wx.navigateBack(); },
@@ -69,7 +77,7 @@ Page({
       });
     }
     this.loadPostSummary();
-    this.loadComments();
+    this.loadComments(true);
   },
 
   async loadPostSummary() {
@@ -125,6 +133,35 @@ Page({
       };
     }
     this.setData({ post, postImages: post.displayImages, companion });
+    if (post.category === 'poll') this.loadPollState();
+  },
+
+  async loadPollState() {
+    if (!isLoggedIn()) {
+      const options = this.data.post.pollOptions || ['想尝鲜', '先观望'];
+      this.setData({ poll: { options, counts: this.data.post.pollCounts || [0, 0], selectedIndex: -1 } });
+      return;
+    }
+    try {
+      const result = await fetchPollState(this.postId);
+      this.setData({ poll: result });
+    } catch (error) {
+      // 投票状态失败不影响帖子和评论浏览。
+    }
+  },
+
+  async voteInPoll(event) {
+    if (!isLoggedIn()) {
+      this.goLogin();
+      return;
+    }
+    try {
+      const result = await submitPollVote(this.postId, Number(event.currentTarget.dataset.index));
+      this.setData({ poll: result });
+      wx.showToast({ title: '投票成功', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '投票失败', icon: 'none' });
+    }
   },
 
   async joinCompanion() {
@@ -187,7 +224,7 @@ Page({
     }
   },
 
-  async loadComments() {
+  async loadComments(reset = false) {
     if (!this.postId) {
       wx.showToast({ title: '帖子信息无效', icon: 'none' });
       this.setData({ loading: false, refreshing: false });
@@ -195,23 +232,33 @@ Page({
     }
 
     try {
-      const result = await fetchComments(this.postId);
-      const comments = formatComments(result.comments || []);
+      if (this.data.loadingMore || (!reset && !this.data.hasMore)) return;
+      const page = reset ? 1 : this.data.page;
+      this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
+      const result = await fetchComments(this.postId, page, this.data.pageSize);
+      const incoming = formatComments(result.comments || []);
+      const comments = reset ? incoming : [...this.data.comments, ...incoming];
       this.setData({
         comments,
         total: result.total || 0,
+        page: page + 1,
+        hasMore: Boolean(result.hasMore),
       });
       this.emitCommentCount(result.total || 0);
     } catch (error) {
       wx.showToast({ title: error.message || '评论加载失败', icon: 'none' });
     } finally {
-      this.setData({ loading: false, refreshing: false });
+      this.setData({ loading: false, refreshing: false, loadingMore: false });
     }
   },
 
   refreshComments() {
     this.setData({ refreshing: true });
-    this.loadComments();
+    this.loadComments(true);
+  },
+
+  loadMoreComments() {
+    this.loadComments(false);
   },
 
   onInput(event) {
@@ -307,12 +354,27 @@ Page({
   handleCommentLongPress(event) {
     const { id } = event.currentTarget.dataset;
     const comment = this.data.comments.find((item) => item.id === id);
-    if (!comment || !comment.isMine) return;
+    if (!comment) return;
 
     wx.showActionSheet({
-      itemList: ['删除评论'],
+      itemList: comment.isMine ? ['删除评论'] : ['举报评论'],
       success: async ({ tapIndex }) => {
         if (tapIndex !== 0) return;
+        if (!comment.isMine) {
+          wx.showActionSheet({
+            itemList: ['广告营销', '辱骂攻击', '隐私泄露', '虚假信息', '不适内容', '其他'],
+            success: async ({ tapIndex: reasonIndex }) => {
+              const reasons = ['广告营销', '辱骂攻击', '隐私泄露', '虚假信息', '不适内容', '其他'];
+              try {
+                await reportComment(id, reasons[reasonIndex]);
+                wx.showToast({ title: '举报已提交', icon: 'success' });
+              } catch (error) {
+                wx.showToast({ title: error.message || '举报失败', icon: 'none' });
+              }
+            },
+          });
+          return;
+        }
         try {
           const result = await removeComment(id);
           this.setData({

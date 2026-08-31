@@ -1,0 +1,12 @@
+<view class="favorites-page {{appearanceClass}}">
+  <t-navbar title="我的收藏" left-arrow />
+  <view wx:if="{{loading}}" class="state"><t-loading theme="circular" size="42rpx" text="加载中" /></view>
+  <view wx:elif="{{!posts.length}}" class="state"><text class="state__icon">☆</text><text class="state__title">还没有收好的饭帖</text><text class="state__desc">在社区点击“收好”，内容会保存在这里</text></view>
+  <scroll-view wx:else class="favorites-scroll" scroll-y enhanced show-scrollbar="{{false}}" lower-threshold="100" bindscrolltolower="loadMore">
+    <view class="favorite-card" wx:for="{{posts}}" wx:key="_id" data-id="{{item._id}}" bindtap="openPost">
+      <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+      <view><text class="favorite-card__title">{{item.dish || '校园美食分享'}}</text><text class="favorite-card__content">{{item.content}}</text><text class="favorite-card__meta">{{item.authorName || 'zjuer_同学'}} · {{item.location || item.campus || '校园食堂'}}</text></view>
+    </view>
+    <view class="more">{{loadingMore ? '正在加载…' : hasMore ? '继续上滑加载' : '已经到底啦'}}</view>
+  </scroll-view>
+</view>

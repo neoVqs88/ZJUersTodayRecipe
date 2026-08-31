@@ -4,6 +4,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
+const command = db.command;
 const RECORDS_COLLECTION = 'mealRecords';
 const USERS_COLLECTION = 'users';
 const DEFAULT_LIMIT = 50;
@@ -138,6 +139,20 @@ async function createRecord(event, context, userId) {
   }
   if (!dishName) return { success: false, code: 'INVALID_DISH', message: '请确认识别出的菜品名称' };
 
+  const existingResult = await db.collection(RECORDS_COLLECTION).where({
+    userId,
+    imageFileId,
+    status: 'active',
+  }).limit(1).get();
+  if (existingResult.data.length) {
+    return {
+      success: true,
+      alreadyExists: true,
+      record: toPublicRecord(existingResult.data[0]),
+      stats: await buildStats(userId),
+    };
+  }
+
   const calorie = cleanCalorie(dish.calorie);
   const candidates = Array.isArray(event.candidates)
     ? event.candidates.slice(0, 5).map((item) => ({
@@ -189,13 +204,71 @@ async function createRecord(event, context, userId) {
 }
 
 async function listRecords(event, userId) {
-  const limit = Math.min(Math.max(Number(event.limit) || DEFAULT_LIMIT, 1), MAX_LIMIT);
-  const records = await getRecentRecords(userId);
+  const page = Math.max(1, Number(event.page) || 1);
+  const pageSize = Math.min(Math.max(Number(event.pageSize) || DEFAULT_LIMIT, 1), MAX_LIMIT);
+  const month = /^\d{4}-\d{2}$/.test(String(event.month || '')) ? String(event.month) : '';
+  const condition = { userId, status: 'active' };
+  if (month) condition.dateKey = command.gte(`${month}-01`).and(command.lte(`${month}-31`));
+  const [recordsResult, countResult, stats] = await Promise.all([
+    db.collection(RECORDS_COLLECTION)
+      .where(condition)
+      .orderBy('mealTime', 'desc')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .get(),
+    db.collection(RECORDS_COLLECTION).where(condition).count(),
+    buildStats(userId),
+  ]);
   return {
     success: true,
-    records: records.slice(0, limit).map(toPublicRecord),
-    stats: await buildStats(userId),
+    records: recordsResult.data.map(toPublicRecord),
+    total: countResult.total,
+    hasMore: page * pageSize < countResult.total,
+    stats,
   };
+}
+
+async function updateRecord(event, userId) {
+  const recordId = cleanText(event.recordId, 64);
+  const dishName = cleanText(event.dishName, 50);
+  if (!recordId || !dishName) return { success: false, code: 'INVALID_RECORD', message: '记录或菜品名称无效' };
+  let record;
+  try {
+    record = (await db.collection(RECORDS_COLLECTION).doc(recordId).get()).data;
+  } catch (error) {
+    return { success: false, code: 'RECORD_NOT_FOUND', message: '打卡记录不存在' };
+  }
+  if (record.userId !== userId || record.status !== 'active') {
+    return { success: false, code: 'NO_PERMISSION', message: '只能修改自己的有效记录' };
+  }
+  await db.collection(RECORDS_COLLECTION).doc(recordId).update({
+    data: { dishName, correctedByUser: true, updatedAt: db.serverDate() },
+  });
+  const updated = (await db.collection(RECORDS_COLLECTION).doc(recordId).get()).data;
+  return { success: true, record: toPublicRecord(updated) };
+}
+
+async function deleteRecord(event, userId) {
+  const recordId = cleanText(event.recordId, 64);
+  if (!recordId) return { success: false, code: 'INVALID_RECORD', message: '记录信息无效' };
+  let record;
+  try {
+    record = (await db.collection(RECORDS_COLLECTION).doc(recordId).get()).data;
+  } catch (error) {
+    return { success: true, deleted: true, stats: await buildStats(userId) };
+  }
+  if (record.userId !== userId) return { success: false, code: 'NO_PERMISSION', message: '只能删除自己的记录' };
+  await db.collection(RECORDS_COLLECTION).doc(recordId).update({
+    data: { status: 'deleted', deletedAt: db.serverDate(), updatedAt: db.serverDate() },
+  });
+  if (/^cloud:\/\//.test(record.imageFileId || '')) {
+    await cloud.deleteFile({ fileList: [record.imageFileId] }).catch(() => {});
+  }
+  const stats = await buildStats(userId);
+  await db.collection(USERS_COLLECTION).doc(userId).update({
+    data: { checkInCount: stats.totalCount, weeklyCheckIns: stats.weeklyCheckIns, streakDays: stats.streakDays, updatedAt: db.serverDate() },
+  }).catch(() => {});
+  return { success: true, deleted: true, stats };
 }
 
 exports.main = async (event = {}) => {
@@ -206,6 +279,8 @@ exports.main = async (event = {}) => {
     if (event.action === 'create') return await createRecord(event, context, userId);
     if (event.action === 'list') return await listRecords(event, userId);
     if (event.action === 'stats') return { success: true, stats: await buildStats(userId) };
+    if (event.action === 'update') return await updateRecord(event, userId);
+    if (event.action === 'delete') return await deleteRecord(event, userId);
     return { success: false, message: '不支持的打卡操作' };
   } catch (error) {
     const message = error.errMsg || error.message || '打卡服务暂时不可用';

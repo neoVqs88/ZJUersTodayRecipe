@@ -4,8 +4,10 @@ import {
   LEGAL_EFFECTIVE_DATE,
   OPERATOR_NAME,
 } from '~/config/legal';
+import appearanceBehavior from '~/behaviors/appearance';
 
 Page({
+  behaviors: [appearanceBehavior],
   data: {
     version: AGREEMENT_VERSION,
     effectiveDate: LEGAL_EFFECTIVE_DATE,

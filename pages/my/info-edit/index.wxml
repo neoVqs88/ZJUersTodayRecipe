@@ -1,4 +1,4 @@
-<view class="edit-page">
+<view class="edit-page {{appearanceClass}}">
   <t-navbar left-arrow title="编辑资料" />
   <view class="edit-loading" wx:if="{{loading}}">正在读取个人资料…</view>
   <scroll-view class="edit-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>

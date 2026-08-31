@@ -27,6 +27,39 @@ function weekKeys(date = new Date()) {
   return Array.from({ length: 7 }, (_, index) => dateKey(new Date(monday.getTime() + index * 86400000 - 8 * 60 * 60 * 1000)));
 }
 
+function previousWeekKeys(keys) {
+  const first = new Date(`${keys[0]}T00:00:00+08:00`);
+  return Array.from({ length: 7 }, (_, index) => dateKey(new Date(first.getTime() - (7 - index) * 86400000)));
+}
+
+function getMealHour(record) {
+  const raw = record.mealTime || record.createdAt;
+  const value = raw && raw.$date ? new Date(raw.$date) : new Date(raw || 0);
+  if (Number.isNaN(value.getTime())) return null;
+  return chinaDate(value).getUTCHours() + chinaDate(value).getUTCMinutes() / 60;
+}
+
+function calculateScore(records, keys) {
+  if (!records.length) return 0;
+  const activeDays = new Set(records.map((record) => record.dateKey).filter((key) => keys.includes(key))).size;
+  const mealTypes = new Set(records.map((record) => record.mealType).filter(Boolean)).size;
+  const nutritionCount = records.filter((record) => Number.isFinite(Number(record.nutritionAnalysis && record.nutritionAnalysis.caloriesPer100g))).length;
+  return Math.min(100, Math.round((activeDays / 7) * 60 + (Math.min(mealTypes, 3) / 3) * 20 + (nutritionCount / records.length) * 20));
+}
+
+function buildDailyMeals(records, keys) {
+  return keys.map((key) => {
+    const dayRecords = records.filter((record) => record.dateKey === key);
+    const byType = {};
+    dayRecords.forEach((record) => {
+      const type = record.mealType || 'snack';
+      const hour = getMealHour(record);
+      if (hour !== null && byType[type] === undefined) byType[type] = Math.round(hour * 10) / 10;
+    });
+    return { dateKey: key, count: dayRecords.length, meals: byType };
+  });
+}
+
 function topDish(records) {
   const counts = records.reduce((result, record) => {
     const name = typeof record.dishName === 'string' ? record.dishName.trim() : '';
@@ -46,9 +79,17 @@ exports.main = async () => {
     const { OPENID } = cloud.getWXContext();
     if (!OPENID) return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录查看本周数据' };
     const keys = weekKeys();
-    const result = await db.collection(COLLECTION).where({ status: 'active', dateKey: _.in(keys) }).limit(1000).get();
-    const records = result.data || [];
-    const mine = records.filter((record) => record.userId === userId(OPENID));
+    const previousKeys = previousWeekKeys(keys);
+    const allKeys = [...previousKeys, ...keys];
+    const currentUserId = userId(OPENID);
+    const [platformResult, mineResult] = await Promise.all([
+      db.collection(COLLECTION).where({ status: 'active', dateKey: _.in(keys) }).limit(1000).get(),
+      db.collection(COLLECTION).where({ userId: currentUserId, status: 'active', dateKey: _.in(allKeys) }).limit(1000).get(),
+    ]);
+    const currentRecords = platformResult.data || [];
+    const mineAll = mineResult.data || [];
+    const mine = mineAll.filter((record) => keys.includes(record.dateKey));
+    const previousMine = mineAll.filter((record) => previousKeys.includes(record.dateKey));
     const nutritionRecords = mine.filter((record) => Number.isFinite(Number(record.nutritionAnalysis && record.nutritionAnalysis.caloriesPer100g)));
     const nutritionReady = mine.length >= MIN_MEALS_FOR_ANALYSIS && nutritionRecords.length >= MIN_MEALS_FOR_ANALYSIS;
     const averageCalories = nutritionRecords.length
@@ -58,8 +99,11 @@ exports.main = async () => {
       success: true,
       weekLabel: getWeekLabel(keys),
       favoriteDish: topDish(mine),
-      popularDish: topDish(records),
-      platformMealCount: records.length,
+      popularDish: topDish(currentRecords),
+      platformMealCount: currentRecords.length,
+      score: calculateScore(mine, keys),
+      previousScore: calculateScore(previousMine, previousKeys),
+      dailyMeals: buildDailyMeals(mine, keys),
       nutrition: {
         ready: nutritionReady,
         mealCount: mine.length,

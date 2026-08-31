@@ -1,4 +1,4 @@
-<view class="release-page">
+<view class="release-page {{appearanceClass}}">
   <t-navbar title="写一张饭帖" left-arrow />
   <scroll-view class="release-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="release-intro"><text>SHARE A MEAL</text><text>把这一餐，留在饭桌边</text><text>一张图片、一点感受，就足够成为一篇饭帖。</text></view>

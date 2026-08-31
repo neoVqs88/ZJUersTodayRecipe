@@ -1,4 +1,4 @@
-<view class="history-page">
+<view class="history-page {{appearanceClass}}">
   <t-navbar title="浏览足迹" left-arrow>
     <view slot="right" class="history-clear" bindtap="clearAll">清空</view>
   </t-navbar>

@@ -1,4 +1,4 @@
-<view class="dish-page">
+<view class="dish-page {{appearanceClass}}">
   <scroll-view class="dish-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="dish-top"><view class="dish-top__back" bindtap="goBack">‹</view><view class="dish-top__collect" bindtap="toggleCollect"><t-icon name="{{collected ? 'star-filled' : 'star'}}" size="34rpx" color="{{collected ? '#ff6b4a' : '#1d2118'}}" /></view></view>
     <image class="dish-hero" src="{{dish.image}}" mode="aspectFill" />

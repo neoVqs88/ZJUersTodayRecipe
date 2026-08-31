@@ -1,10 +1,10 @@
-<view class="health-page">
+<view class="health-page {{appearanceClass}}">
   <scroll-view class="health-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="health-head"><view><text>健康分析</text><text>近 30 天 · 来自食历</text></view><view>按周</view></view>
-    <view class="score-card"><view><text>膳食与规律符合度</text><view><text>{{score}}</text><text>/ 100</text></view><text>比上周 +6</text></view><view><text>午餐最稳</text><text>平均波动 18 分钟</text><view><text></text></view></view></view>
-    <view class="chart-title"><text>大多数日子，午餐很准时</text><text>一个点 = 一次用餐 · 位置 = 时间</text></view>
-    <view class="meal-chart"><view class="chart-week"><text></text><text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text></view><view class="chart-line"><view><text>早餐</text><text>07:00–09:30</text></view><view wx:for="{{weekdays}}" wx:key="*this"><text class="dot"></text><text class="stem"></text></view></view><view class="chart-line"><view><text>午餐</text><text>11:00–13:30</text></view><view wx:for="{{weekdays}}" wx:key="*this"><text class="dot orange"></text><text class="stem"></text></view></view><view class="chart-line"><view><text>晚餐</text><text>17:00–20:00</text></view><view wx:for="{{weekdays}}" wx:key="*this"><text class="dot"></text><text class="stem"></text></view></view><text class="chart-caption">越靠近同一水平线，时间越稳定</text></view>
-    <view class="health-advice"><text>一条可执行的小建议</text><text>先把晚餐提醒设在 18:10</text><text>你晚餐波动最大；提前 20 分钟决定去哪，<br/>比“控制自己”更容易奏效。</text></view>
+    <view class="health-head"><view><text>健康分析</text><text>本周 · 来自食历真实记录</text></view><view>按周</view></view>
+    <view class="score-card"><view><text>膳食记录完整度</text><view><text>{{score}}</text><text>/ 100</text></view><text>{{scoreDeltaText}}</text></view><view><text>{{insights && insights.favoriteDish ? insights.favoriteDish.name : '等待记录'}}</text><text>{{insights ? insights.favoriteDesc : '记录后生成偏好'}}</text><view><text></text></view></view></view>
+    <view class="chart-title"><text>{{headline}}</text><text>一个点 = 当天有对应餐次记录</text></view>
+    <view class="meal-chart"><view class="chart-week"><text></text><text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text></view><view class="chart-line" wx:for="{{chartRows}}" wx:key="type"><view><text>{{item.label}}</text><text>{{item.range}}</text></view><view wx:for="{{item.days}}" wx:for-item="day" wx:key="key"><text class="dot {{day.active ? 'orange' : ''}}"></text><text class="stem"></text></view></view><text class="chart-caption">橙色表示当天已记录，灰色表示还没有记录</text></view>
+    <view class="health-advice"><text>一条可执行的小建议</text><text>{{adviceTitle}}</text><text>{{adviceDesc}}</text></view>
     <view class="report-link" bindtap="loadInsights">完整报告　›</view><view class="nav-space"></view>
   </scroll-view><figma-nav active="health" />
 </view>

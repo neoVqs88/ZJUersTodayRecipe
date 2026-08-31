@@ -24,10 +24,18 @@ export function createMealCheckin({ fileID, dish, candidates = [] }) {
   });
 }
 
-export function fetchMealCheckins(limit = 50) {
-  return callMealCheckins('list', { limit });
+export function fetchMealCheckins({ page = 1, pageSize = 50, month = '' } = {}) {
+  return callMealCheckins('list', { page, pageSize, month });
 }
 
 export function fetchMealCheckinStats() {
   return callMealCheckins('stats');
+}
+
+export function updateMealCheckin(recordId, dishName) {
+  return callMealCheckins('update', { recordId, dishName });
+}
+
+export function deleteMealCheckin(recordId) {
+  return callMealCheckins('delete', { recordId });
 }

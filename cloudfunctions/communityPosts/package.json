@@ -1,0 +1,9 @@
+{
+  "name": "communityPosts",
+  "version": "1.0.0",
+  "description": "社区发帖、收藏、屏蔽和举报服务",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

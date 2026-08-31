@@ -58,7 +58,7 @@
   "cloudfunctionRoot": "cloudfunctions/",
   "libVersion": "3.7.8",
   "appid": "wx85f8ac020396a494",
-  "projectname": "miniprogram-starter",
+  "projectname": "zjuer-eat-what",
   "condition": {
     "miniprogram": {
       "list": [
@@ -77,12 +77,6 @@
         {
           "name": "info-edit",
           "pathName": "pages/my/info-edit/index",
-          "query": "",
-          "scene": null
-        },
-        {
-          "name": "dataCenter",
-          "pathName": "pages/dataCenter/index",
           "query": "",
           "scene": null
         },

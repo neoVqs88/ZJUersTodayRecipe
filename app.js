@@ -1,22 +1,15 @@
 // app.js
 import config from './config';
-import Mock from './mock/index';
 import createBus from './utils/eventBus';
-import { connectSocket, fetchUnreadNum } from './mock/chat';
-import { getCurrentUser, validateCloudSession } from './services/auth';
+import { getCurrentUser, isLoggedIn, validateCloudSession } from './services/auth';
 import { getPreferences } from './services/preferences';
 
-// 初始化云开发（菜品识别等功能依赖）
-// TODO: 把下面的环境 ID 换成你们云开发控制台里的环境 ID
+// 初始化云开发（菜品识别、社区和用户数据均依赖同一环境）。
 if (wx.cloud) {
   wx.cloud.init({
-    env: 'cloudbase-d6gm52tal9a059bd4',
+    env: config.cloudEnvId,
     traceUser: true,
   });
-}
-
-if (config.isMock) {
-  Mock();
 }
 
 App({
@@ -24,6 +17,12 @@ App({
     this.globalData.userInfo = getCurrentUser();
     this.checkSession();
     this.globalData.preferences = getPreferences();
+    this.eventBus.on('auth-change', () => this.getUnreadNum());
+    this.eventBus.on('preferences-change', (preferences) => {
+      this.globalData.preferences = preferences;
+      if (preferences.notificationsEnabled) this.getUnreadNum();
+      else this.setUnreadNum(0);
+    });
     const updateManager = wx.getUpdateManager();
 
     updateManager.onCheckForUpdate((res) => {
@@ -43,15 +42,14 @@ App({
     });
 
     this.getUnreadNum();
-    this.connect();
   },
   onShow() {
     this.checkSession();
+    this.getUnreadNum();
   },
   globalData: {
     userInfo: null,
     unreadNum: 0, // 未读消息数量
-    socket: null, // SocketTask 对象
     preferences: null,
   },
 
@@ -71,22 +69,23 @@ App({
     }
   },
 
-  /** 初始化WebSocket */
-  connect() {
-    const socket = connectSocket();
-    socket.onMessage((data) => {
-      data = JSON.parse(data);
-      if (data.type === 'message' && !data.data.message.read) this.setUnreadNum(this.globalData.unreadNum + 1);
-    });
-    this.globalData.socket = socket;
-  },
-
   /** 获取未读消息数量 */
-  getUnreadNum() {
-    fetchUnreadNum().then(({ data }) => {
-      this.globalData.unreadNum = data;
-      this.eventBus.emit('unread-num-change', data);
-    });
+  async getUnreadNum() {
+    if (!isLoggedIn() || !wx.cloud || !getPreferences().notificationsEnabled) {
+      this.setUnreadNum(0);
+      return 0;
+    }
+    try {
+      const response = await wx.cloud.callFunction({ name: 'messageHelper', data: { action: 'unreadCount' } });
+      const result = response.result || {};
+      if (!result.success) throw new Error(result.message || '读取未读消息失败');
+      const unreadNum = Math.max(0, Number(result.unreadCount) || 0);
+      this.setUnreadNum(unreadNum);
+      return unreadNum;
+    } catch (error) {
+      // 未部署 messages 集合或网络暂不可用时，保留当前数值，避免显示模拟红点。
+      return this.globalData.unreadNum;
+    }
   },
 
   /** 设置未读消息数量 */
