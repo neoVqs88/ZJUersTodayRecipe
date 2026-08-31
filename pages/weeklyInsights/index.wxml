@@ -11,7 +11,13 @@
     <view class="nutrition-card">
       <view class="nutrition-card__headline">{{insights.nutrition.ready ? '本周营养概览已生成' : '再记录几餐，生成你的营养概览'}}</view>
       <view class="nutrition-card__desc">{{insights.nutrition.message}}</view>
-      <view wx:if="{{insights.nutrition.ready}}" class="nutrition-stats"><view><text>平均热量</text><strong>{{insights.nutrition.averageCalories}}</strong><text>千卡/100克</text></view><view><text>有效热量数据</text><strong>{{insights.nutrition.calorieCount}}</strong><text>餐</text></view></view>
+      <view wx:if="{{insights.nutrition.ready}}" class="nutrition-stats">
+        <view><text>平均热量</text><strong>{{insights.nutrition.averageCalories}}</strong><text>千卡/100克</text></view>
+        <view><text>蛋白质</text><strong>{{insights.nutrition.averageProtein || '—'}}</strong><text>克/100克</text></view>
+        <view><text>碳水</text><strong>{{insights.nutrition.averageCarbohydrate || '—'}}</strong><text>克/100克</text></view>
+        <view><text>脂肪</text><strong>{{insights.nutrition.averageFat || '—'}}</strong><text>克/100克</text></view>
+        <view><text>有效热量数据</text><strong>{{insights.nutrition.calorieCount}}</strong><text>餐</text></view>
+      </view>
       <view wx:else class="nutrition-progress">已记录 {{insights.nutrition.mealCount}} / {{insights.nutrition.minimumMeals}} 餐</view>
     </view>
     <view class="insights-footnote">营养数据来自菜品识别结果，仅作饮食记录参考，不替代专业营养建议。</view>

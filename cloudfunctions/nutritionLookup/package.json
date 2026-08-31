@@ -1,0 +1,10 @@
+{
+  "name": "nutritionLookup",
+  "version": "1.0.0",
+  "description": "通过 Edamam 查询菜品营养参考值",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "axios": "^1.6.0"
+  }
+}
