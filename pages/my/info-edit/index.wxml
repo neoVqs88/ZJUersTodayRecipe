@@ -1,7 +1,11 @@
 <view class="edit-page {{appearanceClass}}">
-  <t-navbar left-arrow title="编辑资料" />
+  <t-navbar left-arrow title="编辑偏好" />
   <view class="edit-loading" wx:if="{{loading}}">正在读取个人资料…</view>
   <scroll-view class="edit-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="edit-head">
+      <text>编辑我的饭纹</text>
+      <text>完善资料，让饭搭子更懂你的校园口味。</text>
+    </view>
     <view class="avatar-section">
       <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image class="avatar-button__image" src="{{profile.image}}" mode="aspectFill" />
@@ -10,6 +14,7 @@
       <view class="avatar-section__title">更换头像</view>
       <view class="avatar-section__desc">清晰的头像更容易被饭搭子认出来</view>
     </view>
+    <view class="edit-section-title">基本资料</view>
     <view class="edit-card">
       <view class="form-row">
         <text class="form-row__label">昵称</text>
@@ -20,6 +25,7 @@
         <textarea class="form-row__textarea" maxlength="80" value="{{profile.introduction}}" placeholder="介绍一下你的口味、常去食堂或想找的饭搭子" data-field="introduction" bindinput="onFieldInput" />
       </view>
     </view>
+    <view class="edit-section-title">校园身份</view>
     <view class="edit-card">
       <picker mode="selector" range="{{campusOptions}}" value="{{campusIndex}}" data-field="campus" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">所在校区</text><text class="form-row__value">{{profile.campus}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
       <view class="form-row"><text class="form-row__label">院系</text><input class="form-row__input" maxlength="30" value="{{profile.college}}" placeholder="例如：计算机科学与技术学院" data-field="college" bindinput="onFieldInput" /></view>
@@ -27,8 +33,9 @@
       <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" data-field="gender" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">性别</text><text class="form-row__value">{{profile.gender}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
       <view class="form-row"><text class="form-row__label">家乡</text><input class="form-row__input" maxlength="30" value="{{profile.hometown}}" placeholder="例如：浙江杭州" data-field="hometown" bindinput="onFieldInput" /></view>
     </view>
+    <view class="edit-section-title">口味偏好</view>
     <view class="edit-card taste-card">
-      <view class="taste-card__title">口味标签 <text>最多选择 6 个</text></view>
+      <view class="taste-card__title">选择口味标签 <text>最多选择 6 个</text></view>
       <view class="taste-list">
         <view class="taste-item {{item.selected ? 'taste-item--selected' : ''}}" wx:for="{{preferenceItems}}" wx:key="value" data-value="{{item.value}}" bindtap="togglePreference">{{item.value}}</view>
       </view>
