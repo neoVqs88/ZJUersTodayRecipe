@@ -92,7 +92,7 @@ function getSelectedDateLabel(dateKey) {
 
 function stableIndex(value, length) {
   if (!length) return 0;
-  const hash = String(value).split('').reduce((total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0, 7);
+  const hash = String(value).split('').reduce((total, char) => ((total * 31) + char.charCodeAt(0)) % 4294967296, 7);
   return hash % length;
 }
 
@@ -316,7 +316,7 @@ Page({
   },
 
   goCheckIn() {
-    wx.reLaunch({ url: '/pages/home/index' });
+    wx.reLaunch({ url: '/pages/home/index?checkin=1' });
   },
 
   editRecord(event) {

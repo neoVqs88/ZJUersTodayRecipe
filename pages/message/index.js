@@ -121,7 +121,7 @@ Page({
     return Object.entries(CATEGORIES).map(([category, meta]) => {
       const item = overviewMap[category];
       if (!item || !item.latest) return null;
-      const latest = item.latest;
+      const {latest} = item;
       return {
         category,
         ...meta,

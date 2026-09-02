@@ -279,6 +279,8 @@ async function resolveReport(event, moderatorId, moderator) {
       data: { status: 'deleted', content: '', deletedAt: db.serverDate(), updatedAt: db.serverDate() },
     });
   } else if (resolution === 'delete' && report.postId) {
+    // deletePost is declared later because the handlers are grouped by operation.
+    // eslint-disable-next-line no-use-before-define
     await deletePost({ postId: report.postId, reason: `举报处理：${cleanText(report.reason, 40)}` }, moderatorId, moderator);
   }
   await db.collection(REPORTS_COLLECTION).doc(reportId).update({

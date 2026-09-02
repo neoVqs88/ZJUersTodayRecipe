@@ -128,7 +128,7 @@ Page({
 
   handleReport(event) {
     const reportId = event.currentTarget.dataset.id;
-    const resolution = event.currentTarget.dataset.resolution;
+    const {resolution} = event.currentTarget.dataset;
     wx.showModal({
       title: resolution === 'delete' ? '删除被举报帖子？' : '驳回这条举报？',
       content: resolution === 'delete' ? '帖子及关联评论、点赞和图片会被删除。' : '举报将标记为已驳回，帖子继续保留。',
