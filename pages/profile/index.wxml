@@ -1,11 +1,10 @@
 <view class="profile-page {{appearanceClass}}">
-  <t-navbar title="个人主页" left-arrow />
-
   <view class="profile-loading" wx:if="{{loading}}">
     <t-loading theme="circular" size="44rpx" text="加载资料中" />
   </view>
 
   <scroll-view class="profile-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+    <view class="page-head"><view class="back" bindtap="goBack">‹</view><view class="head-copy"><text>搭子资料</text><text>BEFORE YOU SHARE A TABLE</text></view><view class="head-tag">•••</view></view>
     <view class="profile-cover">
       <image class="profile-cover__campus" src="/static/bg_navbar.png" mode="aspectFit" />
       <view class="profile-cover__glow profile-cover__glow--left" />

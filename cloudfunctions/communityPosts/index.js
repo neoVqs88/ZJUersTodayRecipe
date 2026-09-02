@@ -29,10 +29,41 @@ function userIdFromOpenid(openid) {
   return hash(openid);
 }
 
+function toTimestamp(value) {
+  const date = value && value.$date ? new Date(value.$date) : new Date(value || 0);
+  const timestamp = date.getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+async function enforceUserRateLimit(userId, action, limit, windowMs) {
+  const startedField = `${action}WindowStartedAt`;
+  const countField = `${action}WindowCount`;
+  await db.runTransaction(async (transaction) => {
+    const userRef = transaction.collection(USERS).doc(userId);
+    const user = (await userRef.get()).data;
+    const now = Date.now();
+    const startedAt = toTimestamp(user[startedField]);
+    const inWindow = startedAt && now - startedAt < windowMs;
+    const count = inWindow ? Number(user[countField] || 0) : 0;
+    if (count >= limit) {
+      const error = new Error('操作较频繁，请稍后再试');
+      error.code = 'RATE_LIMITED';
+      throw error;
+    }
+    await userRef.update({
+      data: {
+        [startedField]: new Date(inWindow ? startedAt : now),
+        [countField]: count + 1,
+        updatedAt: db.serverDate(),
+      },
+    });
+  });
+}
+
 async function readUser(userId) {
   try {
     const user = (await db.collection(USERS).doc(userId).get()).data;
-    if (!user || user.status === 'deleted' || user.status === 'disabled') return null;
+    if (!user || user.status !== 'active') return null;
     return user;
   } catch (error) {
     return null;
@@ -74,14 +105,29 @@ async function checkText(openid, content) {
   }
 }
 
-async function checkImages(images) {
+async function checkImages(images, userId) {
   // 图片审核必须逐张执行，避免同时下载大量图片。
   // eslint-disable-next-line no-restricted-syntax
   for (const fileID of images) {
+    if (!fileID.includes(`/posts/${userId}/`)) {
+      const error = new Error('只能发布当前账号上传的图片');
+      error.code = 'INVALID_IMAGE_OWNER';
+      throw error;
+    }
     // eslint-disable-next-line no-await-in-loop
     const file = await cloud.downloadFile({ fileID });
+    if (!file.fileContent || !file.fileContent.length || file.fileContent.length > 8 * 1024 * 1024) {
+      const error = new Error('图片大小无效，请选择 8MB 以内的图片');
+      error.code = 'INVALID_IMAGE_SIZE';
+      throw error;
+    }
     const header = file.fileContent.slice(0, 4).toString('hex');
-    const contentType = header.startsWith('89504e47') ? 'image/png' : 'image/jpeg';
+    const contentType = header.startsWith('89504e47') ? 'image/png' : header.startsWith('ffd8') ? 'image/jpeg' : '';
+    if (!contentType) {
+      const error = new Error('帖子图片仅支持 JPG 或 PNG 格式');
+      error.code = 'INVALID_IMAGE_TYPE';
+      throw error;
+    }
     // eslint-disable-next-line no-await-in-loop
     const result = await cloud.openapi.security.imgSecCheck({
       media: { contentType, value: file.fileContent },
@@ -96,6 +142,7 @@ async function checkImages(images) {
 
 async function publish(openid, source = {}) {
   const { userId, user } = await requireUser(openid);
+  await enforceUserRateLimit(userId, 'publish', 5, 10 * 60 * 1000);
   const content = cleanText(source.content, 1000);
   if (!content) {
     const error = new Error('请先写下想分享的内容');
@@ -116,7 +163,7 @@ async function publish(openid, source = {}) {
     : null;
 
   await checkText(openid, [content, ...tags, location && location.name].filter(Boolean).join(' '));
-  if (images.length) await checkImages(images);
+  if (images.length) await checkImages(images, userId);
 
   const result = await db.collection(POSTS).add({
     data: {
@@ -161,6 +208,84 @@ async function publish(openid, source = {}) {
     data: { postCount: command.inc(1), updatedAt: db.serverDate() },
   }).catch(() => {});
   return { postId: result._id };
+}
+
+function toPublicPost(post, viewerId = '') {
+  const images = Array.isArray(post.images) ? post.images.filter(Boolean).slice(0, 4) : [];
+  const participantIds = Array.isArray(post.participantIds) ? post.participantIds.filter(Boolean) : [];
+  return {
+    _id: post._id,
+    userId: post.userId || post.authorId || post.user_id || '',
+    authorId: post.authorId || post.userId || post.user_id || '',
+    authorName: cleanText(post.authorName || post.author || 'zjuer_同学', 30),
+    authorIntroduction: cleanText(post.authorIntroduction, 80),
+    avatar: cleanText(post.avatar || post.authorImage || '/static/miniprogram-icon-zju-bowl-144.png', 500),
+    campus: cleanText(post.campus || '玉泉校区', 30),
+    level: Math.max(1, Number(post.level) || 1),
+    category: CATEGORIES.includes(post.category) ? post.category : 'food',
+    content: cleanText(post.content, 1000),
+    tags: Array.isArray(post.tags) ? post.tags.map((item) => cleanText(item, 20)).filter(Boolean).slice(0, 5) : [],
+    images,
+    image: post.image || images[0] || '',
+    location: cleanText(typeof post.location === 'string' ? post.location : post.location && post.location.name, 50),
+    locationAddress: cleanText(post.locationAddress, 100),
+    dish: cleanText(post.dish, 50),
+    visualDesc: cleanText(post.visualDesc, 80),
+    emoji: cleanText(post.emoji, 4),
+    tone: cleanText(post.tone, 12),
+    likes: Math.max(0, Number(post.likes) || 0),
+    commentsCount: Math.max(0, Number(post.commentsCount) || 0),
+    collections: Math.max(0, Number(post.collections) || 0),
+    status: post.post_status || post.status || 'published',
+    post_status: post.post_status || post.status || 'published',
+    minParticipants: post.minParticipants || null,
+    maxParticipants: post.maxParticipants || null,
+    participantCount: Math.max(0, Number(post.participantCount) || 0),
+    joined: Boolean(viewerId && participantIds.includes(viewerId)),
+    pollOptions: Array.isArray(post.pollOptions) ? post.pollOptions.slice(0, 6) : [],
+    pollCounts: Array.isArray(post.pollCounts) ? post.pollCounts.slice(0, 6) : [],
+    createdAt: post.createdAt || post.publishedAt || null,
+  };
+}
+
+async function listPublicPosts(event, viewerId = '') {
+  const page = Math.max(0, Number(event.page) || 0);
+  const pageSize = Math.min(30, Math.max(1, Number(event.pageSize) || 20));
+  const start = page * pageSize;
+  const end = start + pageSize;
+  const visiblePosts = [];
+  let reachedEnd = false;
+  for (let batch = 0; batch < 20 && visiblePosts.length <= end; batch += 1) {
+    // 兼容没有 status 字段的历史帖子，同时跳过草稿和已删除记录。
+    // eslint-disable-next-line no-await-in-loop
+    const result = await db.collection(POSTS)
+      .orderBy('createdAt', 'desc')
+      .skip(batch * 100)
+      .limit(100)
+      .get();
+    visiblePosts.push(...result.data.filter((post) => (
+      ['published', 'active'].includes(post.post_status || post.status || 'published')
+    )));
+    if (result.data.length < 100) {
+      reachedEnd = true;
+      break;
+    }
+  }
+  return {
+    posts: visiblePosts.slice(start, end).map((post) => toPublicPost(post, viewerId)),
+    hasMore: visiblePosts.length > end || !reachedEnd,
+  };
+}
+
+async function getPublicPost(postId, viewerId = '') {
+  const post = await getPost(postId);
+  const status = post.post_status || post.status || 'published';
+  if (!['published', 'active'].includes(status)) {
+    const error = new Error('帖子不存在或已删除');
+    error.code = 'POST_NOT_FOUND';
+    throw error;
+  }
+  return toPublicPost(post, viewerId);
 }
 
 async function getPost(postId) {
@@ -235,6 +360,7 @@ async function hide(openid, postId) {
 
 async function report(openid, postId, reason, details) {
   const { userId } = await requireUser(openid);
+  await enforceUserRateLimit(userId, 'report', 10, 60 * 60 * 1000);
   await getPost(postId);
   const normalizedReason = REPORT_REASONS.includes(reason) ? reason : '其他';
   const id = hash(`report:${userId}:${postId}`);
@@ -255,6 +381,7 @@ async function report(openid, postId, reason, details) {
 
 async function reportComment(openid, commentId, reason, details) {
   const { userId } = await requireUser(openid);
+  await enforceUserRateLimit(userId, 'report', 10, 60 * 60 * 1000);
   let comment;
   try {
     comment = (await db.collection(COMMENTS).doc(commentId).get()).data;
@@ -303,6 +430,7 @@ async function listFavorites(openid, page, pageSize) {
 
 async function submitFeedback(openid, content, contact) {
   const { userId } = await requireUser(openid);
+  await enforceUserRateLimit(userId, 'feedback', 5, 60 * 60 * 1000);
   const normalizedContent = cleanText(content, 800);
   if (normalizedContent.length < 5) {
     const error = new Error('请至少填写 5 个字的反馈内容');
@@ -404,7 +532,10 @@ async function votePoll(openid, postId, optionIndex) {
 
 exports.main = async (event = {}) => {
   const { OPENID } = cloud.getWXContext();
+  const viewerId = OPENID ? userIdFromOpenid(OPENID) : '';
   try {
+    if (event.action === 'listPublic') return { success: true, ...(await listPublicPosts(event, viewerId)) };
+    if (event.action === 'getPublic') return { success: true, post: await getPublicPost(cleanText(event.postId, 64), viewerId) };
     if (event.action === 'publish') return { success: true, ...(await publish(OPENID, event.post || {})) };
     if (event.action === 'toggleFavorite') return { success: true, ...(await toggleFavorite(OPENID, cleanText(event.postId, 64))) };
     if (event.action === 'states') return { success: true, states: await getStates(OPENID, event.postIds) };

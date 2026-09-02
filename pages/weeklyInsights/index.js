@@ -14,14 +14,31 @@ Page({
     adviceDesc: '连续记录后，我们会根据真实用餐时间给出建议。',
     chartRows: [],
     weekdays: ['一', '二', '三', '四', '五', '六', '日'],
+    periodBadgeStyle: '',
   },
 
   onLoad() {
+    this.updatePeriodBadgeLayout();
     if (!isLoggedIn()) {
       this.setData({ loading: false });
       return;
     }
     this.loadInsights();
+  },
+
+  onResize() {
+    this.updatePeriodBadgeLayout();
+  },
+
+  updatePeriodBadgeLayout() {
+    if (typeof wx.getMenuButtonBoundingClientRect !== 'function') return;
+    const menuRect = wx.getMenuButtonBoundingClientRect();
+    if (!menuRect || !menuRect.right) return;
+    const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const windowWidth = Number(windowInfo.windowWidth) || 375;
+    const safeRight = Math.max(windowWidth - menuRect.right, 12);
+    const badgeTop = Math.max(Number(menuRect.bottom) + 10, 82);
+    this.setData({ periodBadgeStyle: `right: ${Math.round(safeRight)}px; top: ${Math.round(badgeTop)}px;` });
   },
 
   async loadInsights() {

@@ -2,7 +2,7 @@ import { createComment, fetchComments, removeComment } from '~/services/comments
 import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { joinCompanionPost } from '~/services/companion';
 import appearanceBehavior from '~/behaviors/appearance';
-import { fetchPollState, reportComment, voteInPoll as submitPollVote } from '~/services/communityPosts';
+import { fetchPollState, fetchPublicPost, reportComment, voteInPoll as submitPollVote } from '~/services/communityPosts';
 
 function parseDate(value) {
   if (!value) return null;
@@ -83,13 +83,13 @@ Page({
   async loadPostSummary() {
     if (!this.postId) return;
     try {
-      const result = await wx.cloud.database().collection('posts').doc(this.postId).get();
-      if (result.data) {
+      const result = await fetchPublicPost(this.postId);
+      if (result.post) {
         const post = {
-          ...result.data,
-          id: result.data._id,
-          author: result.data.authorName,
-          authorId: result.data.authorId || result.data.userId || '',
+          ...result.post,
+          id: result.post._id,
+          author: result.post.authorName,
+          authorId: result.post.authorId || result.post.userId || '',
         };
         this.applyPost(post);
       }
@@ -116,7 +116,7 @@ Page({
       const maxParticipants = Math.max(minParticipants, Math.min(Math.max(Number(post.maxParticipants) || 4, 2), 20));
       const participantCount = Math.max(normalizedIds.length, Number(post.participantCount) || 1);
       const isAuthor = Boolean(user.id && user.id === authorId);
-      const joined = Boolean(user.id && normalizedIds.includes(user.id));
+      const joined = Boolean(post.joined || (user.id && normalizedIds.includes(user.id)));
       const full = participantCount >= maxParticipants;
       let buttonText = '参加约饭';
       if (isAuthor) buttonText = '你发起的约饭';

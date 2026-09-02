@@ -2,29 +2,29 @@
 
 page { background: @figma-paper; }
 .health-page { height: 100vh; overflow: hidden; color: @figma-ink; font-family: 'Noto Serif SC', 'Songti SC', serif; }
-.health-scroll { height: 100%; box-sizing: border-box; padding: 0 38rpx; }
-.health-head { display: flex; align-items: flex-start; justify-content: space-between; padding-top: calc(72rpx + env(safe-area-inset-top)); }
+.health-scroll { height: 100%; box-sizing: border-box; padding: 0 40rpx; }
+.health-head { position: relative; display: flex; align-items: flex-start; justify-content: space-between; padding-top: calc(92rpx + env(safe-area-inset-top)); padding-bottom: 48rpx; }
 .health-head text { display: block; }
-.health-head text:first-child { font-size: 52rpx; }
-.health-head text:last-child { margin-top: 8rpx; color: @figma-persimmon; font-size: 20rpx; }
-.health-head > view:last-child { padding: 9rpx 17rpx; border-radius: 24rpx; background: #ebebec; font-size: 20rpx; }
-.score-card { display: flex; justify-content: space-between; margin-top: 32rpx; padding: 34rpx; border-radius: 46rpx; background: @figma-mist; }
+.health-head text:first-child { font-size: 56rpx; font-weight: 900; line-height: 72rpx; letter-spacing: -.04em; }
+.health-head text:last-child { margin-top: 8rpx; color: @figma-persimmon; font-size: 24rpx; font-weight: 700; letter-spacing: .1em; }
+.health-head > .period-pill { position: absolute; top: calc(198rpx + env(safe-area-inset-top)); right: 0; padding: 8rpx 18rpx; border-radius: 999rpx; background: #ebebec; font-size: 22rpx; line-height: 32rpx; }
+.score-card { display: flex; justify-content: space-between; height: 250rpx; margin-top: 24rpx; padding: 34rpx; border-radius: 48rpx; background: @figma-mist; }
 .score-card > view { display: flex; flex-direction: column; }
-.score-card > view > text:first-child { color: @figma-muted; font-size: 21rpx; }
+.score-card > view > text:first-child { color: @figma-muted; font-size: 24rpx; }
 .score-card > view:first-child > view { display: flex; align-items: flex-end; margin-top: 14rpx; }
-.score-card > view:first-child > view text:first-child { font-size: 68rpx; }
+.score-card > view:first-child > view text:first-child { font-size: 92rpx; line-height: 124rpx; }
 .score-card > view:first-child > view text:last-child { margin: 0 0 10rpx 8rpx; color: @figma-muted; font-size: 20rpx; }
 .score-card > view:first-child > text:last-child { margin-top: 10rpx; color: @figma-persimmon; font-size: 19rpx; }
-.score-card > view:last-child { padding-top: 28rpx; }
-.score-card > view:last-child > text:first-child { color: @figma-ink; font-size: 24rpx; }
-.score-card > view:last-child > text:nth-child(2) { margin-top: 8rpx; color: @figma-muted; font-size: 17rpx; }
-.score-card > view:last-child > view { width: 150rpx; height: 8rpx; margin-top: 24rpx; border-radius: 4rpx; background: @figma-porcelain; }
-.score-card > view:last-child > view text { display: block; width: 110rpx; height: 8rpx; border-radius: 4rpx; background: @figma-persimmon; }
+.score-card > view:last-child { width:226rpx;padding-top:36rpx; }
+.score-card > view:last-child > text:first-child { color: @figma-ink; font-size: 30rpx; }
+.score-card > view:last-child > text:nth-child(2) { margin-top: 10rpx; color: @figma-muted; font-size: 20rpx; }
+.score-card > view:last-child > view { width: 226rpx; height: 10rpx; margin-top: 32rpx; border-radius: 6rpx; background: @figma-porcelain; }
+.score-card > view:last-child > view text { display: block; width: 82%; height: 100%; border-radius: 6rpx; background: @figma-persimmon; }
 .chart-title { margin: 48rpx 0 20rpx; }
 .chart-title text { display: block; }
-.chart-title text:first-child { font-size: 32rpx; }
+.chart-title text:first-child { font-size: 40rpx; }
 .chart-title text:last-child { margin-top: 6rpx; color: @figma-muted; font-size: 17rpx; }
-.meal-chart { padding: 32rpx 24rpx; border-radius: 44rpx; background: @figma-porcelain; }
+.meal-chart { min-height: 490rpx; padding: 28rpx 40rpx 20rpx; border-radius: 44rpx; background: @figma-porcelain; }
 .chart-week, .chart-line { display: grid; grid-template-columns: 84rpx repeat(7, 1fr); }
 .chart-week text { color: @figma-muted; font-size: 18rpx; text-align: center; }
 .chart-line { align-items: center; height: 86rpx; }
@@ -35,7 +35,7 @@ page { background: @figma-paper; }
 .dot.orange { background: @figma-persimmon; }
 .stem { position: absolute; top: 37rpx; left: -2rpx; width: 3rpx; height: 25rpx; background: @figma-ink; }
 .chart-caption { display: block; margin-left: 84rpx; color: @figma-muted; font-size: 15rpx; }
-.health-advice { display: flex; flex-direction: column; margin-top: 40rpx; padding: 34rpx; border-radius: 44rpx; background: #dce8da; }
+.health-advice { display: flex; min-height: 248rpx; flex-direction: column; margin-top: 44rpx; padding: 34rpx 36rpx; border-radius: 48rpx; background: #dce8da; }
 .health-advice text:first-child { color: @figma-muted; font-size: 20rpx; }
 .health-advice text:nth-child(2) { margin-top: 14rpx; font-size: 31rpx; }
 .health-advice text:last-child { margin-top: 12rpx; font-size: 20rpx; line-height: 1.55; }

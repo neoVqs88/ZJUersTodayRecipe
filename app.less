@@ -3,6 +3,93 @@ page {
   background-color: #f5f1e8;
   color: #1d2118;
   font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+view,
+scroll-view,
+image,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+image {
+  image-rendering: auto;
+}
+
+button::after {
+  border: 0;
+}
+
+/* 自定义导航返回键使用 CSS 绘制，避免“‹”字形因机型字体差异或负边距被裁切。 */
+.back,
+.detail-back,
+.search-head__back,
+.comments-head > text:first-child {
+  display: flex !important;
+  width: 52rpx !important;
+  min-width: 52rpx;
+  height: 72rpx !important;
+  margin-left: 0 !important;
+  overflow: visible !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+.back::before,
+.detail-back::before,
+.search-head__back::before,
+.comments-head > text:first-child::before {
+  display: block;
+  width: 18rpx;
+  height: 18rpx;
+  border-bottom: 4rpx solid currentColor;
+  border-left: 4rpx solid currentColor;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.figma-screen {
+  min-height: 100vh;
+  background: #f5f1e8;
+  color: #1d2118;
+}
+
+.figma-eyebrow {
+  color: #ff6b4a;
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.figma-title {
+  margin-top: 10rpx;
+  font-size: 64rpx;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: -.04em;
+}
+
+.figma-subtitle {
+  margin-top: 8rpx;
+  color: #7f8378;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.figma-card {
+  border-radius: 44rpx;
+  background: #fffcf6;
+  box-shadow: 0 16rpx 40rpx rgba(31, 33, 23, .06);
+}
+
+.figma-page-head-wrap {
+  padding: calc(68rpx + env(safe-area-inset-top)) 40rpx 0;
 }
 
 .page {
@@ -18,6 +105,7 @@ page {
 
 .admin-login.theme-dark,
 .admin-posts.theme-dark,
+.detail-page.theme-dark,
 .legal-page.theme-dark,
 .login.theme-dark,
 .detail.theme-dark,

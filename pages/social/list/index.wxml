@@ -1,5 +1,5 @@
 <view class="social-list-page {{appearanceClass}}">
-  <t-navbar title="{{title}}" left-arrow />
+  <view class="figma-page-head-wrap"><figma-page-head title="{{title}}" subtitle="SOCIAL CONNECTIONS" /></view>
   <view class="social-list-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="加载中" /></view>
   <view class="social-list-empty" wx:elif="{{hidden}}">
     <view class="social-list-empty__icon"><t-icon name="lock-on" size="58rpx" /></view>

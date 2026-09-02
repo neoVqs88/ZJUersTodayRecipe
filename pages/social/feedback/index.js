@@ -4,6 +4,7 @@ import appearanceBehavior from '~/behaviors/appearance';
 Page({
   behaviors: [appearanceBehavior],
   data: { content: '', contact: '', submitting: false },
+  goBack() { wx.navigateBack(); },
   onContent(event) { this.setData({ content: event.detail.value || '' }); },
   onContact(event) { this.setData({ contact: event.detail.value || '' }); },
   async submit() {

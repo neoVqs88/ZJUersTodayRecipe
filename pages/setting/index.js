@@ -38,6 +38,10 @@ Page({
     getApp().eventBus.off('preferences-change', this.handlePreferencesChange);
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   applyPreferences(preferences = getPreferences()) {
     this.setData({
       ...preferences,
@@ -76,8 +80,8 @@ Page({
       confirmColor: '#3478f6',
       success: ({ confirm }) => {
         if (!confirm) return;
-        wx.removeStorageSync('search_history');
-        wx.removeStorageSync('draft_cache');
+        wx.removeStorageSync('dish_search_history');
+        wx.removeStorageSync('community_post_draft');
         wx.showToast({ title: '缓存已清理', icon: 'success' });
       },
     });

@@ -1,5 +1,5 @@
 <view class="admin-posts {{appearanceClass}}">
-  <t-navbar title="帖子管理" left-arrow />
+  <view class="figma-page-head-wrap"><figma-page-head title="社区治理" subtitle="ADMIN CONSOLE" /></view>
 
   <view class="admin-posts__summary">
     <view>

@@ -28,6 +28,10 @@ Page({
     this.setData({ showKey: !this.data.showKey });
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   async submit() {
     if (this.data.loading) return;
     const key = this.data.key.trim();

@@ -10,7 +10,7 @@
       role="button"
       aria-label="{{item.label}}"
     >
-      <image class="figma-nav__icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true" />
+      <image class="figma-nav__icon" src="{{active === item.key ? item.activeIcon : item.icon}}" mode="aspectFit" aria-hidden="true" />
     </view>
   </view>
 </view>

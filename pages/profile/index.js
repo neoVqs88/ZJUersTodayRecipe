@@ -61,6 +61,9 @@ function formatDynamics(dynamics = []) {
 
 Page({
   behaviors: [appearanceBehavior],
+  goBack() {
+    wx.navigateBack();
+  },
   data: {
     loading: true,
     loadFailed: false,

@@ -8,7 +8,11 @@
     <view class="chips"><view class="chip" wx:for="{{moments}}" wx:key="*this">{{index === 0 ? '♙' : index === 1 ? '♨' : '⊙'}} {{item}}</view></view>
     <view class="meal-ticket {{isShuffling ? 'meal-ticket--shuffling' : ''}}" bindtap="openFeatured">
       <view class="ticket-copy"><text>午餐签 · {{activeTicket.time}}</text><text class="ticket-title">{{activeTicket.name}} · {{activeTicket.campus}}</text><text class="ticket-note">{{activeTicket.note}}</text></view>
-      <view class="ticket-image"><image src="{{activeTicket.image}}" mode="aspectFit" /></view>
+      <view class="dish-stage">
+        <view class="orbit orbit-a" /><view class="orbit orbit-b" />
+        <image class="ticket-image" src="{{activeTicket.image}}" mode="aspectFit" />
+        <view class="spark spark-one" /><view class="spark spark-two" /><view class="spark spark-three" />
+      </view>
       <text class="ticket-match">✓ {{activeTicket.match}}% 推荐指数</text>
     </view>
     <view class="chips ticket-chips"><view class="chip">⌾ {{activeTicket.campus}}</view><view class="chip">⌁ {{activeTicket.flavor}}</view><view class="chip">⊙ {{activeTicket.price}}</view></view>
@@ -16,7 +20,7 @@
     <view class="section-row"><text class="section-title">热门菜品榜</text><text class="section-link" bindtap="showMore">完整榜单 →</text></view>
     <view class="ranking">
       <view class="rank-row" wx:for="{{newDishes}}" wx:key="name" data-index="{{index}}" bindtap="viewDish">
-        <text class="rank-no">0{{index + 1}}</text><image src="{{item.image}}" mode="aspectFill" />
+        <text class="rank-no">0{{index + 1}}</text><image src="{{item.image}}" mode="aspectFit" />
         <view class="rank-copy"><text>{{item.name}}</text><text>{{item.popularity || 0}} 人 · {{item.location}}</text></view><text class="rank-arrow">›</text>
       </view>
     </view>

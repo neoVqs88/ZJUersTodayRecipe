@@ -1,9 +1,0 @@
-{
-  "name": "userHelper",
-  "version": "1.0.0",
-  "description": "用户助手：返回调用者的 openid",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
-}

@@ -3,7 +3,7 @@
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark",
   "usingComponents": {
-    "t-navbar": "tdesign-miniprogram/navbar/navbar",
+    "figma-page-head": "/components/figma-page-head/index",
     "t-icon": "tdesign-miniprogram/icon/icon",
     "t-button": "tdesign-miniprogram/button/button",
     "t-loading": "tdesign-miniprogram/loading/loading"

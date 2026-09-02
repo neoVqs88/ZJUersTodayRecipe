@@ -1,6 +1,6 @@
 <view class="health-page {{appearanceClass}}">
   <scroll-view class="health-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="health-head"><view><text>健康分析</text><text>本周 · 来自食历真实记录</text></view><view>按周</view></view>
+    <view class="health-head"><view><text>健康分析</text><text>本周 · 来自食历真实记录</text></view><view class="period-pill" style="{{periodBadgeStyle}}">按周</view></view>
     <view wx:if="{{loading}}" class="insights-loading"><t-loading theme="circular" text="正在整理本周数据" /></view>
     <block wx:elif="{{insights}}">
       <view class="score-card">

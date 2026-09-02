@@ -7,6 +7,43 @@ const MESSAGES_COLLECTION = 'messages';
 const BATCH_SIZE = 100;
 const MESSAGE_CATEGORIES = ['like_comment', 'follow', 'invite', 'system', 'checkin', 'activity'];
 
+function cleanText(value, max = 200) {
+  return String(value || '').replace(/\u0000/g, '').trim().slice(0, max);
+}
+
+function toPublicMessage(message) {
+  return {
+    _id: message._id,
+    category: cleanText(message.category, 40),
+    senderId: cleanText(message.senderId || message.userId, 64),
+    senderName: cleanText(message.senderName || '系统', 30),
+    senderAvatar: cleanText(message.senderAvatar || message.avatar, 500),
+    action: cleanText(message.action, 50),
+    content: cleanText(message.content, 300),
+    targetDesc: cleanText(message.targetDesc, 200),
+    targetId: cleanText(message.targetId || message.postId, 64),
+    read: Boolean(message.read),
+    createdAt: message.createdAt || null,
+  };
+}
+
+async function listMessages(openid, event) {
+  const page = Math.max(0, Number(event.page) || 0);
+  const pageSize = Math.min(50, Math.max(1, Number(event.pageSize) || 20));
+  const category = cleanText(event.category, 40);
+  const condition = category ? { _openid: openid, category } : { _openid: openid };
+  const result = await db.collection(MESSAGES_COLLECTION)
+    .where(condition)
+    .orderBy('createdAt', 'desc')
+    .skip(page * pageSize)
+    .limit(pageSize)
+    .get();
+  return {
+    messages: result.data.map(toPublicMessage),
+    hasMore: result.data.length === pageSize,
+  };
+}
+
 async function markAllRead(openid) {
   let updated = 0;
   // 云数据库单次查询有数量上限，循环处理，直到没有未读消息。
@@ -68,7 +105,7 @@ async function getOverview(openid) {
     ]);
     return {
       category,
-      latest: latestResult.data[0] || null,
+      latest: latestResult.data[0] ? toPublicMessage(latestResult.data[0]) : null,
       unreadCount: unreadResult.total,
     };
   }));
@@ -101,6 +138,10 @@ exports.main = async (event = {}) => {
       overview,
       unreadCount: overview.reduce((total, item) => total + item.unreadCount, 0),
     };
+  }
+
+  if (event.action === 'list') {
+    return { success: true, ...(await listMessages(OPENID, event)) };
   }
 
   return { success: false, code: 'UNSUPPORTED_ACTION', message: '不支持的消息操作' };

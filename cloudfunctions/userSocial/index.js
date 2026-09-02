@@ -148,8 +148,14 @@ function canViewByRule(rule, isMine, isFollowing) {
 
 async function safeReadCollection(collectionName, query) {
   try {
-    const result = await query(db.collection(collectionName)).limit(100).get();
-    return result.data || [];
+    const records = [];
+    for (let batch = 0; batch < 10; batch += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await query(db.collection(collectionName)).skip(batch * 100).limit(100).get();
+      records.push(...(result.data || []));
+      if (!result.data || result.data.length < 100) break;
+    }
+    return records;
   } catch (error) {
     if (isMissingCollection(error)) return [];
     throw error;

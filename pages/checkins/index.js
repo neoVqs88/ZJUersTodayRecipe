@@ -162,9 +162,12 @@ Page({
       const nextRecords = (result.records || []).map(formatRecord);
       const records = reset ? nextRecords : [...this.data.records, ...nextRecords];
       const todayKey = getLocalDateKey();
-      const selectedDateKey = month === todayKey.slice(0, 7) && records.some((record) => record.recordDateKey === todayKey)
-        ? todayKey
-        : (records.find((record) => record.recordDateKey.startsWith(month)) || {}).recordDateKey || `${month}-01`;
+      const preservedDateKey = !reset && this.data.selectedDateKey.startsWith(month) ? this.data.selectedDateKey : '';
+      const selectedDateKey = preservedDateKey || (
+        month === todayKey.slice(0, 7) && records.some((record) => record.recordDateKey === todayKey)
+          ? todayKey
+          : (records.find((record) => record.recordDateKey.startsWith(month)) || {}).recordDateKey || `${month}-01`
+      );
       const selectedDayRecords = records.filter((record) => record.recordDateKey === selectedDateKey);
       this.setData({
         records,

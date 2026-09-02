@@ -1,6 +1,6 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "t-navbar": "tdesign-miniprogram/navbar/navbar"
+    "figma-page-head": "/components/figma-page-head/index"
   }
 }

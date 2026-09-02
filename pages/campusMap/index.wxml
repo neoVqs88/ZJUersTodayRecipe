@@ -7,7 +7,7 @@
   <view class="filter-row"><view wx:for="{{filters}}" wx:key="*this" class="{{activeFilter === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectFilter">{{index === 0 ? '⌖' : index === 1 ? '◷' : '♧'}} {{item}}</view></view>
 
   <view class="map-stage">
-    <image class="campus-map" src="/static/figma/yq-campus-map.webp" mode="aspectFill" />
+    <image class="campus-map" src="/static/map/zju-yuquan-3d-cartoon-demo.jpg" mode="aspectFill" />
     <view class="route-guide {{routeVisible ? 'route-guide--visible' : ''}}"></view>
     <view
       wx:for="{{eateries}}"

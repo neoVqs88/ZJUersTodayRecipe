@@ -1,9 +1,11 @@
+import { getLegalConsent } from '~/config/legal';
+
 const TOKEN_KEY = 'access_token';
 const USER_KEY = 'current_user';
 const CLOUD_SESSION_PREFIX = 'cloud-session:';
 const SESSION_CHECK_KEY = 'session_checked_at';
 const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
-const INVALID_ACCOUNT_CODES = ['ACCOUNT_DELETED', 'SESSION_INVALID', 'USER_DISABLED', 'USER_NOT_FOUND', 'LOGIN_REQUIRED'];
+const INVALID_ACCOUNT_CODES = ['ACCOUNT_DELETED', 'SESSION_INVALID', 'USER_DISABLED', 'USER_NOT_FOUND', 'LOGIN_REQUIRED', 'CONSENT_REQUIRED'];
 
 function updateGlobalUser(user) {
   try {
@@ -122,7 +124,7 @@ export async function validateCloudSession({ force = false } = {}) {
   if (!isLoggedIn()) return null;
   const checkedAt = Number(wx.getStorageSync(SESSION_CHECK_KEY)) || 0;
   if (!force && Date.now() - checkedAt < SESSION_CHECK_INTERVAL) return getCurrentUser();
-  const result = await callEnsureUser({ action: 'validateSession' });
+  const result = await callEnsureUser({ action: 'validateSession', expectedConsent: getLegalConsent() });
   if (!result.success || !result.user) {
     const error = createServiceError(result, '登录状态校验失败');
     handleAuthError(error);

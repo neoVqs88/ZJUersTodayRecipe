@@ -1,10 +1,60 @@
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
+const crypto = require('crypto');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
 
 const TOKENHUB_BASE_URL = (process.env.TOKENHUB_BASE_URL || 'https://tokenhub.tencentmaas.com/v1').replace(/\/+$/, '');
 const TOKENHUB_URL = `${TOKENHUB_BASE_URL}/chat/completions`;
+
+function getUserId(openid) {
+  return crypto.createHash('sha256').update(String(openid)).digest('hex').slice(0, 32);
+}
+
+function toTimestamp(value) {
+  const date = value && value.$date ? new Date(value.$date) : new Date(value || 0);
+  const timestamp = date.getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+async function requireActiveUserAndConsumeQuota(openid) {
+  if (!openid) {
+    const error = new Error('请先登录后再查询营养信息');
+    error.code = 'LOGIN_REQUIRED';
+    throw error;
+  }
+  const userId = getUserId(openid);
+  await db.runTransaction(async (transaction) => {
+    const userRef = transaction.collection('users').doc(userId);
+    let user;
+    try {
+      user = (await userRef.get()).data;
+    } catch (error) {
+      user = null;
+    }
+    if (!user || user.status !== 'active') {
+      const error = new Error('请先完成微信登录');
+      error.code = 'LOGIN_REQUIRED';
+      throw error;
+    }
+    const now = Date.now();
+    const startedAt = toTimestamp(user.nutritionWindowStartedAt);
+    const inWindow = startedAt && now - startedAt < 10 * 60 * 1000;
+    const count = inWindow ? Number(user.nutritionWindowCount || 0) : 0;
+    if (count >= 10) {
+      const error = new Error('营养查询较频繁，请稍后再试');
+      error.code = 'RATE_LIMITED';
+      throw error;
+    }
+    await userRef.update({ data: {
+      nutritionWindowStartedAt: new Date(inWindow ? startedAt : now),
+      nutritionWindowCount: count + 1,
+      updatedAt: db.serverDate(),
+    } });
+  });
+  return userId;
+}
 
 function cleanText(value, maxLength) {
   if (typeof value !== 'string') return '';
@@ -36,7 +86,7 @@ function toNutrition(estimate, query) {
   const protein = cleanNumber(estimate && estimate.protein, 500);
   const carbohydrate = cleanNumber(estimate && estimate.carbohydrate, 1000);
   const fat = cleanNumber(estimate && estimate.fat, 500);
-  if (servingGrams === null || (estimatedCalories === null && protein === null && carbohydrate === null && fat === null)) {
+  if (servingGrams === null || servingGrams <= 0 || (estimatedCalories === null && protein === null && carbohydrate === null && fat === null)) {
     return null;
   }
   const per100g = (value) => (value === null ? null : Math.round((value / servingGrams) * 100 * 10) / 10);
@@ -55,18 +105,20 @@ function toNutrition(estimate, query) {
 }
 
 exports.main = async (event = {}) => {
-  const query = cleanText(event.query, 80);
-  if (!query) return { success: false, code: 'INVALID_QUERY', message: '缺少菜品名称' };
-
-  if (!event.fileID) return { success: false, code: 'INVALID_IMAGE', message: '缺少打卡图片' };
-  const apiKey = cleanText(process.env.TOKENHUB_API_KEY || process.env.HUNYUAN_API_KEY, 300)
-    .replace(/^Bearer\s+/i, '').trim();
-  if (!apiKey) {
-    return { success: true, nutrition: null, code: 'NUTRITION_NOT_CONFIGURED' };
-  }
-
   try {
+    const userId = await requireActiveUserAndConsumeQuota(cloud.getWXContext().OPENID);
+    const query = cleanText(event.query, 80);
+    if (!query) return { success: false, code: 'INVALID_QUERY', message: '缺少菜品名称' };
+    if (!event.fileID || !String(event.fileID).includes(`/dish-recognize/${userId}/`)) {
+      return { success: false, code: 'INVALID_IMAGE_OWNER', message: '只能查询当前账号上传的打卡图片' };
+    }
+    const apiKey = cleanText(process.env.TOKENHUB_API_KEY || process.env.HUNYUAN_API_KEY, 300)
+      .replace(/^Bearer\s+/i, '').trim();
+    if (!apiKey) return { success: true, nutrition: null, code: 'NUTRITION_NOT_CONFIGURED' };
     const file = await cloud.downloadFile({ fileID: event.fileID });
+    if (!file.fileContent || !file.fileContent.length || file.fileContent.length > 5 * 1024 * 1024) {
+      return { success: false, code: 'INVALID_IMAGE_SIZE', message: '图片大小无效' };
+    }
     const model = process.env.TOKENHUB_VISION_MODEL || 'hy-vision-2.0-instruct';
     const response = await axios.post(TOKENHUB_URL, {
       model,
@@ -95,6 +147,9 @@ exports.main = async (event = {}) => {
     });
     return { success: true, nutrition: toNutrition(parseModelResponse(response), query) };
   } catch (error) {
+    if (['LOGIN_REQUIRED', 'RATE_LIMITED'].includes(error.code)) {
+      return { success: false, code: error.code, message: error.message };
+    }
     console.warn('混元营养查询失败', error.response && error.response.status, error.message);
     return { success: false, code: 'NUTRITION_LOOKUP_FAILED', message: '营养数据查询失败' };
   }

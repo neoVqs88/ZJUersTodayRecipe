@@ -1,12 +1,12 @@
 import { getAppearanceClass, getPreferences } from '~/services/preferences';
 
 const ITEMS = [
-  { key: 'today', label: '今日推荐', icon: '/static/figma/nav-home.svg', url: '/pages/home/index' },
-  { key: 'canteen', label: '食堂与菜品', icon: '/static/figma/nav-discover.svg', url: '/pages/canteen/index' },
-  { key: 'history', label: '食历', icon: '/static/figma/nav-calendar.svg', url: '/pages/checkins/index' },
-  { key: 'community', label: '饭桌边', icon: '/static/figma/nav-community.svg', url: '/pages/community/index' },
-  { key: 'health', label: '饮食洞察', icon: '/static/figma/nav-health.svg', url: '/pages/weeklyInsights/index' },
-  { key: 'my', label: '我的', icon: '/static/figma/nav-profile.svg', url: '/pages/my/index' },
+  { key: 'today', label: '今日推荐', icon: '/static/figma/nav-home.svg', activeIcon: '/static/figma/nav-home-active.svg', url: '/pages/home/index' },
+  { key: 'canteen', label: '食堂与菜品', icon: '/static/figma/nav-discover.svg', activeIcon: '/static/figma/nav-discover-active.svg', url: '/pages/canteen/index' },
+  { key: 'history', label: '食历', icon: '/static/figma/nav-calendar.svg', activeIcon: '/static/figma/nav-calendar-active.svg', url: '/pages/checkins/index' },
+  { key: 'community', label: '饭桌边', icon: '/static/figma/nav-community.svg', activeIcon: '/static/figma/nav-community-active.svg', url: '/pages/community/index' },
+  { key: 'health', label: '饮食洞察', icon: '/static/figma/nav-health.svg', activeIcon: '/static/figma/nav-health-active.svg', url: '/pages/weeklyInsights/index' },
+  { key: 'my', label: '我的', icon: '/static/figma/nav-profile.svg', activeIcon: '/static/figma/nav-profile-active.svg', url: '/pages/my/index' },
 ];
 
 Component({
