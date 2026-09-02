@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const command = db.command;
+const { command } = db;
 
 const POSTS = 'posts';
 const USERS = 'users';
@@ -22,7 +22,7 @@ function hash(value) {
 }
 
 function cleanText(value, max = 1000) {
-  return String(value || '').replace(/\u0000/g, '').trim().slice(0, max);
+  return String(value || '').split('\u0000').join('').trim().slice(0, max);
 }
 
 function userIdFromOpenid(openid) {
@@ -75,10 +75,14 @@ async function checkText(openid, content) {
 }
 
 async function checkImages(images) {
+  // 图片审核必须逐张执行，避免同时下载大量图片。
+  // eslint-disable-next-line no-restricted-syntax
   for (const fileID of images) {
+    // eslint-disable-next-line no-await-in-loop
     const file = await cloud.downloadFile({ fileID });
     const header = file.fileContent.slice(0, 4).toString('hex');
     const contentType = header.startsWith('89504e47') ? 'image/png' : 'image/jpeg';
+    // eslint-disable-next-line no-await-in-loop
     const result = await cloud.openapi.security.imgSecCheck({
       media: { contentType, value: file.fileContent },
     });

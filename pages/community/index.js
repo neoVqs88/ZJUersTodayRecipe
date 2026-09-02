@@ -68,7 +68,7 @@ Page({
     this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
       const db = wx.cloud.database();
-      const command = db.command;
+      const {command} = db;
       const res = await db.collection('posts')
         .where({ status: command.in(['published', 'active']) })
         .orderBy('createdAt', 'desc')
@@ -134,7 +134,7 @@ Page({
   },
 
   selectCommunityTab(event) {
-    const value = event.currentTarget.dataset.value;
+    const {value} = event.currentTarget.dataset;
     const category = value === 'posts' ? 'all' : value;
     this.setData({
       activeCommunityTab: value,

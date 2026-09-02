@@ -18,7 +18,8 @@ function walk(directory, predicate = () => true) {
   if (!fs.existsSync(target)) return [];
   return fs.readdirSync(target, { withFileTypes: true }).flatMap((entry) => {
     const relative = path.join(directory, entry.name);
-    return entry.isDirectory() ? walk(relative, predicate) : (predicate(relative) ? [relative] : []);
+    if (entry.isDirectory()) return walk(relative, predicate);
+    return predicate(relative) ? [relative] : [];
   });
 }
 
@@ -121,10 +122,18 @@ function validateJavaScriptSyntax() {
     if (fs.existsSync(path.join(root, file))) moduleFiles.push(file);
   });
   moduleFiles.forEach((file) => {
-    try { new vm.SourceTextModule(read(file), { identifier: file }); } catch (error) { errors.push(`${file}: JavaScript 语法错误 - ${error.message}`); }
+    try {
+      // SourceTextModule is constructed only to validate module syntax.
+      // eslint-disable-next-line no-new
+      new vm.SourceTextModule(read(file), { identifier: file });
+    } catch (error) { errors.push(`${file}: JavaScript 语法错误 - ${error.message}`); }
   });
   walk('cloudfunctions', (file) => file.endsWith('.js') && !file.includes('node_modules')).forEach((file) => {
-    try { new vm.Script(read(file), { filename: file }); } catch (error) { errors.push(`${file}: JavaScript 语法错误 - ${error.message}`); }
+    try {
+      // Script is constructed only to validate CommonJS syntax.
+      // eslint-disable-next-line no-new
+      new vm.Script(read(file), { filename: file });
+    } catch (error) { errors.push(`${file}: JavaScript 语法错误 - ${error.message}`); }
   });
 }
 
@@ -142,4 +151,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('项目静态检查通过：路由、JSON、WXML 结构与事件、静态资源、JavaScript 语法和云函数结构均有效。');
+process.stdout.write('项目静态检查通过：路由、JSON、WXML 结构与事件、静态资源、JavaScript 语法和云函数结构均有效。\n');

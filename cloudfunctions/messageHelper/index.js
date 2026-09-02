@@ -10,12 +10,15 @@ const MESSAGE_CATEGORIES = ['like_comment', 'follow', 'invite', 'system', 'check
 async function markAllRead(openid) {
   let updated = 0;
   // 云数据库单次查询有数量上限，循环处理，直到没有未读消息。
+  // eslint-disable-next-line no-await-in-loop
   for (let batch = 0; batch < 20; batch += 1) {
+    // eslint-disable-next-line no-await-in-loop
     const result = await db.collection(MESSAGES_COLLECTION)
       .where({ _openid: openid, read: false })
       .limit(BATCH_SIZE)
       .get();
     if (!result.data.length) break;
+    // eslint-disable-next-line no-await-in-loop
     await Promise.all(result.data.map((message) => (
       db.collection(MESSAGES_COLLECTION).doc(message._id).update({
         data: { read: true, readAt: db.serverDate(), updatedAt: db.serverDate() },
@@ -31,12 +34,15 @@ async function markCategoryRead(openid, category) {
   const safeCategory = String(category || '').trim().slice(0, 40);
   if (!safeCategory) return 0;
   let updated = 0;
+  // eslint-disable-next-line no-await-in-loop
   for (let batch = 0; batch < 20; batch += 1) {
+    // eslint-disable-next-line no-await-in-loop
     const result = await db.collection(MESSAGES_COLLECTION)
       .where({ _openid: openid, category: safeCategory, read: false })
       .limit(BATCH_SIZE)
       .get();
     if (!result.data.length) break;
+    // eslint-disable-next-line no-await-in-loop
     await Promise.all(result.data.map((message) => (
       db.collection(MESSAGES_COLLECTION).doc(message._id).update({
         data: { read: true, readAt: db.serverDate(), updatedAt: db.serverDate() },

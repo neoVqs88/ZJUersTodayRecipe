@@ -35,6 +35,12 @@ Page({
         days: (result.dailyMeals || []).map((day, index) => ({ key: `${type}-${index}`, active: day.meals[type] !== undefined })),
       }));
       const activeDays = (result.dailyMeals || []).filter((day) => day.count > 0).length;
+      let adviceDesc = '记录越完整，分析越可靠。';
+      if (result.nutrition) {
+        adviceDesc = result.nutrition.ready
+          ? `当前已记录 ${result.nutrition.mealCount} 餐，参考平均热量 ${result.nutrition.averageCalories} 千卡/100克。`
+          : result.nutrition.message;
+      }
       this.setData({ insights: {
         ...result,
         favoriteDesc: result.favoriteDish ? `本周吃过 ${result.favoriteDish.count} 次` : '上传一餐，开始积累你的口味偏好',
@@ -42,11 +48,9 @@ Page({
       },
       score: Number(result.score) || 0,
       scoreDeltaText: delta === 0 ? '与上周持平' : `比上周 ${delta > 0 ? '+' : ''}${delta}`,
-      headline: activeDays >= 5 ? '这周多数日子都认真吃了饭' : `本周已有 ${activeDays} 天留下饮食记录`,
-      adviceTitle: activeDays >= 5 ? '继续保持稳定记录' : '先把下一餐记下来',
-      adviceDesc: result.nutrition && result.nutrition.ready
-        ? `当前已记录 ${result.nutrition.mealCount} 餐，参考平均热量 ${result.nutrition.averageCalories} 千卡/100克。`
-        : (result.nutrition ? result.nutrition.message : '记录越完整，分析越可靠。'),
+       headline: activeDays >= 5 ? '这周多数日子都认真吃了饭' : `本周已有 ${activeDays} 天留下饮食记录`,
+       adviceTitle: activeDays >= 5 ? '继续保持稳定记录' : '先把下一餐记下来',
+       adviceDesc,
       chartRows,
       });
     } catch (error) {

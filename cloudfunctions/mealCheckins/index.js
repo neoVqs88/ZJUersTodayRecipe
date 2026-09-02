@@ -4,7 +4,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
-const command = db.command;
+const {command} = db;
 const RECORDS_COLLECTION = 'mealRecords';
 const USERS_COLLECTION = 'users';
 const DEFAULT_LIMIT = 50;
