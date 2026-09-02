@@ -1,5 +1,7 @@
 import { isLoggedIn } from '~/services/auth';
-import { deleteMealCheckin, fetchMealCheckins, updateMealCheckin } from '~/services/mealCheckins';
+import { createMealCheckin, deleteMealCheckin, fetchMealCheckins, updateMealCheckin } from '~/services/mealCheckins';
+import { fetchDishNutrition } from '~/services/nutrition';
+import recognizeDish from '~/utils/recognizeDish';
 import appearanceBehavior from '~/behaviors/appearance';
 
 const MEAL_LABELS = {
@@ -124,6 +126,7 @@ Page({
     pageSize: 50,
     hasMore: true,
     loadingMore: false,
+    checkInBusy: false,
     stats: {
       totalCount: 0,
       weeklyCount: 0,
@@ -316,7 +319,66 @@ Page({
   },
 
   goCheckIn() {
-    wx.reLaunch({ url: '/pages/home/index?checkin=1' });
+    this.checkIn();
+  },
+
+  async checkIn() {
+    if (this.data.checkInBusy) return;
+    if (!isLoggedIn()) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    this.setData({ checkInBusy: true });
+    let result;
+    try {
+      result = await recognizeDish();
+    } catch (error) {
+      this.setData({ checkInBusy: false });
+      return;
+    }
+    if (!result.success || !Array.isArray(result.dishes) || !result.dishes.length) {
+      wx.showToast({ title: result.message || '识别失败，请重试', icon: 'none' });
+      this.setData({ checkInBusy: false });
+      return;
+    }
+
+    let dish;
+    try {
+      const tapIndex = await new Promise((resolve, reject) => {
+        wx.showActionSheet({
+          itemList: result.dishes.map((item) => item.name),
+          success: ({ tapIndex: index }) => resolve(index),
+          fail: reject,
+        });
+      });
+      dish = result.dishes[tapIndex];
+    } catch (error) {
+      if (result.fileID) wx.cloud.deleteFile({ fileList: [result.fileID] }).catch(() => {});
+      this.setData({ checkInBusy: false });
+      return;
+    }
+
+    wx.showLoading({ title: '保存打卡中…', mask: true });
+    try {
+      let nutrition = null;
+      try {
+        nutrition = await fetchDishNutrition(dish.name, result.fileID);
+      } catch (error) {
+        // 营养服务不可用时仍使用识别结果完成打卡。
+      }
+      await createMealCheckin({
+        fileID: result.fileID,
+        dish: { ...dish, nutrition },
+        candidates: result.dishes,
+      });
+      wx.showToast({ title: '已记下一餐', icon: 'success' });
+      await this.loadRecords(true);
+    } catch (error) {
+      wx.showToast({ title: error.message || '打卡保存失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ checkInBusy: false });
+    }
   },
 
   editRecord(event) {
