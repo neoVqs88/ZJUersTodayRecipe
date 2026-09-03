@@ -1,8 +1,8 @@
 // 云函数：识别菜肴图片，返回菜名
 // 调用链：小程序把图片传到云存储 → 把 fileID 传给本函数 → 本函数调百度菜品识别 API → 返回菜名
+const crypto = require('crypto');
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
-const crypto = require('crypto');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -112,7 +112,9 @@ exports.main = async (event = {}) => {
       return { success: false, code: 'INVALID_IMAGE_SIZE', message: '图片大小无效，请选择 5MB 以内的图片' };
     }
     const header = file.fileContent.slice(0, 4).toString('hex');
-    const contentType = header.startsWith('89504e47') ? 'image/png' : header.startsWith('ffd8') ? 'image/jpeg' : '';
+    let contentType = '';
+    if (header.startsWith('89504e47')) contentType = 'image/png';
+    else if (header.startsWith('ffd8')) contentType = 'image/jpeg';
     if (!contentType) return { success: false, code: 'INVALID_IMAGE_TYPE', message: '仅支持 JPG 或 PNG 图片' };
     const securityResult = await cloud.openapi.security.imgSecCheck({
       media: { contentType, value: file.fileContent },

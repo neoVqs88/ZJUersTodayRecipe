@@ -1,6 +1,6 @@
+const crypto = require('crypto');
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
-const crypto = require('crypto');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
