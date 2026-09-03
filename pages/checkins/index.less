@@ -10,34 +10,34 @@
 }
 
 .history-scroll { height: 100%; }
-.history-head { padding: calc(126rpx + env(safe-area-inset-top)) 38rpx 0; }
+.history-head { padding: calc(124rpx + env(safe-area-inset-top)) 40rpx 0; }
 .history-head text { display: block; }
-.history-head text:first-child { font-size: 58rpx; font-weight: 600; }
-.history-head text:last-child { margin-top: 6rpx; color: @figma-muted; font-size: 25rpx; }
+.history-head text:first-child { font-size: 64rpx; font-weight: 900; line-height: 84rpx; letter-spacing: -.04em; }
+.history-head text:last-child { margin-top: 8rpx; color: @figma-muted; font-size: 28rpx; line-height: 44rpx; }
 
-.history-tabs { display: flex; gap: 12rpx; margin: 24rpx 38rpx; }
-.history-tabs view { padding: 7rpx 16rpx; border-radius: 24rpx; background: rgba(235,235,236,.5); font-size: 21rpx; }
+.history-tabs { display: flex; gap: 12rpx; margin: 18rpx 40rpx; }
+.history-tabs view { padding: 8rpx 18rpx; border-radius: 999rpx; background: rgba(235,235,236,.5); font-size: 22rpx; line-height: 32rpx; }
 .history-tabs .active { background: #ebebec; }
-.month-row { display: flex; justify-content: space-between; margin: 58rpx 58rpx 26rpx; font-size: 25rpx; }
-.month-row text:first-child,.month-row text:last-child{display:flex;align-items:center;justify-content:center;width:58rpx;height:58rpx;border-radius:50%;color:#1d63ae;font-size:36rpx}.month-row text:nth-child(2){line-height:58rpx}
+.month-row { display: flex; align-items: center; justify-content: space-between; margin: 56rpx 62rpx 54rpx; font-size: 30rpx; }
+.month-row text:first-child,.month-row text:last-child{display:flex;align-items:center;justify-content:center;width:44rpx;height:44rpx;border-radius:50%;color:#1976d2;font-size:52rpx;line-height:40rpx}.month-row text:nth-child(2){line-height:44rpx}
 
 .week-row,
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin: 0 58rpx;
+  margin: 0 40rpx;
 }
 
-.week-row text { text-align: center; color: @figma-muted; font-size: 22rpx; }
-.calendar { margin-top: 24rpx; row-gap: 16rpx; }
+.week-row text { text-align: center; color: @figma-muted; font-size: 28rpx; }
+.calendar { margin-top: 34rpx; row-gap: 4rpx; }
 .calendar-day {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   justify-self: center;
-  width: 72rpx;
-  height: 72rpx;
+  width: 76rpx;
+  height: 76rpx;
   overflow: visible;
 }
 
@@ -48,10 +48,10 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 68rpx;
-  height: 68rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
-  font-size: 22rpx;
+  font-size: 28rpx;
 }
 
 .date-circle.selected {
@@ -88,7 +88,7 @@
 .calendar-thumb--south-west { bottom: -18rpx; left: -24rpx; transform: rotate(4deg); }
 .calendar-thumb--north-west { top: -18rpx; left: -24rpx; transform: rotate(-5deg); }
 
-.day-records { margin: 72rpx 38rpx 0; }
+.day-records { margin: 84rpx 40rpx 0; }
 .day-records__head { display: flex; align-items: center; justify-content: space-between; margin: 0 12rpx 16rpx; }
 .day-records__head text:first-child { color: @figma-persimmon; font-size: 21rpx; }
 .day-records__head text:last-child { color: @figma-muted; font-size: 19rpx; }
@@ -97,25 +97,25 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  min-height: 174rpx;
+  min-height: 252rpx;
   margin-bottom: 16rpx;
   padding: 22rpx 24rpx 22rpx 34rpx;
   overflow: hidden;
-  border-radius: 36rpx;
+  border-radius: 44rpx;
   background: @figma-porcelain;
   box-shadow: 0 4rpx 12rpx rgba(31,33,23,.08);
 }
 
-.receipt-bar { position: absolute; top: 20rpx; bottom: 20rpx; left: 0; width: 12rpx; border-radius: 0 8rpx 8rpx 0; background: @figma-persimmon; }
+.receipt-bar { position: absolute; top: 32rpx; bottom: 32rpx; left: 0; width: 16rpx; border-radius: 0 10rpx 10rpx 0; background: @figma-persimmon; }
 .receipt-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; }
-.receipt-copy text:first-child { color: @figma-persimmon; font-size: 19rpx; }
-.receipt-copy text:nth-child(2) { margin-top: 12rpx; overflow: hidden; font-size: 29rpx; text-overflow: ellipsis; white-space: nowrap; }
-.receipt-copy text:last-child { margin-top: 10rpx; color: @figma-muted; font-size: 18rpx; }
-.receipt image { flex-shrink: 0; width: 116rpx; height: 116rpx; margin-left: 18rpx; border-radius: 28rpx; }
+.receipt-copy text:first-child { color: @figma-persimmon; font-size: 24rpx; line-height: 36rpx; }
+.receipt-copy text:nth-child(2) { margin-top: 16rpx; overflow: hidden; font-size: 40rpx; line-height: 56rpx; text-overflow: ellipsis; white-space: nowrap; }
+.receipt-copy text:last-child { margin-top: 2rpx; color: @figma-muted; font-size: 24rpx; line-height: 40rpx; }
+.receipt image { flex-shrink: 0; width: 184rpx; height: 184rpx; margin-left: 18rpx; border-radius: 50%; background: transparent; }
 .receipt.empty { align-items: center; justify-content: center; flex-direction: column; color: @figma-muted; text-align: center; }
 .receipt.empty text + text { margin-top: 12rpx; font-size: 19rpx; }
 
-.history-summary { display: flex; align-items: center; justify-content: space-between; margin: 18rpx 38rpx; color: @figma-muted; font-size: 20rpx; }
-.history-summary view { padding: 15rpx 22rpx; border-radius: 28rpx; background: #ebebec; color: #1d63ae; font-size: 24rpx; }
+.history-summary { display: flex; align-items: center; justify-content: space-between; min-height: 88rpx; margin: 16rpx 40rpx; color: @figma-muted; font-size: 22rpx; }
+.history-summary view { display:flex;align-items:center;justify-content:center;min-height:72rpx;padding:0 30rpx;border-radius:999rpx;background:#ebebec;color:#1d63ae;font-size:28rpx; }
 .alternate-panel{margin:42rpx 38rpx 0}.alternate-panel__head{display:flex;align-items:center;justify-content:space-between;margin:0 12rpx 20rpx}.alternate-panel__head text:first-child{font-size:28rpx}.alternate-panel__head text:last-child{color:@figma-muted;font-size:20rpx}.taste-cloud__body{display:flex;align-items:center;justify-content:center;min-height:330rpx;padding:32rpx;flex-wrap:wrap;gap:22rpx;border-radius:38rpx;background:@figma-porcelain;box-shadow:0 4rpx 12rpx rgba(31,33,23,.08)}.taste-cloud__body text{color:#557b68}.taste-cloud__weight-1{font-size:22rpx}.taste-cloud__weight-2{font-size:29rpx}.taste-cloud__weight-3{font-size:38rpx;color:@figma-persimmon!important}
 .nav-space { height: calc(166rpx + env(safe-area-inset-bottom)); }

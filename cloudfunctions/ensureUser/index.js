@@ -38,6 +38,59 @@ function cleanText(value, maxLength) {
   return value.trim().slice(0, maxLength);
 }
 
+function isRisky(result = {}) {
+  const detail = result.result || result;
+  return detail.suggest === 'risky' || detail.label === 100 || detail.errCode === 87014;
+}
+
+async function checkProfileContent(openid, profile) {
+  const content = [profile.name, profile.introduction, profile.college, profile.hometown, ...(profile.foodPreferences || [])]
+    .filter(Boolean)
+    .join(' ');
+  if (!content) return;
+  const result = await cloud.openapi.security.msgSecCheck({
+    openid,
+    scene: 2,
+    version: 2,
+    content,
+  });
+  if (isRisky(result)) {
+    const error = new Error('个人资料可能包含不适宜信息，请修改后重试');
+    error.code = 'CONTENT_RISKY';
+    throw error;
+  }
+}
+
+async function checkProfileImage(userId, nextImage, currentImage) {
+  if (!nextImage || nextImage === currentImage || nextImage.startsWith('/static/')) return;
+  if (!nextImage.startsWith('cloud://') || !nextImage.includes(`/user-avatars/${userId}/`)) {
+    const error = new Error('头像文件无效，请重新选择');
+    error.code = 'INVALID_AVATAR';
+    throw error;
+  }
+  const file = await cloud.downloadFile({ fileID: nextImage });
+  if (!file.fileContent || !file.fileContent.length || file.fileContent.length > 5 * 1024 * 1024) {
+    const error = new Error('头像大小无效，请选择 5MB 以内的图片');
+    error.code = 'INVALID_AVATAR';
+    throw error;
+  }
+  const header = file.fileContent.slice(0, 4).toString('hex');
+  const contentType = header.startsWith('89504e47') ? 'image/png' : header.startsWith('ffd8') ? 'image/jpeg' : '';
+  if (!contentType) {
+    const error = new Error('头像仅支持 JPG 或 PNG 格式');
+    error.code = 'INVALID_AVATAR';
+    throw error;
+  }
+  const result = await cloud.openapi.security.imgSecCheck({
+    media: { contentType, value: file.fileContent },
+  });
+  if (isRisky(result)) {
+    const error = new Error('头像可能包含不适宜内容，请更换后重试');
+    error.code = 'IMAGE_RISKY';
+    throw error;
+  }
+}
+
 function getConsentRecord(consent = {}) {
   const agreementVersion = cleanText(consent.agreementVersion, 20);
   const privacyVersion = cleanText(consent.privacyVersion, 20);
@@ -47,6 +100,16 @@ function getConsentRecord(consent = {}) {
     privacyVersion,
     agreedAt: db.serverDate(),
   };
+}
+
+function hasCurrentConsent(user, expectedConsent = {}) {
+  const agreementVersion = cleanText(expectedConsent.agreementVersion, 20);
+  const privacyVersion = cleanText(expectedConsent.privacyVersion, 20);
+  if (!agreementVersion || !privacyVersion) return true;
+  const consent = user && user.consent;
+  return Boolean(consent
+    && consent.agreementVersion === agreementVersion
+    && consent.privacyVersion === privacyVersion);
 }
 
 function getUserId(openid) {
@@ -137,27 +200,49 @@ function isMissingCollection(error) {
 
 async function removeWhere(collectionName, condition) {
   try {
-    await db.collection(collectionName).where(condition).remove();
+    for (let batch = 0; batch < 100; batch += 1) {
+      // 每批删除后从头查询，避免数据减少时使用 skip 漏项。
+      // eslint-disable-next-line no-await-in-loop
+      const result = await db.collection(collectionName).where(condition).limit(100).get();
+      if (!result.data.length) break;
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(result.data.map((item) => db.collection(collectionName).doc(item._id).remove()));
+    }
   } catch (error) {
     if (!isMissingCollection(error)) throw error;
   }
 }
 
+async function deleteCloudFiles(fileList) {
+  const files = Array.from(new Set(fileList.filter((fileID) => /^cloud:\/\//.test(fileID))));
+  for (let index = 0; index < files.length; index += 50) {
+    // eslint-disable-next-line no-await-in-loop
+    await cloud.deleteFile({ fileList: files.slice(index, index + 50) });
+  }
+}
+
+async function deleteOwnedImages(collectionName, condition, extractFiles) {
+  let cursor = '';
+  for (let batch = 0; batch < 100; batch += 1) {
+    const queryCondition = cursor ? { ...condition, _id: command.gt(cursor) } : condition;
+    // 使用 _id 游标遍历，避免固定 1000 条上限和 offset 漏项。
+    // eslint-disable-next-line no-await-in-loop
+    const result = await db.collection(collectionName)
+      .where(queryCondition)
+      .orderBy('_id', 'asc')
+      .limit(100)
+      .get();
+    if (!result.data.length) break;
+    // eslint-disable-next-line no-await-in-loop
+    await deleteCloudFiles(result.data.flatMap(extractFiles));
+    cursor = result.data[result.data.length - 1]._id;
+    if (result.data.length < 100) break;
+  }
+}
+
 async function deleteMealImages(userId) {
   try {
-    const fileList = [];
-    for (let page = 0; page < 10; page += 1) {
-      // 分页查询必须按顺序执行，才能根据当前页判断是否结束。
-      // eslint-disable-next-line no-await-in-loop
-      const result = await db.collection('mealRecords').where({ userId }).skip(page * 100).limit(100).get();
-      fileList.push(...result.data.map((item) => item.imageFileId).filter((fileID) => /^cloud:\/\//.test(fileID)));
-      if (result.data.length < 100) break;
-    }
-    for (let index = 0; index < fileList.length; index += 50) {
-      // 云存储批量删除按批次执行，避免一次请求超出文件数量限制。
-      // eslint-disable-next-line no-await-in-loop
-      await cloud.deleteFile({ fileList: fileList.slice(index, index + 50) });
-    }
+    await deleteOwnedImages('mealRecords', { userId }, (item) => [item.imageFileId]);
   } catch (error) {
     if (!isMissingCollection(error)) console.warn('删除打卡图片失败，将继续注销账号', error);
   }
@@ -165,15 +250,10 @@ async function deleteMealImages(userId) {
 
 async function deletePostImages(userId) {
   try {
-    const result = await db.collection('posts').where({ userId }).limit(1000).get();
-    const fileList = Array.from(new Set(result.data.flatMap((post) => [
+    await deleteOwnedImages('posts', { userId }, (post) => [
       ...(Array.isArray(post.images) ? post.images : []),
       post.image,
-    ]).filter((fileID) => /^cloud:\/\//.test(fileID))));
-    for (let index = 0; index < fileList.length; index += 50) {
-      // eslint-disable-next-line no-await-in-loop
-      await cloud.deleteFile({ fileList: fileList.slice(index, index + 50) });
-    }
+    ]);
   } catch (error) {
     if (!isMissingCollection(error)) throw error;
   }
@@ -228,7 +308,7 @@ async function readUser(userId) {
   }
 }
 
-async function validateSession(userId) {
+async function validateSession(event, userId) {
   const user = await readUser(userId);
   if (!user) return { success: false, code: 'SESSION_INVALID', message: '登录状态已失效，请重新登录' };
   if (user.status === 'deleted' || user.status === 'deleting') {
@@ -236,6 +316,9 @@ async function validateSession(userId) {
   }
   if (user.status !== 'active') {
     return { success: false, code: 'USER_DISABLED', message: '账号当前不可用，请联系管理员' };
+  }
+  if (!hasCurrentConsent(user, event.expectedConsent)) {
+    return { success: false, code: 'CONSENT_REQUIRED', message: '用户协议或隐私政策已更新，请重新登录并确认' };
   }
   return { success: true, user: toPublicUser(user) };
 }
@@ -316,13 +399,15 @@ async function deleteAccount(event, context, userId) {
   return { success: true, deleted: true, deletionVersion: 1 };
 }
 
-async function reactivateAccount(event, userId) {
+async function reactivateAccount(event, userId, openid) {
   const existingUser = await readUser(userId);
   if (!existingUser || existingUser.status !== 'deleted') {
     return { success: false, code: 'ACCOUNT_NOT_DELETED', message: '当前账号不需要重新创建' };
   }
   const profileUpdates = getProfileUpdates(event.profile);
   const consent = getConsentRecord(event.consent);
+  if (!consent) return { success: false, code: 'CONSENT_REQUIRED', message: '请先阅读并同意用户协议和隐私政策' };
+  await checkProfileContent(openid, profileUpdates);
   await db.collection(USERS_COLLECTION).doc(userId).update({
     data: {
       ...profileUpdates,
@@ -421,13 +506,15 @@ async function getPublicProfile(event, currentUserId) {
   };
 }
 
-async function updateProfile(event, currentUserId) {
+async function updateProfile(event, currentUserId, openid) {
   const existingUser = await readUser(currentUserId);
   if (!existingUser || existingUser.status !== 'active') {
     return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录后再编辑资料' };
   }
   const updates = getEditableProfile(event.profile);
   if (!updates.name) return { success: false, code: 'INVALID_NAME', message: '昵称不能为空' };
+  await checkProfileContent(openid, updates);
+  await checkProfileImage(currentUserId, updates.image, existingUser.image);
 
   await db.collection(USERS_COLLECTION).doc(currentUserId).update({
     data: {
@@ -448,17 +535,19 @@ exports.main = async (event = {}) => {
     }
 
     const userId = getUserId(context.OPENID);
-    if (event.action === 'validateSession') return await validateSession(userId);
+    if (event.action === 'validateSession') return await validateSession(event, userId);
     if (event.action === 'deleteAccount') return await deleteAccount(event, context, userId);
-    if (event.action === 'reactivateAccount') return await reactivateAccount(event, userId);
+    if (event.action === 'reactivateAccount') return await reactivateAccount(event, userId, context.OPENID);
     if (event.action === 'getProfile') return await getPublicProfile(event, userId);
-    if (event.action === 'updateProfile') return await updateProfile(event, userId);
+    if (event.action === 'updateProfile') return await updateProfile(event, userId, context.OPENID);
 
     const userRef = db.collection(USERS_COLLECTION).doc(userId);
     const existingUser = await readUser(userId);
     const profileUpdates = getProfileUpdates(event.profile);
     const loginMethod = event.loginMethod === 'restore' ? 'restore' : 'wechat';
     const consent = getConsentRecord(event.consent);
+    if (!consent) return { success: false, code: 'CONSENT_REQUIRED', message: '请先阅读并同意用户协议和隐私政策' };
+    await checkProfileContent(context.OPENID, profileUpdates);
 
     if (!existingUser) {
       await userRef.set({
@@ -521,6 +610,7 @@ exports.main = async (event = {}) => {
     const collectionMissing = isMissingCollection(error);
     return {
       success: false,
+      code: error.code || (collectionMissing ? 'USERS_NOT_READY' : 'USER_SERVICE_FAILED'),
       message: collectionMissing ? '请先在云开发数据库中创建 users 集合' : message,
     };
   }

@@ -37,6 +37,40 @@ function cleanNutritionValue(value) {
   return Math.round(nutritionValue * 10) / 10;
 }
 
+function isRisky(result = {}) {
+  const detail = result.result || result;
+  return detail.suggest === 'risky' || detail.label === 100 || detail.errCode === 87014;
+}
+
+async function checkMealImage(fileID, userId) {
+  if (!fileID.includes(`/dish-recognize/${userId}/`)) {
+    const error = new Error('只能保存当前账号上传的打卡图片');
+    error.code = 'INVALID_IMAGE_OWNER';
+    throw error;
+  }
+  const file = await cloud.downloadFile({ fileID });
+  if (!file.fileContent || !file.fileContent.length || file.fileContent.length > 5 * 1024 * 1024) {
+    const error = new Error('打卡图片大小无效');
+    error.code = 'INVALID_IMAGE_SIZE';
+    throw error;
+  }
+  const header = file.fileContent.slice(0, 4).toString('hex');
+  const contentType = header.startsWith('89504e47') ? 'image/png' : header.startsWith('ffd8') ? 'image/jpeg' : '';
+  if (!contentType) {
+    const error = new Error('打卡图片仅支持 JPG 或 PNG 格式');
+    error.code = 'INVALID_IMAGE_TYPE';
+    throw error;
+  }
+  const result = await cloud.openapi.security.imgSecCheck({
+    media: { contentType, value: file.fileContent },
+  });
+  if (isRisky(result)) {
+    const error = new Error('打卡图片可能包含不适宜内容，请更换后重试');
+    error.code = 'IMAGE_RISKY';
+    throw error;
+  }
+}
+
 function getChinaDate(date = new Date()) {
   return new Date(date.getTime() + 8 * 60 * 60 * 1000);
 }
@@ -91,11 +125,17 @@ async function readUser(userId) {
 }
 
 async function getRecentRecords(userId) {
-  const result = await db.collection(RECORDS_COLLECTION).where({
-    userId,
-    status: 'active',
-  }).limit(MAX_LIMIT).get();
-  return result.data.sort((a, b) => {
+  const records = [];
+  for (let batch = 0; batch < 20; batch += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const result = await db.collection(RECORDS_COLLECTION).where({
+      userId,
+      status: 'active',
+    }).skip(batch * MAX_LIMIT).limit(MAX_LIMIT).get();
+    records.push(...result.data);
+    if (result.data.length < MAX_LIMIT) break;
+  }
+  return records.sort((a, b) => {
     const left = new Date(a.mealTime || a.createdAt || 0).getTime();
     const right = new Date(b.mealTime || b.createdAt || 0).getTime();
     return right - left;
@@ -158,6 +198,7 @@ async function createRecord(event, context, userId) {
       stats: await buildStats(userId),
     };
   }
+  await checkMealImage(imageFileId, userId);
 
   const nutritionSourceData = event.nutrition || dish.nutrition;
   const nutrition = nutritionSourceData && typeof nutritionSourceData === 'object' ? nutritionSourceData : {};

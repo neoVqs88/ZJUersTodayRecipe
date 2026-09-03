@@ -21,6 +21,14 @@ export function publishPost(post) {
   return callCommunityPosts('publish', { post });
 }
 
+export function fetchPublicPosts(page = 0, pageSize = 20) {
+  return callCommunityPosts('listPublic', { page, pageSize });
+}
+
+export function fetchPublicPost(postId) {
+  return callCommunityPosts('getPublic', { postId });
+}
+
 export function fetchCommunityStates(postIds) {
   return callCommunityPosts('states', { postIds });
 }

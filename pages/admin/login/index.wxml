@@ -1,31 +1,12 @@
 <view class="admin-login {{appearanceClass}}">
-  <t-navbar title="管理入口" left-arrow />
-  <view class="admin-login__content">
-    <view class="admin-login__badge"><t-icon name="lock-on" size="62rpx" /></view>
-    <view class="admin-login__title">社区内容管理</view>
-    <view class="admin-login__subtitle">管理操作会绑定当前微信身份并写入审计日志</view>
-
-    <view class="admin-login__form">
-      <view class="admin-login__label">管理密钥</view>
-      <view class="admin-login__input-wrap">
-        <input
-          class="admin-login__input"
-          password="{{!showKey}}"
-          value="{{key}}"
-          maxlength="128"
-          confirm-type="done"
-          placeholder="请输入预设管理密钥"
-          bindinput="onKeyInput"
-          bindconfirm="submit"
-        />
-        <view class="admin-login__eye" bindtap="toggleKeyVisibility"><t-icon name="browse" size="35rpx" /></view>
-      </view>
-      <t-button block theme="primary" size="large" loading="{{loading}}" bindtap="submit">验证并进入</t-button>
-    </view>
-
-    <view class="admin-login__notice">
-      <t-icon name="info-circle" size="29rpx" />
-      <text>连续输错 5 次将暂时锁定 15 分钟。请勿向非管理人员分享密钥。</text>
-    </view>
-  </view>
+  <scroll-view class="admin-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-head"><view class="back" bindtap="goBack">‹</view><view class="head-copy"><text>管理员登录</text><text>ADMIN CONSOLE</text></view></view>
+    <view class="login-card"><text>身份验证</text><view class="login-field"><text>管理密钥</text><input password="{{!showKey}}" value="{{key}}" maxlength="128" confirm-type="done" placeholder="请输入预设管理密钥" bindinput="onKeyInput" bindconfirm="submit"/><text bindtap="toggleKeyVisibility">{{showKey ? '隐藏' : '显示'}}</text></view></view>
+    <text class="section-title">安全说明</text>
+    <view class="safe-card"><view><text>授权范围</text><text>社区治理 · 数据维护</text></view><text>当前登录环境</text><view class="hairline"></view><view><text>15 分钟无操作自动退出</text><text>已开启　›</text></view></view>
+    <text class="section-title">登录保护</text>
+    <view class="login-card protection"><view class="protect-row"><view><text>微信身份绑定</text><text>管理会话仅对当前登录用户有效</text></view><text>✓</text></view><view class="hairline"></view><view class="protect-row"><view><text>审计记录</text><text>删除与审核操作均会留痕</text></view><text>›</text></view></view>
+    <view class="admin-enter {{loading ? 'disabled' : ''}}" bindtap="submit"><view class="rail"></view><view><text>{{loading ? '正在验证' : '验证并进入'}}</text><text>登录行为会写入审计日志</text></view><text>›</text></view>
+    <text class="admin-foot">忘记凭据？请联系项目超级管理员</text>
+  </scroll-view>
 </view>

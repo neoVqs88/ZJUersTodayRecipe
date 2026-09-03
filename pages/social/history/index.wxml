@@ -1,7 +1,5 @@
 <view class="history-page {{appearanceClass}}">
-  <t-navbar title="浏览足迹" left-arrow>
-    <view slot="right" class="history-clear" bindtap="clearAll">清空</view>
-  </t-navbar>
+  <view class="figma-page-head-wrap"><figma-page-head title="浏览足迹" subtitle="PLACES YOU HAVE BEEN" tag="清空" bind:tagtap="clearAll" /></view>
   <scroll-view class="history-filter-scroll" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="history-filters">
       <view class="history-filter {{activeFilter === item.value ? 'history-filter--active' : ''}}" wx:for="{{filters}}" wx:key="value" data-value="{{item.value}}" bindtap="selectFilter">{{item.label}}</view>

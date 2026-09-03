@@ -1,47 +1,33 @@
 <view class="edit-page {{appearanceClass}}">
-  <t-navbar left-arrow title="编辑偏好" />
   <view class="edit-loading" wx:if="{{loading}}">正在读取个人资料…</view>
   <scroll-view class="edit-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
-    <view class="edit-head">
-      <text>编辑我的饭纹</text>
-      <text>完善资料，让饭搭子更懂你的校园口味。</text>
+    <view class="page-head">
+      <view class="back" bindtap="goBack">‹</view>
+      <view class="head-copy"><text>编辑资料</text><text>WHAT OTHERS MAY SEE</text></view>
+      <view class="head-save" bindtap="saveProfile">{{saving ? '保存中' : '保存'}}</view>
     </view>
-    <view class="avatar-section">
-      <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-        <image class="avatar-button__image" src="{{profile.image}}" mode="aspectFill" />
-        <view class="avatar-button__badge"><t-icon name="camera" size="27rpx" color="#ffffff" /></view>
-      </button>
-      <view class="avatar-section__title">更换头像</view>
-      <view class="avatar-section__desc">清晰的头像更容易被饭搭子认出来</view>
+    <view class="avatar-editor">
+      <view class="avatar-button" bindtap="chooseAvatarFromDevice"><image src="{{profile.image}}" mode="aspectFill"/><view class="camera">＋</view></view>
+      <view class="avatar-copy"><text>换头像</text><text>建议使用能认出你的照片，<br/>搭桌确认后更容易见面。</text><text>校园认证不会公开学号</text><view><text bindtap="chooseAvatarFromDevice">相册 / 拍照</text><button open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">微信头像</button></view></view>
     </view>
-    <view class="edit-section-title">基本资料</view>
-    <view class="edit-card">
-      <view class="form-row">
-        <text class="form-row__label">昵称</text>
-        <input class="form-row__input" type="nickname" maxlength="20" value="{{profile.name}}" placeholder="请输入昵称" data-field="name" bindinput="onFieldInput" />
-      </view>
-      <view class="form-row form-row--textarea">
-        <view class="form-row__label-line"><text class="form-row__label">个人简介</text><text class="form-row__count">{{profile.introduction.length}}/80</text></view>
-        <textarea class="form-row__textarea" maxlength="80" value="{{profile.introduction}}" placeholder="介绍一下你的口味、常去食堂或想找的饭搭子" data-field="introduction" bindinput="onFieldInput" />
-      </view>
+    <view class="deep-heading">基本资料</view>
+    <view class="form-card">
+      <view class="form-row"><view><text>昵称</text><input type="nickname" maxlength="20" value="{{profile.name}}" placeholder="请输入昵称" data-field="name" bindinput="onFieldInput"/></view></view>
+      <view class="form-row form-row--bio"><view><text>个人简介</text><textarea maxlength="80" value="{{profile.introduction}}" placeholder="介绍一下你的口味、常去食堂或想找的饭搭子" data-field="introduction" bindinput="onFieldInput"/></view><text>{{profile.introduction.length}}/80</text></view>
     </view>
-    <view class="edit-section-title">校园身份</view>
-    <view class="edit-card">
-      <picker mode="selector" range="{{campusOptions}}" value="{{campusIndex}}" data-field="campus" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">所在校区</text><text class="form-row__value">{{profile.campus}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
-      <view class="form-row"><text class="form-row__label">院系</text><input class="form-row__input" maxlength="30" value="{{profile.college}}" placeholder="例如：计算机科学与技术学院" data-field="college" bindinput="onFieldInput" /></view>
-      <picker mode="selector" range="{{gradeOptions}}" value="{{gradeIndex}}" data-field="grade" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">身份</text><text class="form-row__value">{{profile.grade}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
-      <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" data-field="gender" bindchange="onPickerChange"><view class="form-row form-row--picker"><text class="form-row__label">性别</text><text class="form-row__value">{{profile.gender}}</text><t-icon name="chevron-right" size="32rpx" color="#98a2b3" /></view></picker>
-      <view class="form-row"><text class="form-row__label">家乡</text><input class="form-row__input" maxlength="30" value="{{profile.hometown}}" placeholder="例如：浙江杭州" data-field="hometown" bindinput="onFieldInput" /></view>
+    <view class="deep-heading">校园身份</view>
+    <view class="form-card soft-card">
+      <picker mode="selector" range="{{campusOptions}}" value="{{campusIndex}}" data-field="campus" bindchange="onPickerChange"><view class="form-row"><view><text>所在校区</text><text>{{profile.campus}}</text></view><text>›</text></view></picker>
+      <view class="form-row"><view><text>院系</text><input maxlength="30" value="{{profile.college}}" placeholder="例如：计算机科学与技术学院" data-field="college" bindinput="onFieldInput"/></view></view>
+      <picker mode="selector" range="{{gradeOptions}}" value="{{gradeIndex}}" data-field="grade" bindchange="onPickerChange"><view class="form-row"><view><text>身份</text><text>{{profile.grade}}</text></view><text>›</text></view></picker>
+      <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" data-field="gender" bindchange="onPickerChange"><view class="form-row"><view><text>性别</text><text>{{profile.gender}}</text></view><text>›</text></view></picker>
+      <view class="form-row"><view><text>家乡</text><input maxlength="30" value="{{profile.hometown}}" placeholder="例如：浙江杭州" data-field="hometown" bindinput="onFieldInput"/></view></view>
     </view>
-    <view class="edit-section-title">口味偏好</view>
-    <view class="edit-card taste-card">
-      <view class="taste-card__title">选择口味标签 <text>最多选择 6 个</text></view>
-      <view class="taste-list">
-        <view class="taste-item {{item.selected ? 'taste-item--selected' : ''}}" wx:for="{{preferenceItems}}" wx:key="value" data-value="{{item.value}}" bindtap="togglePreference">{{item.value}}</view>
-      </view>
-    </view>
-    <view class="privacy-note"><t-icon name="lock-on" size="27rpx" /> 这里只展示你主动填写的公开资料，不会展示手机号和微信身份信息。</view>
-    <view class="edit-scroll__bottom-space" />
+    <view class="deep-heading">搭桌资料</view>
+    <view class="form-card soft-card preference-card"><text>饭桌偏好</text><text>最多选择 6 个</text><view class="taste-list"><view class="taste-item {{item.selected ? 'selected' : ''}}" wx:for="{{preferenceItems}}" wx:key="value" data-value="{{item.value}}" bindtap="togglePreference">{{item.value}}</view></view></view>
+    <view class="sincerity"><text>资料诚意度 86%</text><view><view></view></view><text>继续完善资料，更容易找到合拍的饭搭子</text></view>
+    <text class="bottom-note">这里只展示你主动填写的公开资料，不会展示手机号和微信身份信息。</text>
+    <view class="bottom-save {{saving ? 'disabled' : ''}}" bindtap="saveProfile">{{saving ? '保存中…' : '保存资料'}}　›</view>
+    <view class="bottom-space"></view>
   </scroll-view>
-  <view class="save-bar" wx:if="{{!loading}}"><view class="save-button {{saving ? 'save-button--disabled' : ''}}" bindtap="saveProfile">{{saving ? '保存中…' : '保存资料'}}</view></view>
 </view>

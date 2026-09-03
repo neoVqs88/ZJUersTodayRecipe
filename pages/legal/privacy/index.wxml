@@ -1,5 +1,5 @@
 <view class="legal-page {{appearanceClass}}">
-  <t-navbar title="隐私政策" left-arrow />
+  <view class="figma-page-head-wrap"><figma-page-head title="隐私政策" subtitle="PRIVACY POLICY" /></view>
   <view class="legal-page__body">
     <view class="legal-page__intro">
       <view class="legal-page__title">“zjuer 今天吃什么”隐私政策</view>

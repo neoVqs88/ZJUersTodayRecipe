@@ -1,18 +1,24 @@
-<view class="dish-page {{appearanceClass}}">
+<view class="dish-page {{appearanceClass}}" wx:if="{{!loading && dish}}">
   <scroll-view class="dish-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="dish-top"><view class="dish-top__back" bindtap="goBack">‹</view><view class="dish-top__collect" bindtap="toggleCollect"><t-icon name="{{collected ? 'star-filled' : 'star'}}" size="34rpx" color="{{collected ? '#ff6b4a' : '#1d2118'}}" /></view></view>
-    <image class="dish-hero" src="{{dish.image}}" mode="aspectFill" />
-    <view class="dish-sheet">
-      <text class="dish-sheet__eyebrow">{{dish.english}}</text>
-      <view class="dish-sheet__title-row"><text class="dish-sheet__title">{{dish.name}}</text><view><text class="dish-sheet__score">{{dish.score}}</text><text> / 5</text></view></view>
-      <view class="dish-sheet__meta"><view bindtap="openLocation"><t-icon name="location" size="22rpx" /><text>{{dish.place}}</text></view><view><text>{{dish.price}}</text></view></view>
-      <view class="dish-sheet__tags"><text wx:for="{{dish.flavor}}" wx:key="*this">{{item}}</text></view>
-      <view class="dish-sheet__divider"></view>
-      <text class="dish-sheet__section">为什么值得这一餐</text><text class="dish-sheet__desc">{{dish.desc}}</text>
-      <view class="taste-note"><text>饭友印象</text><text>“出餐稳定，味道舒服，适合不知道吃什么的日子。”</text></view>
-      <view class="dish-sheet__facts"><view><text class="dish-sheet__fact-value">12 min</text><text>预计排队</text></view><view><text class="dish-sheet__fact-value">86%</text><text>再次选择</text></view><view><text class="dish-sheet__fact-value">328</text><text>本月记录</text></view></view>
-      <view class="dish-sheet__button" bindtap="recordMeal">把它记进今天的一餐</view>
+    <view class="detail-head">
+      <view class="detail-back" bindtap="goBack">‹</view>
+      <view class="detail-copy"><text>{{dish.name}}</text><text>{{dish.desc}}</text></view>
+      <view class="detail-tag">◷ 本周推荐</view>
     </view>
+    <view class="dish-hero-card">
+      <text>{{dish.english || 'CAMPUS DISH'}} · {{dish.popularity || 0}} 人</text>
+      <text>一份刚刚好的热菜</text>
+      <text>{{dish.place}} 今日供应</text>
+      <view class="availability"><text>1</text><text>处</text><text>供应食堂</text><text>今日有售</text><view></view></view>
+      <view class="dish-orbits"><view class="orbit orbit-a"></view><view class="orbit orbit-b"></view><image src="{{dish.ticketImage || dish.image}}" mode="aspectFit" /></view>
+    </view>
+    <view class="nutrients"><view>◉ {{dish.flavor[0] || '风味均衡'}}</view><view>♨ {{dish.price}}</view></view>
+    <view class="section-head"><text>哪里能吃到</text><text>1 个食堂</text></view>
+    <view class="bars" bindtap="openLocation"><view><text class="bar b1"></text><text>早餐</text></view><view><text class="bar b2"></text><text>午餐</text></view><view><text class="bar b3"></text><text>晚餐</text></view><view><text class="bar b4"></text><text>{{dish.canteen || '玉泉食堂'}}</text></view></view>
+    <text class="about-title">关于这道菜</text>
+    <view class="about-card"><text>{{dish.desc}}</text><text>适合：{{dish.flavorText || '正餐'}}</text><text>本周口碑 {{dish.score}} ↑</text></view>
+    <view class="bottom-actions"><view class="location-action" bindtap="openLocation"><text></text>查看供应食堂　›</view><view class="save-action" bindtap="toggleCollect"><text></text>{{collected ? '已收藏' : '收藏'}}　›</view></view>
+    <view class="meal-action" bindtap="recordMeal">把它记进今天的一餐</view>
     <view class="dish-bottom"></view>
   </scroll-view>
 </view>

@@ -75,8 +75,64 @@ Page({
   },
 
   onChooseAvatar(event) {
-    const {avatarUrl} = event.detail;
+    const { avatarUrl } = event.detail;
     if (avatarUrl) this.setData({ 'profile.image': avatarUrl });
+  },
+
+  goBack() {
+    wx.navigateBack();
+  },
+
+  chooseAvatarFromDevice() {
+    wx.showActionSheet({
+      itemList: ['从手机相册选择', '拍照'],
+      success: ({ tapIndex }) => this.selectAvatarImage(tapIndex === 1 ? 'camera' : 'album'),
+    });
+  },
+
+  selectAvatarImage(sourceType) {
+    const useSelectedFile = (file = {}) => {
+      const filePath = file.tempFilePath || file.path || '';
+      const fileSize = Number(file.size) || 0;
+      if (!filePath) {
+        wx.showToast({ title: '没有读取到图片', icon: 'none' });
+        return;
+      }
+      if (fileSize > 10 * 1024 * 1024) {
+        wx.showToast({ title: '头像图片不能超过 10MB', icon: 'none' });
+        return;
+      }
+      this.setData({ 'profile.image': filePath });
+    };
+
+    if (typeof wx.chooseMedia === 'function') {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: [sourceType],
+        sizeType: ['compressed'],
+        success: ({ tempFiles = [] }) => useSelectedFile(tempFiles[0]),
+        fail: (error) => {
+          if (error && /cancel/i.test(error.errMsg || '')) return;
+          wx.showToast({ title: '图片选择失败，请重试', icon: 'none' });
+        },
+      });
+      return;
+    }
+
+    wx.chooseImage({
+      count: 1,
+      sourceType: [sourceType],
+      sizeType: ['compressed'],
+      success: ({ tempFilePaths = [], tempFiles = [] }) => useSelectedFile({
+        ...(tempFiles[0] || {}),
+        tempFilePath: tempFilePaths[0] || (tempFiles[0] && tempFiles[0].path),
+      }),
+      fail: (error) => {
+        if (error && /cancel/i.test(error.errMsg || '')) return;
+        wx.showToast({ title: '图片选择失败，请重试', icon: 'none' });
+      },
+    });
   },
 
   onFieldInput(event) {

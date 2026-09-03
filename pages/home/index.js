@@ -19,7 +19,7 @@ Page({
         match: 92,
         flavor: '清甜',
         price: '¥8–12',
-        image: '/static/figma/ticket-lotus-opaque.webp',
+        image: '/static/figma/lotus-root.webp',
       },
       {
         name: '山野菌菇面',
@@ -29,7 +29,7 @@ Page({
         match: 89,
         flavor: '清淡鲜香',
         price: '¥10–15',
-        image: '/static/figma/ticket-mushroom-noodle.webp',
+        image: '/static/figma/dish-mushroom-noodle-transparent.png',
       },
       {
         name: '酸汤肥牛',
@@ -39,7 +39,7 @@ Page({
         match: 86,
         flavor: '酸辣',
         price: '¥15–20',
-        image: '/static/figma/ticket-sour-beef.webp',
+        image: '/static/figma/sour-beef.webp',
       },
       {
         name: '番茄肥牛饭',
@@ -49,7 +49,7 @@ Page({
         match: 94,
         flavor: '酸甜',
         price: '¥15–20',
-        image: '/static/figma/ticket-tomato-beef.webp',
+        image: '/static/figma/tomato-rice.webp',
       },
     ],
     activeTicket: {
@@ -60,15 +60,15 @@ Page({
       match: 92,
       flavor: '清甜',
       price: '¥8–12',
-      image: '/static/figma/ticket-lotus-opaque.webp',
+      image: '/static/figma/lotus-root.webp',
     },
     ticketIndex: 0,
     isShuffling: false,
     newDishes: [
-      { name: '番茄肥牛饭', location: '玉泉一食堂 · 二楼', shortLocation: '酸甜浓郁', score: '4.9', image: '/static/figma/rank-tomato-beef.webp' },
-      { name: '山野菌菇面', location: '怡膳堂 · 一楼', shortLocation: '清淡鲜香', score: '4.8', image: '/static/figma/rank-mushroom-noodle.webp' },
-      { name: '酸汤肥牛', location: '玉泉二食堂 · 风味档', shortLocation: '酸辣开胃', score: '4.7', image: '/static/figma/rank-sour-beef.webp' },
-      { name: '石锅拌饭', location: '玉泉四食堂 · 一楼', shortLocation: '咸香热辣', score: '4.6', image: '/static/figma/rank-stone-pot.webp' },
+      { name: '番茄肥牛饭', location: '玉泉一食堂 · 二楼', shortLocation: '酸甜浓郁', score: '4.9', image: '/static/dishes/tomato-beef-rice.webp' },
+      { name: '山野菌菇面', location: '怡膳堂 · 一楼', shortLocation: '清淡鲜香', score: '4.8', image: '/static/figma/dish-mushroom-noodle-transparent.png' },
+      { name: '酸汤肥牛', location: '玉泉二食堂 · 风味档', shortLocation: '酸辣开胃', score: '4.7', image: '/static/figma/sour-beef.webp' },
+      { name: '石锅拌饭', location: '玉泉四食堂 · 一楼', shortLocation: '咸香热辣', score: '4.6', image: '/static/dishes/bibimbap.webp' },
     ],
     moments: ['想吃热乎的', '预算 15 元内', '离我近一点'],
     checkInDays: 0,
@@ -91,6 +91,7 @@ Page({
       const ranked = [...catalog].sort((a, b) => b.popularity - a.popularity);
       const mealTickets = ranked.slice(0, 6).map((dish, index) => ({
         ...dish,
+        image: dish.ticketImage || dish.image,
         campus: dish.canteen || dish.campus,
         time: index % 2 ? '12:26' : '12:20',
         note: dish.desc,
@@ -141,6 +142,10 @@ Page({
     if (this.data.isShuffling) return;
 
     const { mealTickets, ticketIndex } = this.data;
+    if (!Array.isArray(mealTickets) || mealTickets.length < 2) return;
+    const targetIndex = (ticketIndex + 1 + Math.floor(Math.random() * (mealTickets.length - 1))) % mealTickets.length;
+    const targetOffset = (targetIndex - ticketIndex + mealTickets.length) % mealTickets.length;
+    const totalSteps = mealTickets.length * 2 + targetOffset;
     let step = 0;
     let nextIndex = ticketIndex;
     this.setData({ isShuffling: true });
@@ -153,7 +158,7 @@ Page({
         ticketIndex: nextIndex,
       });
 
-      if (step < 10) return;
+      if (step < totalSteps) return;
       clearInterval(this.ticketTimer);
       this.ticketTimer = null;
       this.setData({ isShuffling: false });

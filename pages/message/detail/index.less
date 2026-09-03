@@ -1,15 +1,16 @@
-page {
-  background: #f6f8fc;
-}
+page { height: 100%; background: #f5f1e8; }
+
+.detail-page { display: flex; height: 100vh; flex-direction: column; color: #1d2118; background: #f5f1e8; font-family: "Noto Serif SC", "Songti SC", serif; }
 
 .detail {
+  flex: 1;
   box-sizing: border-box;
-  height: 100vh;
-  padding: 20rpx 24rpx;
+  height: 0;
+  padding: 8rpx 40rpx calc(36rpx + env(safe-area-inset-bottom));
 
   &__empty {
     padding: 120rpx 0;
-    color: #9aa0a6;
+    color: #7f8378;
     font-size: 28rpx;
     text-align: center;
   }
@@ -20,9 +21,9 @@ page {
   align-items: flex-start;
   margin-bottom: 20rpx;
   padding: 28rpx 24rpx;
-  border-radius: 20rpx;
-  background: #fff;
-  box-shadow: 0 4rpx 16rpx rgba(45, 120, 218, 0.06);
+  border-radius: 40rpx;
+  background: #fffcf6;
+  box-shadow: 0 8rpx 24rpx rgba(31, 33, 23, .05);
 
   &__avatar {
     display: flex;
@@ -50,7 +51,7 @@ page {
   }
 
   &__name {
-    color: #1f2d3d;
+    color: #1d2118;
     font-size: 28rpx;
     font-weight: 600;
   }
@@ -58,13 +59,13 @@ page {
   &__time {
     flex: none;
     margin-left: 16rpx;
-    color: #9aa0a6;
+    color: #7f8378;
     font-size: 22rpx;
   }
 
   &__action {
     margin-top: 4rpx;
-    color: #5f6b7a;
+    color: #62675d;
     font-size: 26rpx;
   }
 
@@ -72,8 +73,8 @@ page {
     margin-top: 12rpx;
     padding: 16rpx 20rpx;
     border-radius: 12rpx;
-    background: #f2f5fa;
-    color: #1f2d3d;
+    background: #e7eee4;
+    color: #1d2118;
     font-size: 26rpx;
     line-height: 1.5;
   }
@@ -81,7 +82,7 @@ page {
   &__target {
     margin-top: 12rpx;
     overflow: hidden;
-    color: #9aa0a6;
+    color: #7f8378;
     font-size: 22rpx;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -94,6 +95,6 @@ page {
     margin-top: 12rpx;
     margin-left: 12rpx;
     border-radius: 50%;
-    background: #f04438;
+    background: #ff6b4a;
   }
 }

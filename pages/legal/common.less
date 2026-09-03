@@ -42,3 +42,23 @@ page {
   &__name { color: #354158; font-size: 22rpx; font-weight: 680; }
   &__desc { display: block; margin-top: 7rpx; color: #6d7889; font-size: 20rpx; line-height: 34rpx; }
 }
+
+.legal-page {
+  background: #f5f1e8;
+  color: #1d2118;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+
+  &__body { padding: 8rpx 40rpx calc(58rpx + env(safe-area-inset-bottom)); }
+  &__intro, &__section { border: 0; border-radius: 40rpx; background: #fffcf6; box-shadow: 0 8rpx 24rpx rgba(31, 33, 23, .04); }
+  &__title, &__heading { color: #1d2118; }
+  &__meta, &__lead, &__paragraph, &__item, &__footer { color: #7f8378; }
+  &__item::before { background: #ff6b4a; }
+  &__emphasis { color: #ff6b4a; }
+  &__warning { border-radius: 30rpx; background: #ffe8ae; color: #725a2d; }
+}
+
+.info-table { border: 0; border-radius: 28rpx; }
+.info-table__row { background: #f5f1e8; }
+.info-table__row + .info-table__row { border-color: #ddd8ce; }
+.info-table__name { color: #1d2118; }
+.info-table__desc { color: #7f8378; }

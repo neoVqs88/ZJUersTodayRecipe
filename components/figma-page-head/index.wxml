@@ -1,0 +1,5 @@
+<view class="page-head">
+  <view class="page-head__back" bindtap="goBack">‹</view>
+  <view class="page-head__copy"><text class="page-head__title">{{title}}</text><text wx:if="{{subtitle}}" class="page-head__subtitle">{{subtitle}}</text></view>
+  <view wx:if="{{tag}}" class="page-head__tag" bindtap="tapTag">{{tag}}</view>
+</view>

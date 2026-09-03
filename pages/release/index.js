@@ -52,6 +52,10 @@ Page({
     publishing: false,
   },
 
+  goBack() {
+    wx.navigateBack();
+  },
+
   onLoad(options = {}) {
     if (!isLoggedIn()) {
       const query = options.type ? `?type=${encodeURIComponent(options.type)}` : '';

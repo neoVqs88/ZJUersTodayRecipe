@@ -1,2 +1,53 @@
 @import '/variable.less';
-.figma-screen{height:100vh;overflow:hidden;background:@figma-paper;color:@figma-ink;font-family:'Noto Serif SC','Songti SC',serif}.screen-scroll{height:100%}.screen-head{padding:calc(118rpx + env(safe-area-inset-top)) 38rpx 0}.screen-head text{display:block}.eyebrow{color:@figma-persimmon;font-size:22rpx;line-height:36rpx}.screen-title{margin-top:10rpx;font-size:58rpx;font-weight:600;line-height:1.3}.screen-desc{margin-top:8rpx;color:@figma-muted;font-size:27rpx;line-height:42rpx}.chips{display:flex;gap:12rpx;padding:22rpx 38rpx 0}.chip{padding:7rpx 16rpx;border-radius:24rpx;background:#ebebec;color:@figma-ink;font-size:21rpx;line-height:32rpx}.meal-ticket{position:relative;height:330rpx;margin:42rpx 38rpx 0;overflow:hidden;border-radius:44rpx;background:@figma-porcelain;box-shadow:0 5rpx 14rpx rgba(31,33,23,.08)}.ticket-image{position:absolute;right:8rpx;top:12rpx;width:286rpx;height:286rpx;border-radius:50%;background:@figma-porcelain}.ticket-image image{width:100%;height:100%;background:transparent;transition:opacity .12s ease,transform .12s ease}.meal-ticket--shuffling .ticket-image image{animation:ticket-cycle .21s ease-in-out infinite}.meal-ticket--shuffling .ticket-copy,.meal-ticket--shuffling .ticket-match{animation:ticket-copy-cycle .21s ease-in-out infinite}.ticket-copy{position:absolute;z-index:2;left:30rpx;top:36rpx;width:370rpx}.ticket-copy text{display:block;font-size:22rpx}.ticket-title{margin-top:8rpx;font-size:26rpx!important}.ticket-note{width:350rpx;margin-top:58rpx;color:@figma-muted;font-size:22rpx!important}.ticket-match{position:absolute;z-index:3;right:28rpx;bottom:38rpx;color:@figma-persimmon;font-size:22rpx}.ticket-chips{padding-top:26rpx}.reroll-button{display:flex;align-items:center;justify-content:center;height:86rpx;margin:30rpx 38rpx 0;border-radius:44rpx;background:#ebebec;color:#1d63ae;font-size:29rpx;transition:transform .18s ease,opacity .18s ease}.reroll-button--busy{opacity:.72;transform:scale(.985)}.section-row{display:flex;align-items:center;justify-content:space-between;margin:42rpx 38rpx 16rpx}.section-title{font-size:34rpx}.section-link{color:@figma-persimmon;font-size:20rpx}.ranking{margin:0 38rpx;overflow:hidden;border-radius:38rpx;background:@figma-porcelain}.rank-row{display:flex;align-items:center;height:78rpx;padding:0 20rpx}.rank-row:first-child{background:#f0f5ed}.rank-row+.rank-row{border-top:1rpx solid #e8e7df}.rank-no{width:55rpx;color:#8b8e86;font-size:21rpx}.rank-row:first-child .rank-no{color:@figma-persimmon}.rank-row image{width:50rpx;height:50rpx;border-radius:50%}.rank-copy{display:flex;flex:1;flex-direction:column;margin-left:18rpx}.rank-copy text:first-child{font-size:24rpx}.rank-copy text:last-child{margin-top:3rpx;color:#8a8f85;font-size:16rpx}.rank-arrow{color:@figma-persimmon;font-size:30rpx}.nav-clear{height:calc(166rpx + env(safe-area-inset-bottom))}@keyframes ticket-cycle{0%{opacity:.2;transform:translateY(10rpx) scale(.94)}100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes ticket-copy-cycle{0%{opacity:.35;transform:translateY(5rpx)}100%{opacity:1;transform:translateY(0)}}
+
+.figma-screen { height: 100vh; overflow: hidden; }
+.screen-scroll { height: 100%; }
+.screen-head { padding: calc(124rpx + env(safe-area-inset-top)) 40rpx 0; }
+.screen-head text { display: block; }
+.eyebrow { color: @figma-persimmon; font-size: 24rpx; font-weight: 700; line-height: 40rpx; letter-spacing: .12em; }
+.screen-title { margin-top: 4rpx; font-size: 64rpx; font-weight: 900; line-height: 84rpx; letter-spacing: -.04em; }
+.screen-desc { margin-top: 4rpx; color: @figma-muted; font-size: 28rpx; line-height: 44rpx; }
+.chips { display: flex; gap: 12rpx; padding: 16rpx 40rpx 0; }
+.chip { padding: 8rpx 18rpx; border-radius: 999rpx; background: #ebebec; color: @figma-ink; font-size: 22rpx; line-height: 32rpx; white-space: nowrap; }
+.meal-ticket { position: relative; height: 380rpx; margin: 44rpx 40rpx 0; padding: 32rpx; overflow: hidden; border-radius: 44rpx; background: @figma-porcelain; box-shadow: 0 16rpx 40rpx rgba(31, 33, 23, .06); transition: filter .25s ease, transform .25s ease; }
+.ticket-copy { position: relative; z-index: 3; display: flex; flex-direction: column; width: 60%; }
+.ticket-copy text { display: block; font-size: 24rpx; line-height: 40rpx; }
+.ticket-title { margin-top: 2rpx; font-size: 28rpx !important; font-weight: 500; line-height: 48rpx !important; }
+.ticket-note { width: 380rpx; margin-top: 40rpx; color: @figma-muted; font-size: 24rpx !important; line-height: 40rpx !important; }
+.dish-stage { position: absolute; right: 24rpx; top: 26rpx; width: 304rpx; height: 296rpx; }
+.ticket-image { position: absolute; z-index: 2; right: 0; top: 0; width: 276rpx; height: 276rpx; background: transparent; }
+.orbit { position: absolute; border: 2rpx solid #d5bd92; border-radius: 50%; }
+.orbit-a { right: 34rpx; top: 32rpx; width: 212rpx; height: 212rpx; }
+.orbit-b { right: 0; top: 56rpx; width: 272rpx; height: 164rpx; transform: rotate(-18deg); }
+.spark { position: absolute; z-index: 4; width: 14rpx; height: 14rpx; border-radius: 50%; background: #d95b18; }
+.spark-one { left: 2rpx; top: 116rpx; }
+.spark-two { right: 6rpx; top: 190rpx; }
+.spark-three { left: 72rpx; bottom: 2rpx; }
+.ticket-match { position: absolute; z-index: 5; right: 36rpx; bottom: 66rpx; color: @figma-persimmon; font-size: 24rpx; }
+.meal-ticket--shuffling { filter: saturate(.7) brightness(1.04); transform: scale(.99); }
+.meal-ticket--shuffling .dish-stage { animation: shuffle .72s cubic-bezier(.2,.8,.2,1); }
+.meal-ticket--shuffling .ticket-image { animation: card-flash .24s ease-in-out 3; }
+.meal-ticket--shuffling .ticket-copy, .meal-ticket--shuffling .ticket-match { animation: ticket-copy-cycle .21s ease-in-out infinite; }
+.ticket-chips { padding-top: 32rpx; }
+.reroll-button { display: flex; align-items: center; justify-content: center; height: 88rpx; margin: 32rpx 40rpx 0; border-radius: 999rpx; background: #ebebec; color: @figma-blue; font-size: 28rpx; transition: transform .18s ease, opacity .18s ease; }
+.reroll-button:active { opacity: .7; transform: scale(.98); }
+.reroll-button--busy { opacity: .72; transform: scale(.985); }
+.section-row { display: flex; align-items: center; justify-content: space-between; margin: 36rpx 40rpx 16rpx; }
+.section-title { font-size: 30rpx; font-weight: 700; }
+.section-link { color: @figma-persimmon; font-size: 22rpx; }
+.ranking { height: 400rpx; margin: 0 40rpx; overflow: hidden; border-radius: 44rpx; background: @figma-porcelain; }
+.rank-row { position: relative; display: flex; align-items: center; height: 80rpx; padding: 0 24rpx; }
+.rank-row:first-child { background: #f0f5ed; }
+.rank-row + .rank-row::before { position: absolute; top: 0; right: 32rpx; left: 64rpx; height: 2rpx; background: #e8e7df; content: ''; }
+.rank-no { width: 64rpx; color: #8b8e86; font-size: 24rpx; }
+.rank-row:first-child .rank-no { color: @figma-persimmon; }
+.rank-row image { width: 56rpx; height: 56rpx; border-radius: 50%; background: transparent; }
+.rank-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: 20rpx; }
+.rank-copy text:first-child { font-size: 26rpx; line-height: 34rpx; }
+.rank-copy text:last-child { overflow: hidden; color: #8a8f85; font-size: 18rpx; line-height: 24rpx; text-overflow: ellipsis; white-space: nowrap; }
+.rank-arrow { color: @figma-persimmon; font-size: 36rpx; }
+.nav-clear { height: calc(166rpx + env(safe-area-inset-bottom)); }
+
+@keyframes shuffle { 0% { opacity: .1; transform: translateY(40rpx) rotate(-5deg); } 55% { opacity: 1; transform: translateY(-14rpx) rotate(2deg); } 100% { transform: none; } }
+@keyframes card-flash { 50% { filter: brightness(1.35); transform: scale(.96); } }
+@keyframes ticket-copy-cycle { 0% { opacity: .35; transform: translateY(5rpx); } 100% { opacity: 1; transform: translateY(0); } }

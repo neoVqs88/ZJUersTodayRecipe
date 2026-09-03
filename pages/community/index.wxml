@@ -1,6 +1,15 @@
 <view class="community-page {{appearanceClass}}">
   <scroll-view class="community-scroll" scroll-y enhanced show-scrollbar="{{false}}" lower-threshold="120" bindscrolltolower="loadMore">
-    <view class="community-head"><view><text>饭桌边</text><text>把一顿饭，坐成一张有回声的桌。</text></view><view class="message-entry" bindtap="goMessages"><image src="/static/figma/community-message.svg" mode="aspectFit" /><view wx:if="{{unreadNum > 0}}" class="message-entry__badge"></view></view><view class="release-btn" bindtap="goRelease">＋ 发饭帖</view></view>
+    <view class="community-head">
+      <view class="community-head__copy"><text>饭桌边</text><text>把一顿饭，坐成一张有回声的桌。</text></view>
+      <view class="community-head__actions" style="{{headerActionsStyle}}">
+        <view class="message-entry" bindtap="goMessages">
+          <image src="/static/figma/community-message.svg" mode="aspectFit" />
+          <view wx:if="{{unreadNum > 0}}" class="message-entry__badge"></view>
+        </view>
+        <view class="release-btn" bindtap="goRelease">＋ 发饭帖</view>
+      </view>
+    </view>
     <view class="community-tabs"><view wx:for="{{communityTabs}}" wx:key="value" class="{{activeCommunityTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectCommunityTab">{{item.label}}</view></view>
     <view class="trend-strip"><text class="bar"></text><text>饭桌气象 · 分享、约饭与新菜公投</text></view>
     <view class="post-card" wx:for="{{displayPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="openComments">

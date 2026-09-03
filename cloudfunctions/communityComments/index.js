@@ -24,6 +24,35 @@ function cleanId(value, maxLength = 64) {
   return /^[a-zA-Z0-9_:-]+$/.test(id) && id.length <= maxLength ? id : '';
 }
 
+function toTimestamp(value) {
+  const date = value && value.$date ? new Date(value.$date) : new Date(value || 0);
+  const timestamp = date.getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+async function enforceCommentRateLimit(userId) {
+  await db.runTransaction(async (transaction) => {
+    const userRef = transaction.collection(USERS_COLLECTION).doc(userId);
+    const user = (await userRef.get()).data;
+    const now = Date.now();
+    const startedAt = toTimestamp(user.commentWindowStartedAt);
+    const inWindow = startedAt && now - startedAt < 10 * 60 * 1000;
+    const count = inWindow ? Number(user.commentWindowCount || 0) : 0;
+    if (count >= 20) {
+      const error = new Error('评论较频繁，请稍后再试');
+      error.code = 'RATE_LIMITED';
+      throw error;
+    }
+    await userRef.update({
+      data: {
+        commentWindowStartedAt: new Date(inWindow ? startedAt : now),
+        commentWindowCount: count + 1,
+        updatedAt: db.serverDate(),
+      },
+    });
+  });
+}
+
 function toPublicComment(comment, currentUserId) {
   return {
     id: comment._id,
@@ -88,6 +117,15 @@ async function createComment(event, context, currentUserId) {
   const user = await readUser(currentUserId);
   if (!user || user.status !== 'active') {
     return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录后再发表评论' };
+  }
+  await enforceCommentRateLimit(currentUserId);
+
+  try {
+    const post = (await db.collection(POSTS_COLLECTION).doc(postId).get()).data;
+    const status = post && (post.post_status || post.status || 'published');
+    if (!post || !['published', 'active'].includes(status)) throw new Error('帖子不可评论');
+  } catch (error) {
+    return { success: false, code: 'POST_NOT_FOUND', message: '帖子不存在或暂不可评论' };
   }
 
   const securityResult = await cloud.openapi.security.msgSecCheck({
@@ -230,6 +268,7 @@ exports.main = async (event = {}) => {
     const collectionMissing = /collection.*not exist|集合.*不存在|-502005/i.test(message);
     return {
       success: false,
+      code: error.code || (collectionMissing ? 'COMMENTS_NOT_READY' : 'COMMENTS_FAILED'),
       message: collectionMissing ? '请先在云开发数据库中创建 comments 集合' : message,
     };
   }

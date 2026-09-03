@@ -1,5 +1,5 @@
 <view class="privacy-page {{appearanceClass}}">
-  <t-navbar title="隐私设置" left-arrow />
+  <view class="figma-page-head-wrap"><figma-page-head title="隐私设置" subtitle="YOUR SPACE, YOUR RULES" /></view>
   <view class="privacy-loading" wx:if="{{loading}}"><t-loading theme="circular" size="42rpx" text="读取隐私设置" /></view>
   <scroll-view class="privacy-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
     <view class="privacy-note"><t-icon name="lock-on" size="32rpx" /><text>昵称、头像和校区作为社区基础身份保留展示，其他资料与动态按以下范围控制。</text></view>

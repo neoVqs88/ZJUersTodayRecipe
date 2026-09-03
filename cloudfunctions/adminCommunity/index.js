@@ -130,7 +130,18 @@ async function readConfig() {
   const adminUserIds = Array.isArray(config.adminUserIds)
     ? config.adminUserIds.map((item) => cleanId(item, 32)).filter(Boolean)
     : [];
-  return { accessKeyHash, sessionHours, adminUserIds };
+  if (!adminUserIds.length) {
+    const error = new Error('管理员白名单尚未配置');
+    error.code = 'ADMIN_NOT_CONFIGURED';
+    throw error;
+  }
+  const sessionSecret = cleanText(process.env.ADMIN_SESSION_SECRET, 128);
+  if (sessionSecret.length < 32) {
+    const error = new Error('管理会话密钥尚未配置');
+    error.code = 'ADMIN_NOT_CONFIGURED';
+    throw error;
+  }
+  return { accessKeyHash, sessionSecret, sessionHours, adminUserIds };
 }
 
 async function getActiveUser(userId) {
@@ -180,7 +191,7 @@ async function recordLoginResult(userId, openid, previous, success) {
 async function login(event, context, userId) {
   await getActiveUser(userId);
   const config = await readConfig();
-  if (config.adminUserIds.length && !config.adminUserIds.includes(userId)) {
+  if (!config.adminUserIds.includes(userId)) {
     return { success: false, code: 'ADMIN_NOT_ALLOWED', message: '当前账号不在管理员白名单中' };
   }
   const previous = await checkRateLimit(userId);
@@ -188,7 +199,7 @@ async function login(event, context, userId) {
   const valid = Boolean(key) && constantTimeEqual(sha256(key), config.accessKeyHash);
   await recordLoginResult(userId, context.OPENID, previous, valid);
   if (!valid) return { success: false, code: 'INVALID_ADMIN_KEY', message: '管理密钥不正确' };
-  const session = signToken(userId, config.accessKeyHash, config.sessionHours);
+  const session = signToken(userId, config.sessionSecret, config.sessionHours);
   return { success: true, ...session };
 }
 
@@ -422,10 +433,10 @@ exports.main = async (event = {}) => {
 
     const config = await readConfig();
     const moderator = await getActiveUser(userId);
-    if (config.adminUserIds.length && !config.adminUserIds.includes(userId)) {
+    if (!config.adminUserIds.includes(userId)) {
       return { success: false, code: 'ADMIN_NOT_ALLOWED', message: '当前账号不在管理员白名单中' };
     }
-    if (!verifyToken(event.token, userId, config.accessKeyHash)) {
+    if (!verifyToken(event.token, userId, config.sessionSecret)) {
       return { success: false, code: 'ADMIN_SESSION_INVALID', message: '管理会话已失效，请重新输入密钥' };
     }
     if (event.action === 'listPosts') return await listPosts(event);

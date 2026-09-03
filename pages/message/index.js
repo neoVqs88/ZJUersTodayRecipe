@@ -66,18 +66,18 @@ Page({
     const page = reset ? 0 : this.data.page;
     this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
-      const db = wx.cloud.database();
-      const [res, overviewResponse] = await Promise.all([
-        db.collection('messages')
-          .orderBy('createdAt', 'desc')
-          .skip(page * this.data.pageSize)
-          .limit(this.data.pageSize)
-          .get(),
+      const [listResponse, overviewResponse] = await Promise.all([
+        wx.cloud.callFunction({
+          name: 'messageHelper',
+          data: { action: 'list', page, pageSize: this.data.pageSize },
+        }),
         reset
           ? wx.cloud.callFunction({ name: 'messageHelper', data: { action: 'overview' } })
           : Promise.resolve(null),
       ]);
-      const nextMessages = res.data.map((m) => ({ ...m, displayTime: formatTime(m.createdAt) }));
+      const listResult = listResponse.result || {};
+      if (!listResult.success) throw new Error(listResult.message || '消息加载失败');
+      const nextMessages = (listResult.messages || []).map((m) => ({ ...m, displayTime: formatTime(m.createdAt) }));
       const messages = reset ? nextMessages : [...this.data.messages, ...nextMessages];
       const overviewResult = overviewResponse && overviewResponse.result;
       const cards = reset && overviewResult && overviewResult.success
@@ -93,7 +93,7 @@ Page({
         loading: false,
         loadingMore: false,
         page: page + 1,
-        hasMore: nextMessages.length === this.data.pageSize,
+        hasMore: Boolean(listResult.hasMore),
         unreadTotal,
       });
       getApp().setUnreadNum(unreadTotal);

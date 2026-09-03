@@ -91,6 +91,22 @@ function getWeekLabel(keys) {
   return `${keys[0].slice(5).replace('-', '月')}日 - ${keys[6].slice(5).replace('-', '月')}日`;
 }
 
+async function readRecords(condition, maxBatches = 20) {
+  const records = [];
+  for (let batch = 0; batch < maxBatches; batch += 1) {
+    // 周数据只读不删，使用稳定 offset 分批获取，避免单次 1000 条截断统计。
+    // eslint-disable-next-line no-await-in-loop
+    const result = await db.collection(COLLECTION)
+      .where(condition)
+      .skip(batch * 1000)
+      .limit(1000)
+      .get();
+    records.push(...result.data);
+    if (result.data.length < 1000) break;
+  }
+  return records;
+}
+
 exports.main = async () => {
   try {
     const { OPENID } = cloud.getWXContext();
@@ -99,12 +115,10 @@ exports.main = async () => {
     const previousKeys = previousWeekKeys(keys);
     const allKeys = [...previousKeys, ...keys];
     const currentUserId = userId(OPENID);
-    const [platformResult, mineResult] = await Promise.all([
-      db.collection(COLLECTION).where({ status: 'active', dateKey: _.in(keys) }).limit(1000).get(),
-      db.collection(COLLECTION).where({ userId: currentUserId, status: 'active', dateKey: _.in(allKeys) }).limit(1000).get(),
+    const [currentRecords, mineAll] = await Promise.all([
+      readRecords({ status: 'active', dateKey: _.in(keys) }),
+      readRecords({ userId: currentUserId, status: 'active', dateKey: _.in(allKeys) }),
     ]);
-    const currentRecords = platformResult.data || [];
-    const mineAll = mineResult.data || [];
     const mine = mineAll.filter((record) => keys.includes(record.dateKey));
     const previousMine = mineAll.filter((record) => previousKeys.includes(record.dateKey));
     const nutritionRecords = mine.filter((record) => getValidCalories(record) !== null);

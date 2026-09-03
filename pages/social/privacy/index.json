@@ -1,7 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "t-navbar": "tdesign-miniprogram/navbar/navbar",
+    "figma-page-head": "/components/figma-page-head/index",
     "t-icon": "tdesign-miniprogram/icon/icon",
     "t-loading": "tdesign-miniprogram/loading/loading",
     "t-switch": "tdesign-miniprogram/switch/switch",

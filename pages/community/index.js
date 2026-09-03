@@ -1,10 +1,10 @@
-// 社区页：动态来自云数据库 posts 集合
-// 集合权限：所有用户可读、客户端不可写；发布和互动由云函数校验身份后完成。
+// 社区页：动态通过 communityPosts 云函数获取，客户端无需直接读取 posts 集合。
 
 import { fetchCommentCounts } from '~/services/comments';
 import { isLoggedIn } from '~/services/auth';
 import { recordBrowsingHistory } from '~/services/userSocial';
 import {
+  fetchPublicPosts,
   fetchCommunityStates,
   hidePost,
   reportPost,
@@ -35,6 +35,7 @@ Page({
     hasMore: true,
     activeCommunityTab: 'posts',
     unreadNum: 0,
+    headerActionsStyle: '',
     communityTabs: [
       { label: '饭帖', value: 'posts' },
       { label: '找同桌', value: 'companion' },
@@ -49,12 +50,30 @@ Page({
   },
 
   onLoad(options) {
+    this.updateHeaderActionLayout();
     this.unreadHandler = (unreadNum) => this.setData({ unreadNum: Math.max(0, Number(unreadNum) || 0) });
     getApp().eventBus.on('unread-num-change', this.unreadHandler);
     if (!options.oper) return;
     wx.showToast({
       title: options.oper === 'release' ? '发布成功' : '保存成功',
       icon: 'success',
+    });
+  },
+
+  onResize() {
+    this.updateHeaderActionLayout();
+  },
+
+  updateHeaderActionLayout() {
+    if (typeof wx.getMenuButtonBoundingClientRect !== 'function') return;
+    const menuRect = wx.getMenuButtonBoundingClientRect();
+    if (!menuRect || !menuRect.left) return;
+    const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const windowWidth = Number(windowInfo.windowWidth) || 375;
+    const safeRight = Math.max(windowWidth - menuRect.right, 12);
+    const actionTop = Math.max(Number(menuRect.bottom) + 6, 64);
+    this.setData({
+      headerActionsStyle: `right: ${Math.round(safeRight)}px; top: ${Math.round(actionTop)}px;`,
     });
   },
 
@@ -67,18 +86,8 @@ Page({
     const page = reset ? 0 : this.data.page;
     this.setData(reset ? { loading: true, hasMore: true } : { loadingMore: true });
     try {
-      const db = wx.cloud.database();
-      const {command} = db;
-      const res = await db.collection('posts')
-        .where({ status: command.in(['published', 'active']) })
-        .orderBy('createdAt', 'desc')
-        .skip(page * this.data.pageSize)
-        .limit(this.data.pageSize)
-        .get();
-      const visibleData = res.data.filter((post) => {
-        const status = post.post_status || post.status || 'published';
-        return status === 'published' || status === 'active';
-      });
+      const res = await fetchPublicPosts(page, this.data.pageSize);
+      const visibleData = res.posts || [];
       const nextPosts = visibleData.map((p) => {
         const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
         let locationName = p.locationName || '';
@@ -103,11 +112,11 @@ Page({
         loading: false,
         loadingMore: false,
         page: page + 1,
-        hasMore: res.data.length === this.data.pageSize,
+        hasMore: Boolean(res.hasMore),
       });
-      this.syncLikeStates();
+      this.syncLikeStates(nextPosts.map((post) => post._id));
       this.syncCommentCounts(nextPosts.map((post) => post._id));
-      this.syncCommunityStates();
+      this.syncCommunityStates(nextPosts.map((post) => post._id));
     } catch (err) {
       console.error('拉取动态失败', err);
       this.setData({ loading: false, loadingMore: false });
@@ -143,15 +152,16 @@ Page({
     });
   },
 
-  async syncCommunityStates() {
-    if (!isLoggedIn() || !this.data.posts.length) return;
+  async syncCommunityStates(postIds = []) {
+    const ids = postIds.length ? postIds : this.data.posts.map((post) => post._id);
+    if (!isLoggedIn() || !ids.length) return;
     try {
-      const result = await fetchCommunityStates(this.data.posts.map((post) => post._id));
+      const result = await fetchCommunityStates(ids);
       const states = result.states || {};
       const posts = this.data.posts.map((post) => ({
         ...post,
-        collected: Boolean(states[String(post._id)] && states[String(post._id)].collected),
-        hidden: Boolean(states[String(post._id)] && states[String(post._id)].hidden),
+        collected: states[String(post._id)] ? Boolean(states[String(post._id)].collected) : post.collected,
+        hidden: states[String(post._id)] ? Boolean(states[String(post._id)].hidden) : post.hidden,
       }));
       this.setData({ posts, displayPosts: this.filterPosts(posts, this.data.activeCategory) });
     } catch (error) {
@@ -159,14 +169,15 @@ Page({
     }
   },
 
-  async syncLikeStates() {
-    if (!isLoggedIn() || !this.data.posts.length) return;
+  async syncLikeStates(postIds = []) {
+    const ids = postIds.length ? postIds : this.data.posts.map((post) => post._id);
+    if (!isLoggedIn() || !ids.length) return;
     try {
       const response = await wx.cloud.callFunction({
         name: 'likePost',
         data: {
           action: 'states',
-          postIds: this.data.posts.map((post) => post._id),
+          postIds: ids,
         },
       });
       const result = response.result || {};
@@ -174,7 +185,9 @@ Page({
       const states = result.states || {};
       const posts = this.data.posts.map((post) => ({
         ...post,
-        liked: Boolean(states[String(post._id)]),
+        liked: Object.prototype.hasOwnProperty.call(states, String(post._id))
+          ? Boolean(states[String(post._id)])
+          : post.liked,
       }));
       this.setData({
         posts,

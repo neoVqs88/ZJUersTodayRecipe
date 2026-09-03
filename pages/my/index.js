@@ -1,6 +1,7 @@
 import { getCurrentUser, isLoggedIn, refreshCloudUser } from '~/services/auth';
 import { fetchMealCheckinStats } from '~/services/mealCheckins';
 import { getAppearanceClass, getPreferences } from '~/services/preferences';
+import { fetchSocialDashboard } from '~/services/userSocial';
 import { fetchWeeklyInsights } from '~/services/weeklyInsights';
 
 const MENU_GROUPS = [
@@ -87,6 +88,20 @@ Page({
     }
     this.loadCheckInStats();
     this.loadWeeklyInsights();
+    this.loadSocialCount((this.data.personalInfo && this.data.personalInfo.id) || cachedUser.id);
+  },
+
+  async loadSocialCount(userId) {
+    if (!userId) return;
+    try {
+      const result = await fetchSocialDashboard(userId, 1);
+      const social = result.social || {};
+      this.setData({
+        socialCount: (Number(this.data.personalInfo.favoriteCount) || 0) + (Number(social.followingCount) || 0),
+      });
+    } catch (error) {
+      // 社交统计不可用时继续显示收藏数量。
+    }
   },
 
   applyPreferences(preferences = getPreferences()) {

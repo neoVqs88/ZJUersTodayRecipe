@@ -1,3 +1,5 @@
+import { getCurrentUser } from '~/services/auth';
+
 export default async function recognizeDish() {
   const choose = await wx.chooseMedia({
     count: 1,
@@ -8,8 +10,10 @@ export default async function recognizeDish() {
 
   wx.showLoading({ title: '识别中…', mask: true });
   try {
+    const currentUser = getCurrentUser() || {};
+    if (!currentUser.id) throw new Error('登录状态无效，请重新登录');
     const up = await wx.cloud.uploadFile({
-      cloudPath: `dish-recognize/${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`,
+      cloudPath: `dish-recognize/${currentUser.id}/${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`,
       filePath: tempFilePath,
     });
 

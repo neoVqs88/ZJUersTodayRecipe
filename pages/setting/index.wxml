@@ -1,100 +1,27 @@
 <view class="setting-page {{appearanceClass}}">
-  <t-navbar title="设置" left-arrow />
-  <scroll-view class="setting-page__scroll" scroll-y>
-    <view class="setting-section">
-      <view class="setting-section__title">外观</view>
-      <view class="setting-card">
-        <view class="setting-row">
-          <view class="setting-row__icon setting-row__icon--purple"><t-icon name="mode-dark" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">深色模式</view>
-            <view class="setting-row__description">减少暗光环境下的视觉刺激</view>
-          </view>
-          <t-switch value="{{darkMode}}" bind:change="toggleDarkMode" />
-        </view>
-
-        <view class="setting-row" bindtap="chooseFontSize">
-          <view class="setting-row__icon setting-row__icon--blue"><text class="font-icon">Aa</text></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">字体大小</view>
-            <view class="setting-row__description">调整个人页与设置页的文字大小</view>
-          </view>
-          <text class="setting-row__value">{{fontSizeLabel}}</text>
-          <t-icon name="chevron-right" size="36rpx" />
-        </view>
-      </view>
+  <scroll-view class="setting-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-head"><view class="back" bindtap="goBack">‹</view><view class="head-copy"><text>设置</text><text>PROFILE · PRIVACY · DATA</text></view></view>
+    <view class="settings-card">
+      <view class="setting" bindtap="chooseFontSize"><view><text>字体大小</text><text>当前：{{fontSizeLabel}}</text></view><text>›</text></view>
+      <view class="hairline"></view>
+      <view class="setting" bindtap="openPrivacy"><view><text>隐私可见范围</text><text>谁能看见饭纹、动态与足迹</text></view><text>›</text></view>
     </view>
-
-    <view class="setting-section">
-      <view class="setting-section__title">通用</view>
-      <view class="setting-card">
-        <view class="setting-row">
-          <view class="setting-row__icon setting-row__icon--green"><t-icon name="notification" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">消息通知</view>
-            <view class="setting-row__description">接收互动、打卡与饭搭子提醒</view>
-          </view>
-          <t-switch value="{{notificationsEnabled}}" bind:change="toggleNotifications" />
-        </view>
-
-        <view class="setting-row" bindtap="openPrivacy">
-          <view class="setting-row__icon setting-row__icon--purple"><t-icon name="lock-on" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">隐私设置</view>
-            <view class="setting-row__description">管理资料、动态、关注列表和浏览足迹</view>
-          </view>
-          <t-icon name="chevron-right" size="36rpx" />
-        </view>
-
-        <view class="setting-row" bindtap="clearCache">
-          <view class="setting-row__icon setting-row__icon--orange"><t-icon name="delete" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">清理缓存</view>
-            <view class="setting-row__description">清除搜索记录和本地临时草稿</view>
-          </view>
-          <t-icon name="chevron-right" size="36rpx" />
-        </view>
-      </view>
+    <text class="section-title">通知与外观</text>
+    <view class="settings-card soft-card">
+      <view class="setting"><view><text>深色模式</text><text>减少暗光环境下的视觉刺激</text></view><switch checked="{{darkMode}}" color="#ff6b4a" bindchange="toggleDarkMode"/></view>
+      <view class="hairline"></view>
+      <view class="setting"><view><text>饭局与回复</text><text>站内未读提醒和消息红点</text></view><switch checked="{{notificationsEnabled}}" color="#ff6b4a" bindchange="toggleNotifications"/></view>
     </view>
-
-    <view class="setting-section">
-      <view class="setting-section__title">协议与政策</view>
-      <view class="setting-card">
-        <view class="setting-row" data-type="agreement" bindtap="openLegal">
-          <view class="setting-row__icon setting-row__icon--blue"><t-icon name="file-paste" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">用户协议</view>
-            <view class="setting-row__description">查看服务规则与用户行为规范</view>
-          </view>
-          <t-icon name="chevron-right" size="36rpx" />
-        </view>
-
-        <view class="setting-row" data-type="privacy" bindtap="openLegal">
-          <view class="setting-row__icon setting-row__icon--green"><t-icon name="secured" size="38rpx" /></view>
-          <view class="setting-row__copy">
-            <view class="setting-row__title">隐私政策</view>
-            <view class="setting-row__description">了解个人信息的收集、使用与保护</view>
-          </view>
-          <t-icon name="chevron-right" size="36rpx" />
-        </view>
-      </view>
+    <text class="section-title">账户与数据</text>
+    <view class="settings-card">
+      <view class="setting" bindtap="clearCache"><view><text>清理缓存</text><text>搜索记录与本地临时草稿</text></view><text>›</text></view>
+      <view class="hairline"></view>
+      <view class="setting" data-type="agreement" bindtap="openLegal"><view><text>用户协议</text><text>服务规则与用户行为规范</text></view><text>›</text></view>
+      <view class="hairline"></view>
+      <view class="setting" data-type="privacy" bindtap="openLegal"><view><text>隐私政策</text><text>个人信息的收集、使用与保护</text></view><text>›</text></view>
     </view>
-
-    <view wx:if="{{loggedIn}}" class="setting-page__logout">
-      <t-button block theme="danger" variant="outline" bindtap="logout">退出登录</t-button>
-    </view>
-
-    <view wx:if="{{loggedIn}}" class="setting-danger">
-      <view class="setting-danger__title">账号管理</view>
-      <view class="setting-danger__card">
-        <view class="setting-danger__copy">
-          <view class="setting-danger__name">注销账号</view>
-          <view class="setting-danger__description">永久删除账号及其云端个人数据</view>
-        </view>
-        <t-button theme="danger" variant="text" loading="{{deletingAccount}}" bindtap="deleteAccount">注销</t-button>
-      </view>
-    </view>
-
-    <view class="setting-page__version">zjuer 今天吃什么 · 当前版本 0.1.0</view>
+    <view wx:if="{{loggedIn}}" class="logout-action" bindtap="logout">退出当前登录</view>
+    <view wx:if="{{loggedIn}}" class="danger-card"><view><text>注销账号</text><text>永久删除账号及其云端个人数据</text></view><button loading="{{deletingAccount}}" bindtap="deleteAccount">注销</button></view>
+    <text class="version">zjuer 今天吃什么 · 1.0.0</text><view class="bottom-space"></view>
   </scroll-view>
 </view>
