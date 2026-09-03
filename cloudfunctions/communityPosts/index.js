@@ -122,7 +122,9 @@ async function checkImages(images, userId) {
       throw error;
     }
     const header = file.fileContent.slice(0, 4).toString('hex');
-    const contentType = header.startsWith('89504e47') ? 'image/png' : header.startsWith('ffd8') ? 'image/jpeg' : '';
+    let contentType = '';
+    if (header.startsWith('89504e47')) contentType = 'image/png';
+    else if (header.startsWith('ffd8')) contentType = 'image/jpeg';
     if (!contentType) {
       const error = new Error('帖子图片仅支持 JPG 或 PNG 格式');
       error.code = 'INVALID_IMAGE_TYPE';
@@ -278,6 +280,8 @@ async function listPublicPosts(event, viewerId = '') {
 }
 
 async function getPublicPost(postId, viewerId = '') {
+  // getPost is declared below with the other database access helpers.
+  // eslint-disable-next-line no-use-before-define
   const post = await getPost(postId);
   const status = post.post_status || post.status || 'published';
   if (!['published', 'active'].includes(status)) {

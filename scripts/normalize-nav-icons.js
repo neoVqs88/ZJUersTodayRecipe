@@ -8,17 +8,19 @@ function readPaths(source) {
   const seen = new Set();
   const paths = [];
   const pathPattern = /<path\b([^>]*)\/?\s*>/g;
-  let match;
-  while ((match = pathPattern.exec(source))) {
+  let match = pathPattern.exec(source);
+  while (match) {
     const attributes = match[1];
     const data = attributes.match(/\bd="([^"]+)"/);
-    if (!data || seen.has(data[1])) continue;
-    seen.add(data[1]);
-    paths.push({
-      data: data[1],
-      fillRule: (attributes.match(/\bfill-rule="([^"]+)"/) || [])[1],
-      clipRule: (attributes.match(/\bclip-rule="([^"]+)"/) || [])[1],
-    });
+    if (data && !seen.has(data[1])) {
+      seen.add(data[1]);
+      paths.push({
+        data: data[1],
+        fillRule: (attributes.match(/\bfill-rule="([^"]+)"/) || [])[1],
+        clipRule: (attributes.match(/\bclip-rule="([^"]+)"/) || [])[1],
+      });
+    }
+    match = pathPattern.exec(source);
   }
   return paths;
 }

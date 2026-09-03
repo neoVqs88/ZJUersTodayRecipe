@@ -8,7 +8,7 @@ const BATCH_SIZE = 100;
 const MESSAGE_CATEGORIES = ['like_comment', 'follow', 'invite', 'system', 'checkin', 'activity'];
 
 function cleanText(value, max = 200) {
-  return String(value || '').replace(/\u0000/g, '').trim().slice(0, max);
+  return String(value || '').split('\u0000').join('').trim().slice(0, max);
 }
 
 function toPublicMessage(message) {
