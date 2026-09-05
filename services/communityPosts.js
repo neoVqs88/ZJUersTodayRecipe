@@ -53,8 +53,8 @@ export function fetchFavoritePosts(page = 1, pageSize = 20) {
   return callCommunityPosts('listFavorites', { page, pageSize });
 }
 
-export function submitFeedback(content, contact = '') {
-  return callCommunityPosts('feedback', { content, contact });
+export function submitFeedback(content, contact = '', images = []) {
+  return callCommunityPosts('feedback', { content, contact, images });
 }
 
 export function fetchDishFavoriteState(dishId) {

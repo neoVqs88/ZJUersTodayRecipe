@@ -18,6 +18,17 @@
         disable-default-padding="{{true}}"
       />
       <view class="feedback-count">{{content.length}} / 800</view>
+      <view class="feedback-upload-title"><text>添加截图</text><text>最多 4 张，帮助我们更快定位问题</text></view>
+      <t-upload
+        media-type="{{['image']}}"
+        files="{{originFiles}}"
+        grid-config="{{gridConfig}}"
+        config="{{uploadConfig}}"
+        max="4"
+        size-limit="{{10240}}"
+        bind:success="handleUploadSuccess"
+        bind:remove="handleUploadRemove"
+      />
       <input
         class="feedback-contact"
         maxlength="100"

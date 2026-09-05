@@ -432,7 +432,7 @@ async function listFavorites(openid, page, pageSize) {
   };
 }
 
-async function submitFeedback(openid, content, contact) {
+async function submitFeedback(openid, content, contact, images = []) {
   const { userId } = await requireUser(openid);
   await enforceUserRateLimit(userId, 'feedback', 5, 60 * 60 * 1000);
   const normalizedContent = cleanText(content, 800);
@@ -442,11 +442,15 @@ async function submitFeedback(openid, content, contact) {
     throw error;
   }
   await checkText(openid, normalizedContent);
+  const normalizedImages = Array.isArray(images)
+    ? images.filter((image) => typeof image === 'string' && /^cloud:\/\//.test(image)).slice(0, 4)
+    : [];
   const result = await db.collection(FEEDBACK).add({
     data: {
       userId,
       content: normalizedContent,
       contact: cleanText(contact, 100),
+      images: normalizedImages,
       status: 'pending',
       createdAt: db.serverDate(),
       updatedAt: db.serverDate(),
@@ -547,7 +551,7 @@ exports.main = async (event = {}) => {
     if (event.action === 'report') return { success: true, ...(await report(OPENID, cleanText(event.postId, 64), cleanText(event.reason, 20), event.details)) };
     if (event.action === 'reportComment') return { success: true, ...(await reportComment(OPENID, cleanText(event.commentId, 64), cleanText(event.reason, 20), event.details)) };
     if (event.action === 'listFavorites') return { success: true, ...(await listFavorites(OPENID, event.page, event.pageSize)) };
-    if (event.action === 'feedback') return { success: true, ...(await submitFeedback(OPENID, event.content, event.contact)) };
+    if (event.action === 'feedback') return { success: true, ...(await submitFeedback(OPENID, event.content, event.contact, event.images)) };
     if (event.action === 'dishFavoriteState') return { success: true, ...(await dishFavoriteState(OPENID, event.dishId)) };
     if (event.action === 'toggleDishFavorite') return { success: true, ...(await toggleDishFavorite(OPENID, event.dishId)) };
     if (event.action === 'pollState') return { success: true, ...(await pollState(OPENID, cleanText(event.postId, 64))) };
