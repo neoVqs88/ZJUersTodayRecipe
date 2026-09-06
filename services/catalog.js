@@ -1,4 +1,4 @@
-import { CAMPUS_CANTEENS, CAMPUS_DISHES, normalizeDish } from '~/data/campusCatalog';
+import { CAMPUS_CANTEENS, getLocalDishCatalog, normalizeDish } from '~/data/campusCatalog';
 
 const CATALOG_CACHE_KEY = 'campus_dish_catalog_cache';
 const CACHE_DURATION = 10 * 60 * 1000;
@@ -16,7 +16,7 @@ export async function fetchDishCatalog({ force = false } = {}) {
   }
   if (wx.cloud) {
     try {
-      const result = await wx.cloud.database().collection('dishes').orderBy('popularity', 'desc').limit(100).get();
+      const result = await wx.cloud.database().collection('dishes').orderBy('popularity', 'desc').limit(1000).get();
       if (result.data.length) {
         const dishes = result.data.map(normalizeDish);
         wx.setStorageSync(CATALOG_CACHE_KEY, { data: dishes, updatedAt: Date.now() });
@@ -26,12 +26,17 @@ export async function fetchDishCatalog({ force = false } = {}) {
       // 云端菜品目录尚未建立时使用随代码发布的玉泉基础目录。
     }
   }
-  return CAMPUS_DISHES.map(normalizeDish);
+  return getLocalDishCatalog();
 }
 
 export async function fetchDishByName(name) {
   const catalog = await fetchDishCatalog();
   return catalog.find((dish) => dish.name === name) || catalog[0];
+}
+
+export async function fetchDishById(id) {
+  const catalog = await fetchDishCatalog();
+  return catalog.find((dish) => dish.id === id) || catalog[0];
 }
 
 export function searchCatalog(catalog, keyword) {

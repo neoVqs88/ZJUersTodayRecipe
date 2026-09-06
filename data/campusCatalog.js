@@ -1,3 +1,5 @@
+import { DOCUMENT_DISHES } from './documentCatalog';
+
 export const CAMPUS_DISHES = [
   { id: 'tomato-beef-rice', name: '番茄肥牛饭', english: 'TOMATO BEEF RICE', image: '/static/dishes/tomato-beef-rice.webp', ticketImage: '/static/figma/tomato-rice.webp', place: '玉泉一食堂 · 二楼', canteen: '玉泉一食堂', campus: '玉泉', price: '¥15', score: 4.9, popularity: 426, flavor: ['酸甜', '浓郁', '下饭'], tags: ['午餐', '晚餐'], waitMinutes: 8, desc: '番茄的酸甜包住肥牛，米饭吸满汤汁，是很难出错的一餐。' },
   { id: 'mushroom-noodle', name: '山野菌菇面', english: 'WILD MUSHROOM NOODLES', image: '/static/figma/dish-mushroom-noodle-transparent.png', ticketImage: '/static/figma/dish-mushroom-noodle-transparent.png', place: '怡膳堂 · 一楼', canteen: '怡膳堂一楼', campus: '玉泉', price: '¥13', score: 4.8, popularity: 381, flavor: ['清淡', '菌香', '热乎'], tags: ['清淡', '素食'], waitMinutes: 6, desc: '菌菇的鲜味慢慢融进汤底，面条温润，是忙碌一天里让胃安静下来的选择。' },
@@ -16,6 +18,23 @@ export const CAMPUS_CANTEENS = [
   { id: 'yq-2', name: '玉泉二食堂', subtitle: '风味窗口 · 步行 6 分钟', people: 45, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 5–7 分钟', open: true, left: 34, top: 67 },
   { id: 'maxwell', name: '麦斯威咖啡吧', subtitle: '咖啡轻食 · 步行 5 分钟', people: 18, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 2–3 分钟', open: true, left: 27, top: 34 },
 ];
+
+function inferPreferenceTags(dish, flavor, tags) {
+  const text = `${dish.name || ''} ${flavor.join(' ')} ${tags.join(' ')}`;
+  const prices = String(dish.price || '').match(/\d+(?:\.\d+)?/g) || [];
+  const maxPrice = prices.length ? Math.max(...prices.map(Number)) : null;
+  const inferred = [];
+  const add = (tag, condition) => { if (condition && !inferred.includes(tag)) inferred.push(tag); };
+  add('预算 10 元内', maxPrice !== null && maxPrice <= 10);
+  add('预算 15 元内', maxPrice !== null && maxPrice <= 15);
+  add('想吃热乎的', !/凉面|凉皮|凉菜|拍黄瓜|酸奶|果汁|奶昔|沙拉|冷面/.test(text)
+    && /面|粉|米线|粥|汤|砂锅|煲仔饭|火锅|热干面|炒饭|拌饭|盖饭/.test(text));
+  add('清爽不腻', /清炒|清蒸|白灼|清汤|蔬菜|青菜|冬瓜|黄瓜|西兰花|豆芽|轻食|果汁|酸奶/.test(text));
+  add('酸甜', /糖醋|酸甜/.test(text));
+  add('辣', /辣|麻辣|香辣|剁椒|泡椒/.test(text));
+  add('清淡', /清炒|清蒸|白灼|清汤|素|豆腐|豆芽|粥|蔬菜|轻食/.test(text));
+  return [...new Set([...tags, ...flavor, ...inferred])];
+}
 
 const TRANSPARENT_DISH_IMAGES = {
   'tomato-beef-rice': '/static/figma/tomato-rice.webp',
@@ -41,6 +60,7 @@ export function normalizeDish(dish = {}) {
   const id = String(dish._id || dish.id || dish.name || '');
   const flavor = Array.isArray(dish.flavor) ? dish.flavor : [];
   const tags = Array.isArray(dish.tags) ? dish.tags : [];
+  const preferenceTags = inferPreferenceTags(dish, flavor, tags);
   return {
     ...dish,
     id,
@@ -54,6 +74,16 @@ export function normalizeDish(dish = {}) {
     waitMinutes: Number(dish.waitMinutes) || 0,
     flavor,
     flavorText: flavor.join(' · '),
-    tags,
+    tags: preferenceTags,
   };
+}
+
+export const DOCUMENT_CATALOG = DOCUMENT_DISHES.map(normalizeDish);
+
+export function getLocalDishCatalog() {
+  const known = new Set(DOCUMENT_CATALOG.map((dish) => `${dish.canteen}:${dish.name}:${dish.price}`));
+  const curated = CAMPUS_DISHES
+    .map(normalizeDish)
+    .filter((dish) => !known.has(`${dish.canteen}:${dish.name}:${dish.price}`));
+  return [...DOCUMENT_CATALOG, ...curated];
 }
