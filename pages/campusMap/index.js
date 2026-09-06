@@ -4,7 +4,6 @@ import appearanceBehavior from '~/behaviors/appearance';
 Page({
   behaviors: [appearanceBehavior],
   data: {
-    routeVisible: false,
     filters: ['食堂', '营业中', '少排队'],
     activeFilter: '食堂',
     allEateries: [],
@@ -28,7 +27,6 @@ Page({
     if (!selected) return;
     this.setData({
       selected,
-      routeVisible: false,
     });
   },
 
@@ -41,12 +39,24 @@ Page({
       activeFilter,
       eateries,
       selected: eateries.some((item) => item.id === this.data.selected.id) ? this.data.selected : eateries[0] || {},
-      routeVisible: false,
     });
   },
 
   startWalk() {
-    this.setData({ routeVisible: true });
-    wx.showToast({ title: `已在校内图标出前往${this.data.selected.name}的路线`, icon: 'none' });
+    const { selected } = this.data;
+    const latitude = Number(selected.latitude);
+    const longitude = Number(selected.longitude);
+    if (!selected.name || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      wx.showToast({ title: '暂时没有这个地点的坐标', icon: 'none' });
+      return;
+    }
+    wx.openLocation({
+      latitude,
+      longitude,
+      name: selected.name,
+      address: `浙江大学玉泉校区 · ${selected.name}`,
+      scale: 18,
+      fail: () => wx.showToast({ title: '地图打开失败，请稍后重试', icon: 'none' }),
+    });
   },
 });
