@@ -10,7 +10,6 @@
     <movable-area class="map-stage">
       <movable-view class="map-canvas" direction="all" inertia out-of-bounds scale scale-min="1" scale-max="2" scale-value="1">
         <image class="campus-map" src="/static/map/zju-yuquan-3d-cartoon-demo.jpg" mode="aspectFill" />
-        <view class="route-guide {{routeVisible ? 'route-guide--visible' : ''}}"></view>
         <view
           wx:for="{{eateries}}"
           wx:key="id"
@@ -32,7 +31,7 @@
         <view><text class="people">{{selected.people}}</text><text>人</text><text>此刻人数</text></view>
         <view><text class="wait">{{selected.wait}}</text><text>{{selected.waitDetail}}</text></view>
       </view>
-      <view class="walk-button" bindtap="startWalk">⌖ {{routeVisible ? '校内路线已标出' : '开始步行导航'}}　›</view>
+       <view class="walk-button" bindtap="startWalk">⌖ 打开微信导航　›</view>
     </view>
     <view class="map-scroll-space"></view>
   </scroll-view>

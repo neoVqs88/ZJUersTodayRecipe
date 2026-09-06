@@ -12,11 +12,13 @@ export const CAMPUS_DISHES = [
 ];
 
 export const CAMPUS_CANTEENS = [
-  { id: 'yq-1', name: '玉泉一食堂', subtitle: '综合食堂 · 步行 4 分钟', people: 36, wait: '不挤', waitLevel: 'quiet', waitDetail: '预计等候 3–5 分钟', open: true, left: 48, top: 49 },
-  { id: 'yq-4', name: '玉泉四食堂', subtitle: '风味档口 · 步行 7 分钟', people: 52, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 6–8 分钟', open: true, left: 71, top: 32 },
-  { id: 'yishan', name: '怡膳堂', subtitle: '简餐与面食 · 步行 9 分钟', people: 24, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 2–4 分钟', open: true, left: 66, top: 70 },
-  { id: 'yq-2', name: '玉泉二食堂', subtitle: '风味窗口 · 步行 6 分钟', people: 45, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 5–7 分钟', open: true, left: 34, top: 67 },
-  { id: 'maxwell', name: '麦斯威咖啡吧', subtitle: '咖啡轻食 · 步行 5 分钟', people: 18, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 2–3 分钟', open: true, left: 27, top: 34 },
+  { id: 'yq-1', name: '玉泉一食堂', subtitle: '综合食堂 · 步行 4 分钟', people: 36, wait: '不挤', waitLevel: 'quiet', waitDetail: '预计等候 3–5 分钟', open: true, left: 48, top: 49, latitude: 30.2645, longitude: 120.119 },
+  { id: 'yq-4', name: '玉泉四食堂', subtitle: '风味档口 · 步行 7 分钟', people: 52, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 6–8 分钟', open: true, left: 71, top: 32, latitude: 30.2655, longitude: 120.1178 },
+  { id: 'yishan', name: '怡膳堂', subtitle: '简餐与面食 · 步行 9 分钟', people: 24, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 2–4 分钟', open: true, left: 66, top: 70, latitude: 30.2659, longitude: 120.121 },
+  { id: 'yq-2', name: '玉泉二食堂', subtitle: '风味窗口 · 步行 6 分钟', people: 45, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 5–7 分钟', open: true, left: 34, top: 67, latitude: 30.265, longitude: 120.12 },
+  { id: 'maxwell', name: '麦斯威咖啡吧', subtitle: '咖啡轻食 · 步行 5 分钟', people: 18, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 2–3 分钟', open: true, left: 27, top: 34, latitude: 30.267, longitude: 120.1204 },
+  { id: 'yq-5', name: '玉泉五食堂', subtitle: '早餐与家常菜 · 步行 5 分钟', people: 28, wait: '宽松', waitLevel: 'quiet', waitDetail: '预计等候 3–6 分钟', open: true, left: 22, top: 45, latitude: 30.2648, longitude: 120.1175 },
+  { id: 'lingyuan', name: '玉泉靓园', subtitle: '风味餐窗口 · 步行 6 分钟', people: 31, wait: '适中', waitLevel: 'medium', waitDetail: '预计等候 4–7 分钟', open: true, left: 39, top: 38, latitude: 30.2668, longitude: 120.1168 },
 ];
 
 function inferPreferenceTags(dish, flavor, tags) {
