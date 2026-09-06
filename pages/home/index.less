@@ -14,23 +14,12 @@
 .preference-chips .chip:active { transform: scale(.96); }
 .preference-chips .chip--selected { color: @figma-porcelain; background: @figma-persimmon; }
 .meal-ticket { position: relative; height: 380rpx; margin: 44rpx 40rpx 0; padding: 32rpx; overflow: hidden; border-radius: 44rpx; background: @figma-porcelain; box-shadow: 0 16rpx 40rpx rgba(31, 33, 23, .06); transition: filter .25s ease, transform .25s ease; }
-.ticket-copy { position: relative; z-index: 3; display: flex; flex-direction: column; width: 60%; }
+.ticket-copy { position: relative; z-index: 3; display: flex; flex-direction: column; width: 100%; }
 .ticket-copy text { display: block; font-size: 24rpx; line-height: 40rpx; }
 .ticket-title { margin-top: 2rpx; font-size: 28rpx !important; font-weight: 500; line-height: 48rpx !important; }
 .ticket-note { width: 380rpx; margin-top: 40rpx; color: @figma-muted; font-size: 24rpx !important; line-height: 40rpx !important; }
-.dish-stage { position: absolute; right: 24rpx; top: 26rpx; width: 304rpx; height: 296rpx; }
-.ticket-image { position: absolute; z-index: 2; right: 0; top: 8rpx; width: 224rpx; height: 224rpx; background: transparent; }
-.orbit { position: absolute; border: 2rpx solid #d5bd92; border-radius: 50%; }
-.orbit-a { right: 34rpx; top: 32rpx; width: 212rpx; height: 212rpx; }
-.orbit-b { right: 0; top: 56rpx; width: 272rpx; height: 164rpx; transform: rotate(-18deg); }
-.spark { position: absolute; z-index: 4; width: 14rpx; height: 14rpx; border-radius: 50%; background: #d95b18; }
-.spark-one { left: 2rpx; top: 116rpx; }
-.spark-two { right: 6rpx; top: 190rpx; }
-.spark-three { left: 72rpx; bottom: 2rpx; }
 .ticket-match { position: absolute; z-index: 5; right: 36rpx; bottom: 24rpx; color: @figma-persimmon; font-size: 24rpx; }
 .meal-ticket--shuffling { filter: saturate(.7) brightness(1.04); transform: scale(.99); }
-.meal-ticket--shuffling .dish-stage { animation: shuffle .72s cubic-bezier(.2,.8,.2,1); }
-.meal-ticket--shuffling .ticket-image { animation: card-flash .24s ease-in-out 3; }
 .meal-ticket--shuffling .ticket-copy, .meal-ticket--shuffling .ticket-match { animation: ticket-copy-cycle .21s ease-in-out infinite; }
 .ticket-chips { padding-top: 32rpx; }
 .reroll-button { display: flex; align-items: center; justify-content: center; height: 88rpx; margin: 32rpx 40rpx 0; border-radius: 999rpx; background: #ebebec; color: @figma-blue; font-size: 28rpx; transition: transform .18s ease, opacity .18s ease; }
@@ -52,6 +41,4 @@
 .rank-arrow { color: @figma-persimmon; font-size: 36rpx; }
 .nav-clear { height: calc(166rpx + env(safe-area-inset-bottom)); }
 
-@keyframes shuffle { 0% { opacity: .1; transform: translateY(40rpx) rotate(-5deg); } 55% { opacity: 1; transform: translateY(-14rpx) rotate(2deg); } 100% { transform: none; } }
-@keyframes card-flash { 50% { filter: brightness(1.35); transform: scale(.96); } }
 @keyframes ticket-copy-cycle { 0% { opacity: .35; transform: translateY(5rpx); } 100% { opacity: 1; transform: translateY(0); } }

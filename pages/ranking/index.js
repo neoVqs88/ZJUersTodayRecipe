@@ -1,4 +1,4 @@
-import { getLocalDishCatalog } from '~/data/campusCatalog';
+import { getRankedDishes } from '~/services/catalog';
 import appearanceBehavior from '~/behaviors/appearance';
 
 function getRankingImage(image) {
@@ -16,9 +16,7 @@ Page({
 
   async loadRanking() {
     try {
-      const dishes = [...getLocalDishCatalog()]
-        .sort((a, b) => (b.popularity - a.popularity) || (b.score - a.score))
-        .slice(0, 50)
+      const dishes = getRankedDishes(50)
         .map((dish) => ({
           ...dish,
           rankingImage: getRankingImage(dish.image),

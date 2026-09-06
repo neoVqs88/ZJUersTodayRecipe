@@ -6459,7 +6459,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味大肠拌粉（辣）",
-    "image": "/pages/ranking/catalog/dish-2-1.jpg"
+    "image": "/static/catalog/dish-2-1.jpg"
   },
   {
     "id": "2-2-川味鸡腿拌粉（辣）",
@@ -6484,7 +6484,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味鸡腿拌粉（辣）",
-    "image": "/pages/ranking/catalog/dish-2-2.jpg"
+    "image": "/static/catalog/dish-2-2.jpg"
   },
   {
     "id": "2-3-川味牛肉拌粉（辣）",

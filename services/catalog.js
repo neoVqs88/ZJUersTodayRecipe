@@ -58,6 +58,12 @@ export async function fetchDishCatalog({ force = false } = {}) {
   return localCatalog;
 }
 
+export function getRankedDishes(limit = 50) {
+  return [...getLocalDishCatalog()]
+    .sort((a, b) => (b.popularity - a.popularity) || (b.score - a.score))
+    .slice(0, limit);
+}
+
 export async function fetchDishByName(name) {
   const catalog = await fetchDishCatalog();
   return catalog.find((dish) => dish.name === name) || catalog[0];

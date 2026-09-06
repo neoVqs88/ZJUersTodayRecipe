@@ -3,7 +3,7 @@ import { getCurrentUser, isLoggedIn } from '~/services/auth';
 import { createMealCheckin, fetchMealCheckinStats } from '~/services/mealCheckins';
 import { fetchDishNutrition } from '~/services/nutrition';
 import { recordBrowsingHistory } from '~/services/userSocial';
-import { fetchDishCatalog } from '~/services/catalog';
+import { fetchDishCatalog, getRankedDishes } from '~/services/catalog';
 import appearanceBehavior from '~/behaviors/appearance';
 
 const HOME_FILTERS = [
@@ -16,14 +16,26 @@ const HOME_FILTERS = [
 
 const DEFAULT_IMAGE = '/static/figma/tomato-rice.webp';
 const RANKING_IMAGE_PREFIX = ['/pages', 'ranking', ''].join('/');
-const REMOVED_MAIN_CATALOG_IMAGE = /^\/static\/catalog\/dish-2-/;
-const HOME_RANKING_IMAGES = Array.from({ length: 10 }, (_, index) => `/static/catalog/dish-1-${index + 1}.jpg`);
+const HOME_RANKING_IMAGES = [
+  '/static/catalog/dish-1-1.jpg',
+  '/static/catalog/dish-2-1.jpg',
+  '/static/catalog/dish-1-2.jpg',
+  '/static/catalog/dish-2-2.jpg',
+  '/static/catalog/dish-1-3.jpg',
+];
 
 function getHomeImage(dish, fallbackIndex = 0) {
   const image = String(dish.image || '');
-  return image.startsWith(RANKING_IMAGE_PREFIX) || REMOVED_MAIN_CATALOG_IMAGE.test(image)
+  return image.startsWith(RANKING_IMAGE_PREFIX)
     ? HOME_RANKING_IMAGES[fallbackIndex % HOME_RANKING_IMAGES.length]
     : image || DEFAULT_IMAGE;
+}
+
+function getMealPeriod(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 6 && hour < 11) return { label: '早餐', description: '让早饭像抽一张温柔又古怪的签。' };
+  if (hour >= 11 && hour < 14) return { label: '午餐', description: '让午饭像抽一张温柔又古怪的签。' };
+  return { label: '晚餐', description: '让晚饭像抽一张温柔又古怪的签。' };
 }
 
 function buildTicket(dish, selectedLabels = []) {
@@ -40,7 +52,6 @@ function buildTicket(dish, selectedLabels = []) {
     note: dish.desc || `${dish.canteen || '玉泉校区'} · 今天也要好好吃饭。`,
     match,
     flavor: dish.flavorText || (dish.flavor || []).join(' · ') || '今日风味',
-    image: dish.ticketImage || getHomeImage(dish),
   };
 }
 
@@ -48,6 +59,8 @@ Page({
   behaviors: [appearanceBehavior],
   data: {
     dateLabel: '',
+    mealLabel: getMealPeriod().label,
+    mealDescription: getMealPeriod().description,
     mealTickets: [
       {
         name: '桂花糖藕',
@@ -57,7 +70,6 @@ Page({
         match: 92,
         flavor: '清甜',
         price: '¥8–12',
-        image: '/static/figma/lotus-root.webp',
       },
       {
         name: '山野菌菇面',
@@ -67,7 +79,6 @@ Page({
         match: 89,
         flavor: '清淡鲜香',
         price: '¥10–15',
-        image: '/static/figma/dish-mushroom-noodle-transparent.png',
       },
       {
         name: '酸汤肥牛',
@@ -77,7 +88,6 @@ Page({
         match: 86,
         flavor: '酸辣',
         price: '¥15–20',
-        image: '/static/figma/sour-beef.webp',
       },
       {
         name: '番茄肥牛饭',
@@ -87,7 +97,6 @@ Page({
         match: 94,
         flavor: '酸甜',
         price: '¥15–20',
-        image: '/static/figma/tomato-rice.webp',
       },
     ],
     activeTicket: {
@@ -98,16 +107,10 @@ Page({
       match: 92,
       flavor: '清甜',
       price: '¥8–12',
-      image: '/static/figma/lotus-root.webp',
     },
     ticketIndex: 0,
     isShuffling: false,
-    newDishes: [
-      { name: '番茄肥牛饭', location: '玉泉一食堂 · 二楼', shortLocation: '酸甜浓郁', score: '4.9', image: '/static/dishes/tomato-beef-rice.webp' },
-      { name: '山野菌菇面', location: '怡膳堂 · 一楼', shortLocation: '清淡鲜香', score: '4.8', image: '/static/figma/dish-mushroom-noodle-transparent.png' },
-      { name: '酸汤肥牛', location: '玉泉二食堂 · 风味档', shortLocation: '酸辣开胃', score: '4.7', image: '/static/figma/sour-beef.webp' },
-      { name: '石锅拌饭', location: '玉泉四食堂 · 一楼', shortLocation: '咸香热辣', score: '4.6', image: '/static/dishes/bibimbap.webp' },
-    ],
+    newDishes: [],
     moments: HOME_FILTERS.map((item) => ({ ...item, selected: false })),
     selectedMoments: [],
     catalog: [],
@@ -119,22 +122,27 @@ Page({
     const date = new Date();
     const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    this.setData({ dateLabel: `${weekdays[date.getDay()]} · ${months[date.getMonth()]} ${date.getDate()}` });
+    const mealPeriod = getMealPeriod(date);
+    this.setData({
+      dateLabel: `${weekdays[date.getDay()]} · ${months[date.getMonth()]} ${date.getDate()}`,
+      mealLabel: mealPeriod.label,
+      mealDescription: mealPeriod.description,
+    });
     if (options.checkin === '1') setTimeout(() => this.checkIn(), 350);
     this.loadCatalog();
   },
 
   async loadCatalog() {
+    const newDishes = getRankedDishes(5).map((dish, index) => ({
+      ...dish,
+      location: dish.place,
+      shortLocation: dish.flavorText,
+      image: getHomeImage(dish, index),
+    }));
+    this.setData({ newDishes });
     try {
       const catalog = await fetchDishCatalog();
       if (!catalog.length) return;
-      const ranked = [...catalog].sort((a, b) => b.popularity - a.popularity);
-      const newDishes = ranked.slice(0, 10).map((dish, index) => ({
-        ...dish,
-        location: dish.place,
-        shortLocation: dish.flavorText,
-        image: getHomeImage(dish, index),
-      }));
       this.setData({ catalog, newDishes });
       this.applyPreferences();
     } catch (error) {
@@ -143,6 +151,8 @@ Page({
   },
 
   onShow() {
+    const mealPeriod = getMealPeriod();
+    this.setData({ mealLabel: mealPeriod.label, mealDescription: mealPeriod.description });
     this.loadCheckInStats();
   },
 
