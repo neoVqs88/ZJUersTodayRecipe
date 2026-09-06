@@ -1,0 +1,23 @@
+@import '/variable.less';
+page { height: 100%; overflow: hidden; background: @figma-paper; }
+.ranking-page { height: 100vh; overflow: hidden; color: @figma-ink; background: @figma-paper; font-family: 'Noto Serif SC', 'Songti SC', serif; }
+.ranking-scroll { box-sizing: border-box; height: 100%; padding: calc(84rpx + env(safe-area-inset-top)) 40rpx 0; }
+.ranking-head { display: flex; align-items: flex-start; min-height: 132rpx; }
+.ranking-head .back { width: 62rpx; margin-left: -14rpx; font: 72rpx/72rpx Arial, sans-serif; }
+.ranking-title { display: block; font-size: 52rpx; line-height: 72rpx; }
+.ranking-desc { display: block; margin-top: 4rpx; color: @figma-muted; font-size: 22rpx; line-height: 36rpx; }
+.ranking-note { display: flex; align-items: baseline; justify-content: space-between; margin-top: 28rpx; padding: 28rpx 30rpx; border-radius: 32rpx; background: @figma-mist; }
+.ranking-note text:first-child { color: @figma-persimmon; font-size: 28rpx; font-weight: 700; letter-spacing: .12em; }
+.ranking-note text:last-child { color: @figma-muted; font-size: 18rpx; }
+.ranking-list { margin-top: 28rpx; border-radius: 36rpx; overflow: hidden; background: @figma-porcelain; }
+.ranking-item { position: relative; display: flex; align-items: center; min-height: 112rpx; padding: 16rpx 24rpx; }
+.ranking-item + .ranking-item::before { position: absolute; top: 0; right: 24rpx; left: 88rpx; height: 1rpx; background: #e8e7df; content: ''; }
+.ranking-item--top { background: #f0f5ed; }
+.ranking-item__no { width: 60rpx; color: #8b8e86; font-size: 24rpx; }
+.ranking-item--top .ranking-item__no { color: @figma-persimmon; font-weight: 700; }
+.ranking-item__image { flex: none; width: 76rpx; height: 76rpx; border-radius: 24rpx; background: @figma-mist; }
+.ranking-item__copy { display: flex; flex: 1; min-width: 0; flex-direction: column; margin-left: 20rpx; }
+.ranking-item__copy text:first-child { overflow: hidden; font-size: 25rpx; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-item__copy text:last-child { margin-top: 7rpx; overflow: hidden; color: @figma-muted; font-size: 17rpx; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-item__score { margin-left: 12rpx; color: @figma-persimmon; font-size: 17rpx; }
+.ranking-bottom-space { height: calc(60rpx + env(safe-area-inset-bottom)); }

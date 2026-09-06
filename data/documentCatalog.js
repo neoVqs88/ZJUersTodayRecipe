@@ -242,7 +242,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 红糖发糕",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-11.jpg"
   },
   {
     "id": "1-12-南瓜发糕",
@@ -265,7 +265,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 南瓜发糕",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-12.jpg"
   },
   {
     "id": "1-13-黄金糕",
@@ -287,7 +287,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 黄金糕",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-13.jpg"
   },
   {
     "id": "1-14-白糖发糕",
@@ -309,7 +309,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 白糖发糕",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-14.jpg"
   },
   {
     "id": "1-15-烧麦",
@@ -332,7 +332,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 烧麦",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-15.jpg"
   },
   {
     "id": "1-16-煎饺",
@@ -355,7 +355,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 煎饺",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-16.jpg"
   },
   {
     "id": "1-17-煎包",
@@ -378,7 +378,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 煎包",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-17.jpg"
   },
   {
     "id": "1-18-牛肉粉丝",
@@ -402,7 +402,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 牛肉粉丝",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-18.jpg"
   },
   {
     "id": "1-19-牛肉煎包",
@@ -426,7 +426,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 牛肉煎包",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-19.jpg"
   },
   {
     "id": "1-20-千层饼",
@@ -449,7 +449,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 千层饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-20.jpg"
   },
   {
     "id": "1-21-豇豆煎饼",
@@ -472,7 +472,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 豇豆煎饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-21.jpg"
   },
   {
     "id": "1-22-萝卜丝煎饼",
@@ -495,7 +495,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 萝卜丝煎饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-22.jpg"
   },
   {
     "id": "1-23-雪菜煎饼",
@@ -518,7 +518,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 雪菜煎饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-23.jpg"
   },
   {
     "id": "1-24-葱油饼",
@@ -541,7 +541,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 葱油饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-24.jpg"
   },
   {
     "id": "1-25-鸡蛋煎饼",
@@ -565,7 +565,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉五食堂 · 鸡蛋煎饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-1-25.jpg"
   },
   {
     "id": "1-26-韭菜盒子",
@@ -6459,7 +6459,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味大肠拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-1.jpg"
   },
   {
     "id": "2-2-川味鸡腿拌粉（辣）",
@@ -6484,7 +6484,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味鸡腿拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-2.jpg"
   },
   {
     "id": "2-3-川味牛肉拌粉（辣）",
@@ -6509,7 +6509,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味牛肉拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-3.jpg"
   },
   {
     "id": "2-4-川味牛杂拌粉（辣）",
@@ -6534,7 +6534,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味牛杂拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-4.jpg"
   },
   {
     "id": "2-5-川味虾滑拌粉（辣）",
@@ -6559,7 +6559,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味虾滑拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-5.jpg"
   },
   {
     "id": "2-6-川味仔排拌粉（辣）",
@@ -6583,7 +6583,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 川味仔排拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-6.jpg"
   },
   {
     "id": "2-7-肉酱拌粉（辣）",
@@ -6609,7 +6609,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 肉酱拌粉（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-7.jpg"
   },
   {
     "id": "2-8-肉酱拌面（辣）",
@@ -6635,7 +6635,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 肉酱拌面（辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-8.jpg"
   },
   {
     "id": "2-9-大肠铺盖面",
@@ -6656,7 +6656,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 大肠铺盖面",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-9.jpg"
   },
   {
     "id": "2-10-大肉肠",
@@ -6678,7 +6678,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 大肉肠",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-10.jpg"
   },
   {
     "id": "2-11-风味卤肉饭",
@@ -6699,7 +6699,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 风味卤肉饭",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-11.jpg"
   },
   {
     "id": "2-12-福鼎肉片",
@@ -6720,7 +6720,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 福鼎肉片",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-12.jpg"
   },
   {
     "id": "2-13-鸡丝凉面",
@@ -6741,7 +6741,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 鸡丝凉面",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-13.jpg"
   },
   {
     "id": "2-14-鸡爪",
@@ -6763,7 +6763,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 鸡爪",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-14.jpg"
   },
   {
     "id": "2-15-卤鸡腿",
@@ -6784,7 +6784,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤鸡腿",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-15.jpg"
   },
   {
     "id": "2-16-卤牛肉",
@@ -6805,7 +6805,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤牛肉",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-16.jpg"
   },
   {
     "id": "2-17-卤肉",
@@ -6826,7 +6826,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤肉",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-17.jpg"
   },
   {
     "id": "2-18-卤味鸡腿饭",
@@ -6847,7 +6847,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤味鸡腿饭",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-18.jpg"
   },
   {
     "id": "2-19-卤味时蔬拼盘（微辣）",
@@ -6871,7 +6871,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤味时蔬拼盘（微辣）",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-19.jpg"
   },
   {
     "id": "2-20-卤味鸭翅",
@@ -6892,7 +6892,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤味鸭翅",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-20.jpg"
   },
   {
     "id": "2-21-卤味鸭腿饭",
@@ -6912,7 +6912,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤味鸭腿饭",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-21.jpg"
   },
   {
     "id": "2-22-卤鸭脖",
@@ -6933,7 +6933,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤鸭脖",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-22.jpg"
   },
   {
     "id": "2-23-卤鸭头",
@@ -6954,7 +6954,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤鸭头",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-23.jpg"
   },
   {
     "id": "2-24-卤鸭腿",
@@ -6974,7 +6974,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 卤鸭腿",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-24.jpg"
   },
   {
     "id": "2-25-牛肉饼",
@@ -6998,7 +6998,7 @@ export const DOCUMENT_DISHES = [
     ],
     "meal": "午餐、晚餐",
     "desc": "玉泉二食堂 · 牛肉饼",
-    "image": ""
+    "image": "/pages/ranking/catalog/dish-2-25.jpg"
   },
   {
     "id": "2-26-牛肉鸡腿双拼饭",

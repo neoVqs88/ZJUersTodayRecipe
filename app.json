@@ -10,6 +10,11 @@
       "pages": ["index"]
     },
     {
+      "root": "pages/ranking",
+      "name": "dish-ranking",
+      "pages": ["index"]
+    },
+    {
       "root": "pages/dish",
       "name": "dish-detail",
       "pages": ["index"]

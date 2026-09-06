@@ -15,6 +15,16 @@ const HOME_FILTERS = [
 ];
 
 const DEFAULT_IMAGE = '/static/figma/tomato-rice.webp';
+const RANKING_IMAGE_PREFIX = ['/pages', 'ranking', ''].join('/');
+const REMOVED_MAIN_CATALOG_IMAGE = /^\/static\/catalog\/dish-2-/;
+const HOME_RANKING_IMAGES = Array.from({ length: 10 }, (_, index) => `/static/catalog/dish-1-${index + 1}.jpg`);
+
+function getHomeImage(dish, fallbackIndex = 0) {
+  const image = String(dish.image || '');
+  return image.startsWith(RANKING_IMAGE_PREFIX) || REMOVED_MAIN_CATALOG_IMAGE.test(image)
+    ? HOME_RANKING_IMAGES[fallbackIndex % HOME_RANKING_IMAGES.length]
+    : image || DEFAULT_IMAGE;
+}
 
 function buildTicket(dish, selectedLabels = []) {
   const matchedCount = selectedLabels.filter((label) => (
@@ -30,7 +40,7 @@ function buildTicket(dish, selectedLabels = []) {
     note: dish.desc || `${dish.canteen || '玉泉校区'} · 今天也要好好吃饭。`,
     match,
     flavor: dish.flavorText || (dish.flavor || []).join(' · ') || '今日风味',
-    image: dish.ticketImage || dish.image || DEFAULT_IMAGE,
+    image: dish.ticketImage || getHomeImage(dish),
   };
 }
 
@@ -119,11 +129,11 @@ Page({
       const catalog = await fetchDishCatalog();
       if (!catalog.length) return;
       const ranked = [...catalog].sort((a, b) => b.popularity - a.popularity);
-      const newDishes = ranked.slice(0, 10).map((dish) => ({
+      const newDishes = ranked.slice(0, 10).map((dish, index) => ({
         ...dish,
         location: dish.place,
         shortLocation: dish.flavorText,
-        image: dish.image || DEFAULT_IMAGE,
+        image: getHomeImage(dish, index),
       }));
       this.setData({ catalog, newDishes });
       this.applyPreferences();
@@ -342,7 +352,7 @@ Page({
   },
 
   showMore() {
-    wx.reLaunch({ url: '/pages/canteen/index' });
+    wx.navigateTo({ url: '/pages/ranking/index' });
   },
 
   showCheckInHistory() {

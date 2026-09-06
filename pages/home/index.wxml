@@ -20,7 +20,7 @@
     <view class="section-row"><text class="section-title">热门菜品榜</text><text class="section-link" bindtap="showMore">完整榜单 →</text></view>
     <view class="ranking">
       <view class="rank-row" wx:for="{{newDishes}}" wx:key="name" data-index="{{index}}" bindtap="viewDish">
-        <text class="rank-no">0{{index + 1}}</text><image src="{{item.image}}" mode="aspectFit" />
+        <text class="rank-no">0{{index + 1}}</text><image class="rank-image" src="{{item.image}}" mode="aspectFit" />
         <view class="rank-copy"><text>{{item.name}}</text><text>{{item.popularity || 0}} 人 · {{item.location}}</text></view><text class="rank-arrow">›</text>
       </view>
     </view>

@@ -10,7 +10,8 @@ const SOURCES = [
 const OUTPUT = path.join(ROOT, 'data/documentCatalog.js');
 const CANTEENS = ['玉泉五食堂', '玉泉靓园', '玉泉二食堂', '怡膳堂', '玉泉民族食堂', '玉泉一食堂', '玉泉四食堂'];
 const PRICE_PATTERN = /^(?:\d+(?:\.\d+)?(?:\s*元)?(?:\s*\/\s*[^ ]+)?|未标注)$/;
-const IMAGE_LIMIT = 10;
+// The ranking interleaves the two documents, so 25 images from each source cover its top 50.
+const IMAGE_LIMIT = 25;
 
 function decodeXml(value) {
   return value
@@ -60,17 +61,26 @@ function readRelationships(file) {
 }
 
 function extractImage(file, sourceIndex, dishIndex, target) {
-  if (sourceIndex !== 0 || dishIndex >= IMAGE_LIMIT || !target) return '';
-  const directory = path.join(ROOT, 'static/catalog');
+  if (dishIndex >= IMAGE_LIMIT || !target) return '';
+  const mainDirectory = path.join(ROOT, 'static/catalog');
+  const rankingDirectory = path.join(ROOT, 'pages/ranking/catalog');
+  const directory = dishIndex < 10 ? mainDirectory : rankingDirectory;
   fs.mkdirSync(directory, { recursive: true });
   if (sourceIndex === 0 && dishIndex === 0) {
-    fs.readdirSync(directory)
-      .filter((name) => /^dish-\d+(?:-\d+)?\.[a-z]+$/i.test(name))
-      .forEach((name) => fs.unlinkSync(path.join(directory, name)));
+    [mainDirectory, rankingDirectory].forEach((targetDirectory) => {
+      if (!fs.existsSync(targetDirectory)) return;
+      fs.readdirSync(targetDirectory)
+        .filter((name) => /^dish-\d+(?:-\d+)?\.[a-z]+$/i.test(name))
+        .forEach((name) => fs.unlinkSync(path.join(targetDirectory, name)));
+    });
   }
   const outputName = `dish-${sourceIndex + 1}-${dishIndex + 1}${path.extname(target) || '.jpg'}`;
-  fs.writeFileSync(path.join(directory, outputName), childProcess.execFileSync('unzip', ['-p', file, target]));
-  return `/static/catalog/${outputName}`;
+  const image = childProcess.execFileSync('unzip', ['-p', file, target]);
+  fs.writeFileSync(path.join(rankingDirectory, outputName), image);
+  if (sourceIndex === 0 && dishIndex < 10) fs.writeFileSync(path.join(mainDirectory, outputName), image);
+  return sourceIndex === 0 && dishIndex < 10
+    ? `/static/catalog/${outputName}`
+    : `/pages/ranking/catalog/${outputName}`;
 }
 
 function parsePrice(value) {
