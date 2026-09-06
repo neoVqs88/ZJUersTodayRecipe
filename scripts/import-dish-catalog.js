@@ -12,6 +12,7 @@ const CANTEENS = ['玉泉五食堂', '玉泉靓园', '玉泉二食堂', '怡膳�
 const PRICE_PATTERN = /^(?:\d+(?:\.\d+)?(?:\s*元)?(?:\s*\/\s*[^ ]+)?|未标注)$/;
 // The ranking interleaves the two documents, so 25 images from each source cover its top 50.
 const IMAGE_LIMIT = 25;
+const HOME_IMAGE_LIMIT = 2;
 
 function decodeXml(value) {
   return value
@@ -77,8 +78,10 @@ function extractImage(file, sourceIndex, dishIndex, target) {
   const outputName = `dish-${sourceIndex + 1}-${dishIndex + 1}${path.extname(target) || '.jpg'}`;
   const image = childProcess.execFileSync('unzip', ['-p', file, target]);
   fs.writeFileSync(path.join(rankingDirectory, outputName), image);
-  if (sourceIndex === 0 && dishIndex < 10) fs.writeFileSync(path.join(mainDirectory, outputName), image);
-  return sourceIndex === 0 && dishIndex < 10
+  const inMainPackage = (sourceIndex === 0 && dishIndex < 10)
+    || (sourceIndex === 1 && dishIndex < HOME_IMAGE_LIMIT);
+  if (inMainPackage) fs.writeFileSync(path.join(mainDirectory, outputName), image);
+  return inMainPackage
     ? `/static/catalog/${outputName}`
     : `/pages/ranking/catalog/${outputName}`;
 }
