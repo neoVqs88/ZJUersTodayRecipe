@@ -9,16 +9,45 @@ function readCache() {
   return cache.data.map(normalizeDish);
 }
 
+function dishKey(dish) {
+  return `${dish.canteen || dish.place || ''}:${dish.name || ''}:${dish.price || ''}`;
+}
+
+function mergeCatalog(primary, fallback) {
+  const fallbackByKey = new Map(fallback.map((dish) => {
+    const normalized = normalizeDish(dish);
+    return [dishKey(normalized), normalized];
+  }));
+  const merged = primary.map((dish) => {
+    const normalized = normalizeDish(dish);
+    const local = fallbackByKey.get(dishKey(normalized));
+    const image = String(dish.image || '');
+    const hasPlaceholderImage = !image || image === '/static/figma/tomato-rice.webp';
+    return local && hasPlaceholderImage && local.image !== '/static/figma/tomato-rice.webp'
+      ? { ...normalized, image: local.image }
+      : normalized;
+  });
+  const known = new Set(merged.map(dishKey));
+  fallback.forEach((dish) => {
+    const normalized = normalizeDish(dish);
+    if (known.has(dishKey(normalized))) return;
+    known.add(dishKey(normalized));
+    merged.push(normalized);
+  });
+  return merged;
+}
+
 export async function fetchDishCatalog({ force = false } = {}) {
+  const localCatalog = getLocalDishCatalog();
   if (!force) {
     const cache = readCache();
-    if (cache && cache.length) return cache;
+    if (cache && cache.length) return mergeCatalog(cache, localCatalog);
   }
   if (wx.cloud) {
     try {
       const result = await wx.cloud.database().collection('dishes').orderBy('popularity', 'desc').limit(1000).get();
       if (result.data.length) {
-        const dishes = result.data.map(normalizeDish);
+        const dishes = mergeCatalog(result.data, localCatalog);
         wx.setStorageSync(CATALOG_CACHE_KEY, { data: dishes, updatedAt: Date.now() });
         return dishes;
       }
@@ -26,7 +55,7 @@ export async function fetchDishCatalog({ force = false } = {}) {
       // 云端菜品目录尚未建立时使用随代码发布的玉泉基础目录。
     }
   }
-  return getLocalDishCatalog();
+  return localCatalog;
 }
 
 export async function fetchDishByName(name) {

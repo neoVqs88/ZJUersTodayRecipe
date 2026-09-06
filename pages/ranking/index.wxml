@@ -1,0 +1,8 @@
+<view class="ranking-page {{appearanceClass}}">
+  <scroll-view class="ranking-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="ranking-head"><view class="back" bindtap="goBack">‹</view><view><text class="ranking-title">热门菜品榜</text><text class="ranking-desc">从玉泉校区菜单里，先替你挑出 50 道</text></view></view>
+    <view class="ranking-note"><text>TOP 50</text><text>按当前推荐热度排序，菜品与价格以现场为准</text></view>
+    <view class="ranking-list"><view class="ranking-item {{index < 3 ? 'ranking-item--top' : ''}}" wx:for="{{dishes}}" wx:key="id" data-index="{{index}}" bindtap="openDish"><text class="ranking-item__no">{{index < 9 ? '0' : ''}}{{index + 1}}</text><image class="ranking-item__image" src="{{item.rankingImage}}" mode="aspectFill"/><view class="ranking-item__copy"><text>{{item.name}}</text><text>{{item.canteen || item.place}} · {{item.price}}</text></view><text class="ranking-item__score">{{item.score ? '★ ' + item.score : '热度 ' + item.popularity}}</text></view></view>
+    <view class="ranking-bottom-space"></view>
+  </scroll-view>
+</view>
