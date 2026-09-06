@@ -6,6 +6,34 @@ import { recordBrowsingHistory } from '~/services/userSocial';
 import { fetchDishCatalog } from '~/services/catalog';
 import appearanceBehavior from '~/behaviors/appearance';
 
+const HOME_FILTERS = [
+  { label: '想吃热乎的', icon: '♨' },
+  { label: '预算 15 元内', icon: '¥' },
+  { label: '酸甜', icon: '◌' },
+  { label: '辣', icon: '✦' },
+  { label: '清淡一点', icon: '◒', match: '清淡' },
+];
+
+const DEFAULT_IMAGE = '/static/figma/tomato-rice.webp';
+
+function buildTicket(dish, selectedLabels = []) {
+  const matchedCount = selectedLabels.filter((label) => (
+    (dish.tags || []).includes(label) || (dish.flavor || []).includes(label)
+  )).length;
+  const match = selectedLabels.length
+    ? Math.round((matchedCount / selectedLabels.length) * 100)
+    : Math.min(99, Math.max(70, Math.round((Number(dish.score) || 4) / 5 * 100)));
+  return {
+    ...dish,
+    campus: dish.canteen || dish.campus,
+    time: '12:20',
+    note: dish.desc || `${dish.canteen || '玉泉校区'} · 今天也要好好吃饭。`,
+    match,
+    flavor: dish.flavorText || (dish.flavor || []).join(' · ') || '今日风味',
+    image: dish.ticketImage || dish.image || DEFAULT_IMAGE,
+  };
+}
+
 Page({
   behaviors: [appearanceBehavior],
   data: {
@@ -70,7 +98,9 @@ Page({
       { name: '酸汤肥牛', location: '玉泉二食堂 · 风味档', shortLocation: '酸辣开胃', score: '4.7', image: '/static/figma/sour-beef.webp' },
       { name: '石锅拌饭', location: '玉泉四食堂 · 一楼', shortLocation: '咸香热辣', score: '4.6', image: '/static/dishes/bibimbap.webp' },
     ],
-    moments: ['想吃热乎的', '预算 15 元内', '离我近一点'],
+    moments: HOME_FILTERS.map((item) => ({ ...item, selected: false })),
+    selectedMoments: [],
+    catalog: [],
     checkInDays: 0,
     weeklyGoal: 7,
   },
@@ -89,26 +119,14 @@ Page({
       const catalog = await fetchDishCatalog();
       if (!catalog.length) return;
       const ranked = [...catalog].sort((a, b) => b.popularity - a.popularity);
-      const mealTickets = ranked.slice(0, 6).map((dish, index) => ({
-        ...dish,
-        image: dish.ticketImage || dish.image,
-        campus: dish.canteen || dish.campus,
-        time: index % 2 ? '12:26' : '12:20',
-        note: dish.desc,
-        match: Math.min(100, Math.max(0, Math.round((Number(dish.score) || 0) / 5 * 100))),
-        flavor: dish.flavorText || (dish.flavor || []).join(' · '),
-      }));
-      const newDishes = ranked.slice(0, 6).map((dish) => ({
+      const newDishes = ranked.slice(0, 10).map((dish) => ({
         ...dish,
         location: dish.place,
         shortLocation: dish.flavorText,
+        image: dish.image || DEFAULT_IMAGE,
       }));
-      this.setData({
-        mealTickets,
-        activeTicket: mealTickets[0],
-        ticketIndex: 0,
-        newDishes,
-      });
+      this.setData({ catalog, newDishes });
+      this.applyPreferences();
     } catch (error) {
       // 云端目录不可用时继续展示内置玉泉菜品。
     }
@@ -138,6 +156,42 @@ Page({
     wx.navigateTo({ url: '/pages/search/index' });
   },
 
+  selectMoment(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const selectedMoments = this.data.moments.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, selected: !item.selected } : item
+    ));
+    this.setData({
+      moments: selectedMoments,
+      selectedMoments: selectedMoments.filter((item) => item.selected).map((item) => item.match || item.label),
+    });
+    this.applyPreferences(true);
+  },
+
+  applyPreferences(randomize = false) {
+    const catalog = Array.isArray(this.data.catalog) && this.data.catalog.length
+      ? this.data.catalog
+      : [];
+    if (!catalog.length) return;
+    const selectedLabels = this.data.selectedMoments || [];
+    const scored = catalog.map((dish) => ({
+      dish,
+      matched: selectedLabels.filter((label) => (dish.tags || []).includes(label) || (dish.flavor || []).includes(label)).length,
+    }));
+    const bestMatch = selectedLabels.length ? Math.max(...scored.map((item) => item.matched)) : 0;
+    const candidates = scored
+      .filter((item) => !selectedLabels.length || item.matched === bestMatch)
+      .sort((a, b) => b.dish.popularity - a.dish.popularity)
+      .map((item) => buildTicket(item.dish, selectedLabels));
+    if (!candidates.length) return;
+    const currentIndex = randomize ? Math.floor(Math.random() * candidates.length) : 0;
+    this.setData({
+      mealTickets: candidates,
+      activeTicket: candidates[currentIndex],
+      ticketIndex: currentIndex,
+    });
+  },
+
   makeDecision() {
     if (this.data.isShuffling) return;
 
@@ -145,7 +199,8 @@ Page({
     if (!Array.isArray(mealTickets) || mealTickets.length < 2) return;
     const targetIndex = (ticketIndex + 1 + Math.floor(Math.random() * (mealTickets.length - 1))) % mealTickets.length;
     const targetOffset = (targetIndex - ticketIndex + mealTickets.length) % mealTickets.length;
-    const totalSteps = mealTickets.length * 2 + targetOffset;
+    // Keep the animation short even when the full catalog has thousands of candidates.
+    const totalSteps = 16 + (targetOffset % 8);
     let step = 0;
     let nextIndex = ticketIndex;
     this.setData({ isShuffling: true });
@@ -161,18 +216,29 @@ Page({
       if (step < totalSteps) return;
       clearInterval(this.ticketTimer);
       this.ticketTimer = null;
+      clearTimeout(this.shuffleStopTimer);
+      this.shuffleStopTimer = null;
       this.setData({ isShuffling: false });
       wx.vibrateShort({ type: 'light' });
     }, 105);
+    this.shuffleStopTimer = setTimeout(() => {
+      if (this.ticketTimer) clearInterval(this.ticketTimer);
+      this.ticketTimer = null;
+      this.shuffleStopTimer = null;
+      this.setData({ isShuffling: false });
+    }, (totalSteps + 2) * 105);
   },
 
   openFeatured() {
     if (this.data.isShuffling) return;
-    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(this.data.activeTicket.name)}` });
+    wx.navigateTo({
+      url: `/pages/dish/index?id=${encodeURIComponent(this.data.activeTicket.id || '')}&name=${encodeURIComponent(this.data.activeTicket.name)}`,
+    });
   },
 
   onUnload() {
     if (this.ticketTimer) clearInterval(this.ticketTimer);
+    if (this.shuffleStopTimer) clearTimeout(this.shuffleStopTimer);
   },
 
   viewDish(event) {
@@ -188,7 +254,9 @@ Page({
         route: '/pages/home/index',
       }).catch(() => {});
     }
-    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(dish.name)}` });
+    wx.navigateTo({
+      url: `/pages/dish/index?id=${encodeURIComponent(dish.id || '')}&name=${encodeURIComponent(dish.name)}`,
+    });
   },
 
   async checkIn() {

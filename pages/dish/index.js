@@ -1,4 +1,4 @@
-import { fetchDishByName } from '~/services/catalog';
+import { fetchDishById, fetchDishByName } from '~/services/catalog';
 import { fetchDishFavoriteState, toggleDishFavorite } from '~/services/communityPosts';
 import { isLoggedIn } from '~/services/auth';
 import appearanceBehavior from '~/behaviors/appearance';
@@ -8,7 +8,7 @@ Page({
   data: { dish: { flavor: [] }, collected: false, loading: true },
   async onLoad(options) {
     const name = decodeURIComponent(options.name || '');
-    const dish = await fetchDishByName(name);
+    const dish = options.id ? await fetchDishById(decodeURIComponent(options.id)) : await fetchDishByName(name);
     this.setData({ dish, loading: false });
     if (isLoggedIn()) {
       try {

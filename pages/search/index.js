@@ -151,7 +151,9 @@ Page({
 
   openDish(e) {
     const dish = this.data.results[e.currentTarget.dataset.index];
-    wx.navigateTo({ url: `/pages/dish/index?name=${encodeURIComponent(dish.name)}` });
+    wx.navigateTo({
+      url: `/pages/dish/index?id=${encodeURIComponent(dish.id)}&name=${encodeURIComponent(dish.name)}`,
+    });
   },
 
   clearSearch() {
