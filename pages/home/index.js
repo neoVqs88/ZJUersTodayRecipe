@@ -1,7 +1,5 @@
-import recognizeDish from '../../utils/recognizeDish';
-import { getCurrentUser, isLoggedIn } from '~/services/auth';
-import { createMealCheckin, fetchMealCheckinStats } from '~/services/mealCheckins';
-import { fetchDishNutrition } from '~/services/nutrition';
+import { isLoggedIn } from '~/services/auth';
+import { fetchMealCheckinStats } from '~/services/mealCheckins';
 import { recordBrowsingHistory } from '~/services/userSocial';
 import { fetchDishCatalog, getRankedDishes } from '~/services/catalog';
 import appearanceBehavior from '~/behaviors/appearance';
@@ -284,81 +282,7 @@ Page({
       wx.navigateTo({ url: '/pages/login/login' });
       return;
     }
-
-    let r;
-    try {
-      r = await recognizeDish();
-    } catch (e) {
-      // 用户在选图界面点了取消等情况，静默返回即可
-      return;
-    }
-    if (!r.success || !Array.isArray(r.dishes) || !r.dishes.length) {
-      wx.showToast({ title: r.message || '识别失败，请重试', icon: 'none' });
-      return;
-    }
-    // 识别可能不准，让用户从候选菜名里挑一个确认。
-    let dish;
-    try {
-      const tapIndex = await new Promise((resolve, reject) => {
-        wx.showActionSheet({
-          itemList: r.dishes.map((item) => item.name),
-          success: ({ tapIndex: index }) => resolve(index),
-          fail: reject,
-        });
-      });
-      dish = r.dishes[tapIndex];
-    } catch (error) {
-      if (r.fileID) wx.cloud.deleteFile({ fileList: [r.fileID] }).catch(() => {});
-      return;
-    }
-
-    wx.showLoading({ title: '保存打卡中…', mask: true });
-    try {
-      let nutrition = null;
-      try {
-        nutrition = await fetchDishNutrition(dish.name, r.fileID);
-      } catch (error) {
-        // 营养服务不可用时仍使用百度识别结果完成打卡。
-      }
-      const result = await createMealCheckin({
-        fileID: r.fileID,
-        dish: { ...dish, nutrition },
-        candidates: r.dishes,
-      });
-      this.setData({
-        checkInDays: result.stats.weeklyCount || 0,
-        weeklyGoal: result.stats.weeklyGoal || 7,
-      });
-      const currentUser = getCurrentUser() || {};
-      getApp().eventBus.emit('meal-checkin-change', {
-        ...result.stats,
-        userId: currentUser.id || '',
-      });
-      const confidence = Math.min(100, Math.max(0, Number(dish.probability) * 100 || 0));
-      const calorieValue = nutrition && nutrition.caloriesPer100g !== null
-        ? nutrition.caloriesPer100g
-        : dish.calorie;
-      const calorieText = calorieValue !== null && calorieValue !== undefined
-        ? `\n参考热量：${calorieValue} 千卡/100克`
-        : '';
-      wx.showModal({
-        title: '打卡成功',
-        content: `今日菜品：${dish.name}\n识别置信度：${confidence.toFixed(1)}%${calorieText}`,
-        showCancel: false,
-        confirmText: '查看记录',
-        success: ({ confirm }) => {
-          if (confirm) this.showCheckInHistory();
-        },
-      });
-    } catch (error) {
-      if (error.code === 'LOGIN_REQUIRED') {
-        wx.navigateTo({ url: '/pages/login/login' });
-      } else {
-        wx.showToast({ title: error.message || '打卡保存失败', icon: 'none' });
-      }
-    } finally {
-      wx.hideLoading();
-    }
+    wx.navigateTo({ url: '/pages/checkins/index?start=1' });
   },
 
   showMore() {

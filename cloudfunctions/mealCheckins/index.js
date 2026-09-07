@@ -104,10 +104,20 @@ function getMealType(date = new Date()) {
 }
 
 function toPublicRecord(record) {
+  const dishes = Array.isArray(record.dishes) && record.dishes.length
+    ? record.dishes
+    : [{
+      name: record.dishName,
+      imageFileId: record.imageFileId,
+      confidence: record.confidence,
+      nutritionAnalysis: record.nutritionAnalysis,
+    }];
   return {
     id: record._id,
     imageFileId: record.imageFileId,
     dishName: record.dishName,
+    dishes,
+    dishCount: dishes.length,
     confidence: record.confidence || 0,
     mealType: record.mealType || 'snack',
     dateKey: record.dateKey || '',
@@ -179,17 +189,27 @@ async function createRecord(event, context, userId) {
     return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录后再进行打卡' };
   }
 
-  const imageFileId = cleanText(event.fileID, 500);
-  const dish = event.dish || {};
-  const dishName = cleanText(dish.name, 50);
-  if (!imageFileId || !/^cloud:\/\//.test(imageFileId)) {
+  const legacyDish = event.dish || {};
+  const submittedItems = Array.isArray(event.items) && event.items.length
+    ? event.items.slice(0, 8)
+    : [{ fileID: event.fileID, dish: legacyDish, candidates: event.candidates }];
+  const items = submittedItems.map((item) => ({
+    fileID: cleanText(item.fileID, 500),
+    dish: item.dish || {},
+    candidates: Array.isArray(item.candidates) ? item.candidates : [],
+  }));
+  if (items.some((item) => !/^cloud:\/\//.test(item.fileID))) {
     return { success: false, code: 'INVALID_IMAGE', message: '打卡图片无效，请重新上传' };
   }
-  if (!dishName) return { success: false, code: 'INVALID_DISH', message: '请确认识别出的菜品名称' };
+  if (items.some((item) => !cleanText(item.dish.name, 50))) {
+    return { success: false, code: 'INVALID_DISH', message: '请确认识别出的菜品名称' };
+  }
+  const imageFileIds = items.map((item) => item.fileID);
+  const dishNames = items.map((item) => cleanText(item.dish.name, 50));
 
   const existingResult = await db.collection(RECORDS_COLLECTION).where({
     userId,
-    imageFileId,
+    imageFileId: imageFileIds[0],
     status: 'active',
   }).limit(1).get();
   if (existingResult.data.length) {
@@ -200,51 +220,61 @@ async function createRecord(event, context, userId) {
       stats: await buildStats(userId),
     };
   }
-  await checkMealImage(imageFileId, userId);
-
-  const nutritionSourceData = event.nutrition || dish.nutrition;
-  const nutrition = nutritionSourceData && typeof nutritionSourceData === 'object' ? nutritionSourceData : {};
-  const nutritionCalorie = cleanCalorie(nutrition.caloriesPer100g);
-  const calorie = nutritionCalorie === null ? cleanCalorie(dish.calorie) : nutritionCalorie;
-  const protein = cleanNutritionValue(nutrition.proteinPer100g);
-  const carbohydrate = cleanNutritionValue(nutrition.carbohydratePer100g);
-  const fat = cleanNutritionValue(nutrition.fatPer100g);
-  const nutritionSource = nutrition.source === 'hunyuan' ? 'hunyuan' : null;
-  let nutritionStatus = 'pending';
-  if (nutritionSource) nutritionStatus = 'estimated';
-  else if (calorie !== null) nutritionStatus = 'partial';
-  const candidates = Array.isArray(event.candidates)
-    ? event.candidates.slice(0, 5).map((item) => ({
-        name: cleanText(item.name, 50),
-        probability: cleanProbability(item.probability),
-        calorie: cleanCalorie(item.calorie),
-      })).filter((item) => item.name)
-    : [];
-  const now = new Date();
-  const addResult = await db.collection(RECORDS_COLLECTION).add({
-    data: {
-      _openid: context.OPENID,
-      userId,
-      imageFileId,
-      dishName,
+  // Validate every uploaded dish image before creating the meal record.
+  // eslint-disable-next-line no-restricted-syntax
+  for (const fileID of imageFileIds) {
+    // eslint-disable-next-line no-await-in-loop
+    await checkMealImage(fileID, userId);
+  }
+  const dishes = items.map((item) => {
+    const dish = item.dish;
+    const nutritionSourceData = dish.nutrition;
+    const nutrition = nutritionSourceData && typeof nutritionSourceData === 'object' ? nutritionSourceData : {};
+    const nutritionCalorie = cleanCalorie(nutrition.caloriesPer100g);
+    const calorie = nutritionCalorie === null ? cleanCalorie(dish.calorie) : nutritionCalorie;
+    const nutritionSource = nutrition.source === 'hunyuan' ? 'hunyuan' : null;
+    return {
+      name: cleanText(dish.name, 50),
+      imageFileId: item.fileID,
       confidence: cleanProbability(dish.probability),
-      recognitionCandidates: candidates,
-      recognitionProvider: 'baidu-dish',
-      mealType: getMealType(now),
-      mealTime: db.serverDate(),
-      dateKey: getDateKey(now),
+      recognitionCandidates: item.candidates.slice(0, 5).map((candidate) => ({
+        name: cleanText(candidate.name, 50),
+        probability: cleanProbability(candidate.probability),
+        calorie: cleanCalorie(candidate.calorie),
+      })).filter((candidate) => candidate.name),
       nutritionAnalysis: {
-        status: nutritionStatus,
+        status: nutritionSource ? 'estimated' : (calorie === null ? 'pending' : 'partial'),
         caloriesPer100g: calorie,
-        protein,
-        carbohydrate,
-        fat,
+        protein: cleanNutritionValue(nutrition.proteinPer100g),
+        carbohydrate: cleanNutritionValue(nutrition.carbohydratePer100g),
+        fat: cleanNutritionValue(nutrition.fatPer100g),
         source: nutritionSource || (calorie === null ? null : 'baidu-dish'),
         sourceFood: cleanText(nutrition.sourceFood, 120),
         servingGrams: cleanNutritionValue(nutrition.servingGrams),
         estimatedCalories: cleanNutritionValue(nutrition.estimatedCalories),
         summary: '',
       },
+    };
+  });
+  const primaryNutrition = dishes[0].nutritionAnalysis;
+  const now = new Date();
+  const addResult = await db.collection(RECORDS_COLLECTION).add({
+    data: {
+      _openid: context.OPENID,
+      userId,
+      imageFileId: imageFileIds[0],
+      imageFileIds,
+      dishes,
+      dishCount: dishes.length,
+      dishName: dishNames.join('、'),
+      confidence: dishes.reduce((total, dish) => total + dish.confidence, 0) / dishes.length,
+      recognitionCandidates: dishes[0].recognitionCandidates,
+      recognitionProvider: 'baidu-dish',
+      mealType: getMealType(now),
+      mealTime: db.serverDate(),
+      dateKey: getDateKey(now),
+      nutritionAnalysis: primaryNutrition,
+      mealDishCount: dishes.length,
       status: 'active',
       createdAt: db.serverDate(),
       updatedAt: db.serverDate(),
@@ -324,9 +354,11 @@ async function deleteRecord(event, userId) {
   await db.collection(RECORDS_COLLECTION).doc(recordId).update({
     data: { status: 'deleted', deletedAt: db.serverDate(), updatedAt: db.serverDate() },
   });
-  if (/^cloud:\/\//.test(record.imageFileId || '')) {
-    await cloud.deleteFile({ fileList: [record.imageFileId] }).catch(() => {});
-  }
+  const imageFileIds = Array.isArray(record.imageFileIds) && record.imageFileIds.length
+    ? record.imageFileIds
+    : [record.imageFileId];
+  const filesToDelete = imageFileIds.filter((fileID) => /^cloud:\/\//.test(fileID || ''));
+  if (filesToDelete.length) await cloud.deleteFile({ fileList: filesToDelete }).catch(() => {});
   const stats = await buildStats(userId);
   await db.collection(USERS_COLLECTION).doc(userId).update({
     data: { checkInCount: stats.totalCount, weeklyCheckIns: stats.weeklyCheckIns, streakDays: stats.streakDays, updatedAt: db.serverDate() },
