@@ -16,11 +16,12 @@ async function callMealCheckins(action, data = {}) {
   return result;
 }
 
-export function createMealCheckin({ fileID, dish, candidates = [] }) {
+export function createMealCheckin({ fileID, dish, candidates = [], items = [] }) {
   return callMealCheckins('create', {
     fileID,
     dish,
     candidates,
+    items,
   });
 }
 

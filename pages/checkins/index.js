@@ -40,6 +40,7 @@ function getValidCalories(value) {
 
 function formatRecord(record) {
   const nutrition = record.nutritionAnalysis || {};
+  const dishes = Array.isArray(record.dishes) && record.dishes.length ? record.dishes : [];
   const calories = getValidCalories(nutrition.caloriesPer100g);
   const estimatedCalories = getValidCalories(nutrition.estimatedCalories);
   const servingGrams = getValidCalories(nutrition.servingGrams);
@@ -57,6 +58,8 @@ function formatRecord(record) {
   }
   return {
     ...record,
+    dishNames: dishes.map((dish) => dish.name).filter(Boolean),
+    dishCount: Number(record.dishCount || dishes.length || 1),
     imageUrl: record.imageUrl || record.imageFileId || record.fileID || '',
     // 日期格式化函数定义在下方，运行时仍会先完成模块初始化。
     // eslint-disable-next-line no-use-before-define
@@ -127,6 +130,9 @@ Page({
     hasMore: true,
     loadingMore: false,
     checkInBusy: false,
+    mealDraft: [],
+    autoStart: false,
+    autoStarted: false,
     stats: {
       totalCount: 0,
       weeklyCount: 0,
@@ -135,7 +141,8 @@ Page({
     },
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    this.setData({ autoStart: options.start === '1' });
     if (!isLoggedIn()) {
       const selectedDateKey = getLocalDateKey();
       this.setData({
@@ -149,7 +156,13 @@ Page({
   },
 
   onShow() {
-    if (isLoggedIn()) this.loadRecords(true);
+    if (isLoggedIn()) {
+      this.loadRecords(true);
+      if (this.data.autoStart && !this.data.autoStarted) {
+        this.setData({ autoStarted: true });
+        setTimeout(() => this.checkIn(), 350);
+      }
+    }
   },
 
   async loadRecords(reset = false) {
@@ -241,8 +254,12 @@ Page({
 
   buildTasteCloud(records) {
     const counts = records.reduce((result, record) => {
-      const name = String(record.dishName || '').trim();
-      if (name) result[name] = (result[name] || 0) + 1;
+      const names = Array.isArray(record.dishNames) && record.dishNames.length
+        ? record.dishNames
+        : [record.dishName];
+      names.map((name) => String(name || '').trim()).filter(Boolean).forEach((name) => {
+        result[name] = (result[name] || 0) + 1;
+      });
       return result;
     }, {});
     const max = Math.max(1, ...Object.values(counts));
@@ -325,6 +342,23 @@ Page({
     this.checkIn();
   },
 
+  async finishMeal() {
+    if (!this.data.mealDraft.length || this.data.checkInBusy) return;
+    this.setData({ checkInBusy: true });
+    wx.showLoading({ title: '保存本餐中…', mask: true });
+    try {
+      await createMealCheckin({ items: this.data.mealDraft });
+      this.setData({ mealDraft: [] });
+      wx.showToast({ title: '已记下一餐', icon: 'success' });
+      await this.loadRecords(true);
+    } catch (error) {
+      wx.showToast({ title: error.message || '保存本餐失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ checkInBusy: false });
+    }
+  },
+
   async checkIn() {
     if (this.data.checkInBusy) return;
     if (!isLoggedIn()) {
@@ -369,13 +403,13 @@ Page({
       } catch (error) {
         // 营养服务不可用时仍使用识别结果完成打卡。
       }
-      await createMealCheckin({
+      const mealDraft = [...this.data.mealDraft, {
         fileID: result.fileID,
         dish: { ...dish, nutrition },
         candidates: result.dishes,
-      });
-      wx.showToast({ title: '已记下一餐', icon: 'success' });
-      await this.loadRecords(true);
+      }];
+      this.setData({ mealDraft });
+      wx.showToast({ title: `已加入本餐（${mealDraft.length} 道菜）`, icon: 'success' });
     } catch (error) {
       wx.showToast({ title: error.message || '打卡保存失败', icon: 'none' });
     } finally {

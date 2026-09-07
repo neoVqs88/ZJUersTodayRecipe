@@ -15,7 +15,7 @@
       <view class="day-records__head"><text>{{selectedDateLabel}}</text><text>{{selectedDayRecords.length}} 餐</text></view>
       <view wx:for="{{selectedDayRecords}}" wx:key="id" class="receipt" data-id="{{item.id}}" bindtap="selectRecord">
         <view class="receipt-bar"></view>
-        <view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text><view class="receipt-actions"><text catchtap="editRecord" data-id="{{item.id}}">修正名称</text><text catchtap="deleteRecord" data-id="{{item.id}}">删除</text></view></view>
+         <view class="receipt-copy"><text>{{item.displayTime}}</text><text>{{item.dishName}}</text><text>{{item.mealLabel}} · {{item.nutritionTitle}}</text><view class="receipt-actions"><text wx:if="{{item.dishCount < 2}}" catchtap="editRecord" data-id="{{item.id}}">修正名称</text><text catchtap="deleteRecord" data-id="{{item.id}}">删除</text></view></view>
         <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" catchtap="previewImage" data-url="{{item.imageUrl}}" />
       </view>
       <view wx:if="{{!selectedDayRecords.length}}" class="receipt empty"><text>这一天还没有被记住的一餐</text><text>选择有菜品缩略图的日期，可以查看当天全部记录。</text></view>
@@ -30,6 +30,11 @@
       <view class="alternate-panel__head"><text>本月味觉云</text><text>{{monthCount}} 餐</text></view>
       <view wx:if="{{tasteCloud.length}}" class="taste-cloud__body"><text wx:for="{{tasteCloud}}" wx:key="name" class="taste-cloud__weight-{{item.weight}}">{{item.name}} · {{item.count}}</text></view>
       <view wx:else class="receipt empty"><text>本月还没有味觉关键词</text><text>上传打卡后，常吃的菜会更醒目。</text></view>
+    </view>
+    <view wx:if="{{mealDraft.length}}" class="meal-draft">
+      <view class="meal-draft__head"><text>正在记录本餐</text><text>{{mealDraft.length}} 道菜</text></view>
+      <view wx:for="{{mealDraft}}" wx:key="fileID" class="meal-draft__item"><text>{{item.dish.name}}</text><text>已识别</text></view>
+      <view class="meal-draft__actions"><view bindtap="checkIn">继续添加菜品</view><view bindtap="finishMeal">完成本餐</view></view>
     </view>
     <view wx:if="{{loadingMore}}" class="history-summary"><text>正在加载更多记录…</text></view>
     <view class="history-summary"><text>本月 {{monthCount}} 餐被记住 · 连续 {{stats.streakDays}} 天</text><view bindtap="goCheckIn">＋ 记一餐</view></view>
