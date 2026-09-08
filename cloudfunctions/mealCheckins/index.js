@@ -227,7 +227,7 @@ async function createRecord(event, context, userId) {
     await checkMealImage(fileID, userId);
   }
   const dishes = items.map((item) => {
-    const dish = item.dish;
+    const {dish} = item;
     const nutritionSourceData = dish.nutrition;
     const nutrition = nutritionSourceData && typeof nutritionSourceData === 'object' ? nutritionSourceData : {};
     const nutritionCalorie = cleanCalorie(nutrition.caloriesPer100g);

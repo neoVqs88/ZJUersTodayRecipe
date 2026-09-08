@@ -221,6 +221,39 @@ function toPublicPost(post, viewerId = '') {
   };
 }
 
+async function resolvePublicPostAssets(posts = []) {
+  const cloudFileIds = [...new Set(posts.flatMap((post) => [
+    post.avatar,
+    post.image,
+    ...(Array.isArray(post.images) ? post.images : []),
+  ]).filter((fileID) => typeof fileID === 'string' && fileID.startsWith('cloud://')))];
+  if (!cloudFileIds.length) return posts;
+
+  const batches = Array.from(
+    { length: Math.ceil(cloudFileIds.length / 50) },
+    (_, index) => cloudFileIds.slice(index * 50, (index + 1) * 50),
+  );
+  const responses = await Promise.all(batches.map((fileList) => cloud.getTempFileURL({ fileList })));
+  const temporaryURLs = {};
+  responses.forEach((response) => {
+    (response.fileList || []).forEach((file) => {
+      const fileID = file.fileID || file.fileId;
+      const temporaryURL = file.tempFileURL || file.url;
+      if (fileID && temporaryURL) temporaryURLs[fileID] = temporaryURL;
+    });
+  });
+
+  return posts.map((post) => {
+    const images = (post.images || []).map((fileID) => temporaryURLs[fileID] || fileID);
+    return {
+      ...post,
+      avatar: temporaryURLs[post.avatar] || post.avatar,
+      images,
+      image: temporaryURLs[post.image] || images[0] || post.image,
+    };
+  });
+}
+
 async function listPublicPosts(event, viewerId = '') {
   const page = Math.max(0, Number(event.page) || 0);
   const pageSize = Math.min(30, Math.max(1, Number(event.pageSize) || 20));
@@ -244,8 +277,9 @@ async function listPublicPosts(event, viewerId = '') {
       break;
     }
   }
+  const posts = visiblePosts.slice(start, end).map((post) => toPublicPost(post, viewerId));
   return {
-    posts: visiblePosts.slice(start, end).map((post) => toPublicPost(post, viewerId)),
+    posts: await resolvePublicPostAssets(posts),
     hasMore: visiblePosts.length > end || !reachedEnd,
   };
 }
@@ -260,7 +294,8 @@ async function getPublicPost(postId, viewerId = '') {
     error.code = 'POST_NOT_FOUND';
     throw error;
   }
-  return toPublicPost(post, viewerId);
+  const [publicPost] = await resolvePublicPostAssets([toPublicPost(post, viewerId)]);
+  return publicPost;
 }
 
 async function getPost(postId) {
@@ -397,8 +432,12 @@ async function listFavorites(openid, page, pageSize) {
   if (!postIds.length) return { posts: [], hasMore: false };
   const posts = await db.collection(POSTS).where({ _id: command.in(postIds) }).get();
   const byId = Object.fromEntries(posts.data.map((post) => [post._id, post]));
+  const favoritePosts = postIds
+    .map((id) => byId[id])
+    .filter(Boolean)
+    .map((post) => toPublicPost(post, userId));
   return {
-    posts: postIds.map((id) => byId[id]).filter(Boolean),
+    posts: await resolvePublicPostAssets(favoritePosts),
     hasMore: result.data.length === safeSize,
   };
 }

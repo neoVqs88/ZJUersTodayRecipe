@@ -171,17 +171,23 @@ Page({
   },
 
   uploadAvatar(filePath) {
-    if (!filePath || /^(cloud|https?):\/\//.test(filePath) || filePath.startsWith('/static/')) {
-      return Promise.resolve(filePath || DEFAULT_AVATAR);
+    const avatarPath = String(filePath || '');
+    const isWechatTempFile = /^(?:wxfile|file):\/\//.test(avatarPath)
+      || /^https?:\/\/(?:tmp|usr)\//.test(avatarPath);
+    const isReusableFile = avatarPath.startsWith('cloud://')
+      || avatarPath.startsWith('/static/')
+      || (/^https?:\/\//.test(avatarPath) && !isWechatTempFile);
+    if (!avatarPath || isReusableFile) {
+      return Promise.resolve(avatarPath || DEFAULT_AVATAR);
     }
     const user = getCurrentUser() || {};
-    const extensionMatch = filePath.match(/\.([a-zA-Z0-9]+)$/);
+    const extensionMatch = avatarPath.match(/\.([a-zA-Z0-9]+)$/);
     const extension = extensionMatch ? extensionMatch[1].toLowerCase() : 'jpg';
     const cloudPath = `user-avatars/${user.id || 'unknown'}/${Date.now()}.${extension}`;
     return new Promise((resolve, reject) => {
       wx.cloud.uploadFile({
         cloudPath,
-        filePath,
+        filePath: avatarPath,
         success: ({ fileID }) => resolve(fileID),
         fail: reject,
       });
@@ -210,12 +216,13 @@ Page({
       });
       this.applyProfile(user);
       getApp().eventBus.emit('user-profile-change', user);
+      wx.hideLoading();
       wx.showToast({ title: '资料已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 500);
     } catch (error) {
+      wx.hideLoading();
       wx.showToast({ title: error.message || '保存失败', icon: 'none' });
     } finally {
-      wx.hideLoading();
       this.setData({ saving: false });
     }
   },
