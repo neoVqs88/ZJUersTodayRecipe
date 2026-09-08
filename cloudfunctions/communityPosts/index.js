@@ -86,27 +86,8 @@ async function requireUser(openid) {
   return { userId, user };
 }
 
-function isRisky(result = {}) {
-  const detail = result.result || result;
-  return detail.suggest === 'risky' || detail.label === 100 || detail.errCode === 87014;
-}
-
-async function checkText(openid, content) {
-  const result = await cloud.openapi.security.msgSecCheck({
-    openid,
-    scene: 2,
-    version: 2,
-    content,
-  });
-  if (isRisky(result)) {
-    const error = new Error('内容可能包含不适宜信息，请修改后再发布');
-    error.code = 'CONTENT_RISKY';
-    throw error;
-  }
-}
-
-async function checkImages(images, userId) {
-  // 图片审核必须逐张执行，避免同时下载大量图片。
+async function validateImages(images, userId) {
+  // 仅校验图片归属、大小和格式；社区内容由管理员人工维护。
   // eslint-disable-next-line no-restricted-syntax
   for (const fileID of images) {
     if (!fileID.includes(`/posts/${userId}/`)) {
@@ -128,15 +109,6 @@ async function checkImages(images, userId) {
     if (!contentType) {
       const error = new Error('帖子图片仅支持 JPG 或 PNG 格式');
       error.code = 'INVALID_IMAGE_TYPE';
-      throw error;
-    }
-    // eslint-disable-next-line no-await-in-loop
-    const result = await cloud.openapi.security.imgSecCheck({
-      media: { contentType, value: file.fileContent },
-    });
-    if (isRisky(result)) {
-      const error = new Error('图片可能包含不适宜内容，请更换后再发布');
-      error.code = 'IMAGE_RISKY';
       throw error;
     }
   }
@@ -164,8 +136,7 @@ async function publish(openid, source = {}) {
     ? Math.max(minParticipants, Math.min(Math.max(Number(source.maxParticipants) || 4, 2), 20))
     : null;
 
-  await checkText(openid, [content, ...tags, location && location.name].filter(Boolean).join(' '));
-  if (images.length) await checkImages(images, userId);
+  if (images.length) await validateImages(images, userId);
 
   const result = await db.collection(POSTS).add({
     data: {
@@ -195,7 +166,7 @@ async function publish(openid, source = {}) {
       collections: 0,
       status: 'published',
       post_status: 'published',
-      reviewStatus: 'approved',
+      reviewStatus: 'unreviewed',
       minParticipants,
       maxParticipants,
       participantCount: category === 'companion' ? 1 : 0,
@@ -250,6 +221,39 @@ function toPublicPost(post, viewerId = '') {
   };
 }
 
+async function resolvePublicPostAssets(posts = []) {
+  const cloudFileIds = [...new Set(posts.flatMap((post) => [
+    post.avatar,
+    post.image,
+    ...(Array.isArray(post.images) ? post.images : []),
+  ]).filter((fileID) => typeof fileID === 'string' && fileID.startsWith('cloud://')))];
+  if (!cloudFileIds.length) return posts;
+
+  const batches = Array.from(
+    { length: Math.ceil(cloudFileIds.length / 50) },
+    (_, index) => cloudFileIds.slice(index * 50, (index + 1) * 50),
+  );
+  const responses = await Promise.all(batches.map((fileList) => cloud.getTempFileURL({ fileList })));
+  const temporaryURLs = {};
+  responses.forEach((response) => {
+    (response.fileList || []).forEach((file) => {
+      const fileID = file.fileID || file.fileId;
+      const temporaryURL = file.tempFileURL || file.url;
+      if (fileID && temporaryURL) temporaryURLs[fileID] = temporaryURL;
+    });
+  });
+
+  return posts.map((post) => {
+    const images = (post.images || []).map((fileID) => temporaryURLs[fileID] || fileID);
+    return {
+      ...post,
+      avatar: temporaryURLs[post.avatar] || post.avatar,
+      images,
+      image: temporaryURLs[post.image] || images[0] || post.image,
+    };
+  });
+}
+
 async function listPublicPosts(event, viewerId = '') {
   const page = Math.max(0, Number(event.page) || 0);
   const pageSize = Math.min(30, Math.max(1, Number(event.pageSize) || 20));
@@ -273,8 +277,9 @@ async function listPublicPosts(event, viewerId = '') {
       break;
     }
   }
+  const posts = visiblePosts.slice(start, end).map((post) => toPublicPost(post, viewerId));
   return {
-    posts: visiblePosts.slice(start, end).map((post) => toPublicPost(post, viewerId)),
+    posts: await resolvePublicPostAssets(posts),
     hasMore: visiblePosts.length > end || !reachedEnd,
   };
 }
@@ -289,7 +294,8 @@ async function getPublicPost(postId, viewerId = '') {
     error.code = 'POST_NOT_FOUND';
     throw error;
   }
-  return toPublicPost(post, viewerId);
+  const [publicPost] = await resolvePublicPostAssets([toPublicPost(post, viewerId)]);
+  return publicPost;
 }
 
 async function getPost(postId) {
@@ -426,8 +432,12 @@ async function listFavorites(openid, page, pageSize) {
   if (!postIds.length) return { posts: [], hasMore: false };
   const posts = await db.collection(POSTS).where({ _id: command.in(postIds) }).get();
   const byId = Object.fromEntries(posts.data.map((post) => [post._id, post]));
+  const favoritePosts = postIds
+    .map((id) => byId[id])
+    .filter(Boolean)
+    .map((post) => toPublicPost(post, userId));
   return {
-    posts: postIds.map((id) => byId[id]).filter(Boolean),
+    posts: await resolvePublicPostAssets(favoritePosts),
     hasMore: result.data.length === safeSize,
   };
 }
@@ -441,7 +451,6 @@ async function submitFeedback(openid, content, contact, images = []) {
     error.code = 'INVALID_FEEDBACK';
     throw error;
   }
-  await checkText(openid, normalizedContent);
   const normalizedImages = Array.isArray(images)
     ? images.filter((image) => typeof image === 'string' && /^cloud:\/\//.test(image)).slice(0, 4)
     : [];

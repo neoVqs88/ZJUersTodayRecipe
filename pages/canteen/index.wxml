@@ -2,7 +2,7 @@
   <scroll-view class="canteen-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="page-head"><text class="page-head__title">食堂与窗口</text><text class="page-head__desc">沿着校园的气味，找一顿刚刚好的饭。</text></view>
     <view class="search-box" bindtap="goSearch"><text>搜索食堂、菜名或一种念头…</text></view>
-    <scroll-view class="quick-chips" scroll-x show-scrollbar="{{false}}"><view wx:for="{{filters}}" wx:key="*this" class="{{activeFilter === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectFilter">{{index === 0 ? '⌾' : index === 4 ? '◷' : '♙'}} {{item}}</view></scroll-view>
+    <view class="quick-chips"><view wx:for="{{filters}}" wx:key="*this" class="quick-chip {{activeFilter === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectFilter">{{index === 0 ? '⌾' : index === 4 ? '◷' : '♙'}} {{item}}</view></view>
     <view class="map-card" bindtap="openCampusMap"><image src="/static/map/zju-yuquan-3d-cartoon-demo.jpg" mode="aspectFill"/><view class="map-caption"><text>开饭地图</text><text>玉泉校区 · 点击查看</text></view></view>
      <view class="section-title"><text>此刻值得去</text><text bindtap="openRanking">热门菜品榜 →</text></view>
      <view class="eatery-list"><view class="eatery-item" wx:for="{{eateries}}" wx:key="id" data-index="{{index}}" bindtap="openEatery"><view class="eatery-item__head"><text>{{item.name}}</text><text class="eatery-item__status">{{item.open === false ? '已打烊' : item.wait}}</text></view><text class="eatery-item__subtitle">{{item.subtitle}}</text><view class="window-list"><text wx:for="{{item.windows}}" wx:key="*this" class="window-chip">{{item}}</text><text wx:if="{{!item.windows.length}}" class="window-chip window-chip--muted">窗口信息待更新</text></view></view></view>

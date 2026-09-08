@@ -29,7 +29,7 @@ npm test
 - `mealCheckins`：三餐打卡查询、编辑和删除
 - `weeklyInsights`：每周饮食统计
 
-修改云函数后，需要在微信开发者工具中逐个执行“上传并部署：云端安装依赖”。其中 `communityPosts` 与 `communityComments` 使用微信内容安全接口，请保留各自 `config.json` 中的 OpenAPI 权限。
+修改云函数后，需要在微信开发者工具中逐个执行“上传并部署：云端安装依赖”。发帖内容由管理员通过举报与管理后台人工维护；`communityComments` 仍使用微信内容安全接口，请保留其 `config.json` 中的 OpenAPI 权限。
 
 ## 云数据库
 

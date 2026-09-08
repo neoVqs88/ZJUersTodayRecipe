@@ -40,7 +40,7 @@ function cleanText(value, maxLength) {
 
 function isRisky(result = {}) {
   const detail = result.result || result;
-  return detail.suggest === 'risky' || detail.label === 100 || detail.errCode === 87014;
+  return detail.suggest === 'risky' || detail.errCode === 87014;
 }
 
 async function checkProfileContent(openid, profile) {
@@ -61,7 +61,7 @@ async function checkProfileContent(openid, profile) {
   }
 }
 
-async function checkProfileImage(userId, nextImage, currentImage) {
+async function validateProfileImage(userId, nextImage, currentImage) {
   if (!nextImage || nextImage === currentImage || nextImage.startsWith('/static/')) return;
   if (!nextImage.startsWith('cloud://') || !nextImage.includes(`/user-avatars/${userId}/`)) {
     const error = new Error('头像文件无效，请重新选择');
@@ -81,14 +81,6 @@ async function checkProfileImage(userId, nextImage, currentImage) {
   if (!contentType) {
     const error = new Error('头像仅支持 JPG 或 PNG 格式');
     error.code = 'INVALID_AVATAR';
-    throw error;
-  }
-  const result = await cloud.openapi.security.imgSecCheck({
-    media: { contentType, value: file.fileContent },
-  });
-  if (isRisky(result)) {
-    const error = new Error('头像可能包含不适宜内容，请更换后重试');
-    error.code = 'IMAGE_RISKY';
     throw error;
   }
 }
@@ -508,15 +500,14 @@ async function getPublicProfile(event, currentUserId) {
   };
 }
 
-async function updateProfile(event, currentUserId, openid) {
+async function updateProfile(event, currentUserId) {
   const existingUser = await readUser(currentUserId);
   if (!existingUser || existingUser.status !== 'active') {
     return { success: false, code: 'LOGIN_REQUIRED', message: '请先登录后再编辑资料' };
   }
   const updates = getEditableProfile(event.profile);
   if (!updates.name) return { success: false, code: 'INVALID_NAME', message: '昵称不能为空' };
-  await checkProfileContent(openid, updates);
-  await checkProfileImage(currentUserId, updates.image, existingUser.image);
+  await validateProfileImage(currentUserId, updates.image, existingUser.image);
 
   await db.collection(USERS_COLLECTION).doc(currentUserId).update({
     data: {
@@ -541,7 +532,7 @@ exports.main = async (event = {}) => {
     if (event.action === 'deleteAccount') return await deleteAccount(event, context, userId);
     if (event.action === 'reactivateAccount') return await reactivateAccount(event, userId, context.OPENID);
     if (event.action === 'getProfile') return await getPublicProfile(event, userId);
-    if (event.action === 'updateProfile') return await updateProfile(event, userId, context.OPENID);
+    if (event.action === 'updateProfile') return await updateProfile(event, userId);
 
     const userRef = db.collection(USERS_COLLECTION).doc(userId);
     const existingUser = await readUser(userId);

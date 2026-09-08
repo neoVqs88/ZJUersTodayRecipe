@@ -4,7 +4,6 @@
     <view class="page-head">
       <view class="back" bindtap="goBack">‹</view>
       <view class="head-copy"><text>编辑资料</text><text>WHAT OTHERS MAY SEE</text></view>
-      <view class="head-save" bindtap="saveProfile">{{saving ? '保存中' : '保存'}}</view>
     </view>
     <view class="avatar-editor">
       <view class="avatar-button" bindtap="chooseAvatarFromDevice"><image src="{{profile.image}}" mode="aspectFill"/><view class="camera">＋</view></view>
