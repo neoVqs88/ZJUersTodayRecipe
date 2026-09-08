@@ -1,12 +1,12 @@
 import { askDietAssistant } from '~/services/dietAssistant';
 
-const SUGGESTIONS = ['这顿饭怎样搭配更均衡？', '蛋白质、碳水和脂肪分别有什么作用？', '食堂打饭如何控制热量？'];
+const SUGGESTIONS = ['饭团，我最近一周的饮食情况怎么样？', '饭团，帮我安排一顿玉泉校区的均衡午饭。', '饭团，玉泉食堂 15 元内怎么吃？'];
 
 Page({
   data: {
     input: '',
     sending: false,
-    messages: [{ role: 'assistant', content: '你好，我是饮食健康助手。可以问我营养搭配、热量和食品安全问题。' }],
+    messages: [{ role: 'assistant', content: '你好，我是饭团，浙大玉泉校区的饮食 AI 助手。可以问我食堂、档口、营养搭配、热量和食品安全问题。' }],
     suggestions: SUGGESTIONS,
   },
 
@@ -25,7 +25,8 @@ Page({
   async sendMessage(value = this.data.input) {
     const message = typeof value === 'string' ? value.trim() : '';
     if (!message || this.data.sending) return;
-    const history = this.data.messages.slice(-6);
+    // 不回传旧的 AI 答复，避免把思考过程带入下一轮，也能减少 Token。
+    const history = this.data.messages.filter((item) => item.role === 'user').slice(-3);
     this.setData({
       input: '',
       sending: true,
