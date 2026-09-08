@@ -29,6 +29,12 @@ function getHomeImage(dish, fallbackIndex = 0) {
     : image || DEFAULT_IMAGE;
 }
 
+function getDishDisplayLabel(dish) {
+  const canteen = String(dish.canteen || dish.place || '').trim();
+  const stall = String(dish.place || '').replace(`${canteen} · `, '').trim();
+  return [canteen, stall !== canteen ? stall : '', dish.name].filter(Boolean).join(' · ');
+}
+
 function getMealPeriod(date = new Date()) {
   const hour = date.getHours();
   if (hour >= 6 && hour < 11) return { label: '早餐', description: '让早饭像抽一张温柔又古怪的签。' };
@@ -45,6 +51,7 @@ function buildTicket(dish, selectedLabels = []) {
     : Math.min(99, Math.max(70, Math.round((Number(dish.score) || 4) / 5 * 100)));
   return {
     ...dish,
+    displayLabel: getDishDisplayLabel(dish),
     campus: dish.canteen || dish.campus,
     time: '12:20',
     note: dish.desc || `${dish.canteen || '玉泉校区'} · 今天也要好好吃饭。`,
@@ -99,6 +106,7 @@ Page({
     ],
     activeTicket: {
       name: '桂花糖藕',
+      displayLabel: '玉泉五食堂 · 甜品档 · 桂花糖藕',
       campus: '玉泉',
       time: '12:20',
       note: '江南的甜，适合今天这场小雨。',
