@@ -78,12 +78,19 @@ async function getAccessToken() {
     return tokenCache.value;
   }
   const res = await axios.get('https://aip.baidubce.com/oauth/2.0/token', {
+    timeout: 15000,
     params: {
       grant_type: 'client_credentials',
       client_id: API_KEY,
       client_secret: SECRET_KEY,
     },
   });
+  if (!res.data || !res.data.access_token) {
+    const error = new Error('百度鉴权失败');
+    error.code = 'BAIDU_AUTH_FAILED';
+    error.publicMessage = '百度识别服务鉴权失败，请检查 API Key 和 Secret Key';
+    throw error;
+  }
   tokenCache = {
     value: res.data.access_token,
     expireAt: Date.now() + 25 * 24 * 3600 * 1000, // 保守起见只缓存 25 天
@@ -92,9 +99,11 @@ async function getAccessToken() {
 }
 
 exports.main = async (event = {}) => {
+  let stage = 'auth';
   try {
     const context = cloud.getWXContext();
     const userId = await requireActiveUserAndConsumeQuota(context.OPENID);
+    stage = 'config';
     if (!API_KEY || !SECRET_KEY) {
       return { success: false, code: 'RECOGNITION_NOT_CONFIGURED', message: '菜品识别服务尚未配置' };
     }
@@ -107,6 +116,7 @@ exports.main = async (event = {}) => {
     }
 
     // 1. 从云存储下载图片，转成 base64
+    stage = 'download';
     const file = await cloud.downloadFile({ fileID });
     if (!file.fileContent || !file.fileContent.length || file.fileContent.length > MAX_IMAGE_BYTES) {
       return { success: false, code: 'INVALID_IMAGE_SIZE', message: '图片大小无效，请选择 5MB 以内的图片' };
@@ -116,6 +126,7 @@ exports.main = async (event = {}) => {
     if (header.startsWith('89504e47')) contentType = 'image/png';
     else if (header.startsWith('ffd8')) contentType = 'image/jpeg';
     if (!contentType) return { success: false, code: 'INVALID_IMAGE_TYPE', message: '仅支持 JPG 或 PNG 图片' };
+    stage = 'image_security';
     const securityResult = await cloud.openapi.security.imgSecCheck({
       media: { contentType, value: file.fileContent },
     });
@@ -125,12 +136,17 @@ exports.main = async (event = {}) => {
     const imageBase64 = file.fileContent.toString('base64');
 
     // 2. 调用百度菜品识别接口
+    stage = 'baidu_token';
     const token = await getAccessToken();
+    stage = 'baidu_dish';
     const url = `https://aip.baidubce.com/rest/2.0/image-classify/v2/dish?access_token=${token}`;
     const res = await axios.post(
       url,
       `image=${encodeURIComponent(imageBase64)}&top_num=5`,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      {
+        timeout: 30000,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }
     );
 
     if (res.data.error_code) {
@@ -147,11 +163,21 @@ exports.main = async (event = {}) => {
       })),
     };
   } catch (err) {
-    console.error('recognizeDish failed', err && err.code, err && err.message);
+    const responseData = err && err.response && err.response.data;
+    console.error('recognizeDish failed', {
+      stage,
+      code: err && err.code,
+      message: err && err.message,
+      response: responseData,
+    });
+    const message = err.publicMessage
+      || (responseData && responseData.error_description && `百度鉴权失败：${responseData.error_description}`)
+      || (err.code === 'ECONNABORTED' ? '百度识别服务响应超时，请稍后重试' : '百度识别服务请求失败，请稍后重试');
     return {
       success: false,
-      code: err.code || 'RECOGNITION_FAILED',
-      message: ['LOGIN_REQUIRED', 'RATE_LIMITED'].includes(err.code) ? err.message : '菜品识别暂时不可用，请稍后再试',
+      code: err.code || `RECOGNITION_${stage.toUpperCase()}`,
+      stage,
+      message: ['LOGIN_REQUIRED', 'RATE_LIMITED'].includes(err.code) ? err.message : `${message}（阶段：${stage}）`,
     };
   }
 };

@@ -370,11 +370,27 @@ Page({
     try {
       result = await recognizeDish();
     } catch (error) {
+      const message = error.errMsg || error.message || '';
+      if (!/cancel/i.test(message)) {
+        console.error('菜品识别失败', error);
+        wx.showModal({
+          title: '识别失败',
+          content: message || '识别失败，请重试',
+          showCancel: false,
+          confirmText: '知道了',
+        });
+      }
       this.setData({ checkInBusy: false });
       return;
     }
     if (!result.success || !Array.isArray(result.dishes) || !result.dishes.length) {
-      wx.showToast({ title: result.message || '识别失败，请重试', icon: 'none' });
+      console.error('菜品识别返回失败', result);
+      wx.showModal({
+        title: '识别失败',
+        content: result.message || '识别失败，请重试',
+        showCancel: false,
+        confirmText: '知道了',
+      });
       this.setData({ checkInBusy: false });
       return;
     }
